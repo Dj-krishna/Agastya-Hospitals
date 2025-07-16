@@ -96,18 +96,45 @@ hr {
   padding: 2rem;
 }
 
-/* Glassmorphism Login Styles */
+.sidebar-scroll {
+  overflow-y: auto;
+  max-height: 85vh;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+  display: none;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #888; /* grey */
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #f0f0f0; /* light grey */
+  border-radius: 4px;
+}
+
+/* For Firefox */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f0f0f0;
+}
+
+/* Login Page Styles */
 .login-bg {
-  /* min-height: 100vh; */
-  /* background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); */
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
+  animation: gradientMove 8s ease-in-out infinite alternate;
   position: relative;
   overflow: hidden;
 }
 
 .glass-card {
+  min-width: 340px;
   background: rgba(255, 255, 255, 0.18);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   backdrop-filter: blur(12px);
@@ -116,9 +143,24 @@ hr {
   border: 1px solid rgba(255, 255, 255, 0.25);
   transition: box-shadow 0.3s;
 }
-
 .glass-card:hover {
   box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.45);
+}
+
+.login-title {
+  color: #333;
+  letter-spacing: 1px;
+}
+
+.login-input {
+  background: rgba(255,255,255,0.7) !important;
+  border: none !important;
+  padding-left: 20px !important;
+}
+
+.login-btn {
+  letter-spacing: 1px;
+  font-size: 18px;
 }
 
 @media (max-width: 480px) {
@@ -129,10 +171,6 @@ hr {
 }
 
 /* Optional: Animate background gradient */
-.login-bg {
-  animation: gradientMove 8s ease-in-out infinite alternate;
-}
-
 @keyframes gradientMove {
   0% {
     background-position: 0% 50%;
