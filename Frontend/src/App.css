@@ -40,3 +40,104 @@
 .read-the-docs {
   color: #888;
 }
+
+.sidebar {
+  min-width: 250px;
+  max-width: 280px;
+  background: #fff;
+  border-right: 1px solid #f0f0f0;
+  box-shadow: 0 0 8px 0 rgba(0,0,0,0.02);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 1040;
+}
+.sidebar-header {
+  height: 64px;
+  background: #fff;
+}
+.sidebar-section {
+  margin-bottom: 1.5rem;
+}
+.sidebar-link {
+  color: #5a5a5a !important;
+  font-weight: 500;
+  font-size: 1rem;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 0.25rem;
+  transition: background 0.2s, color 0.2s;
+}
+.sidebar-link .me-2 {
+  font-size: 1.2em;
+  opacity: 0.8;
+}
+.sidebar-link .badge {
+  font-size: 0.75em;
+  font-weight: 600;
+  padding: 0.3em 0.7em;
+  border-radius: 12px;
+}
+.sidebar-link:hover, .sidebar-link:focus, .sidebar-link.active {
+  background: #f5f6fa !important;
+  color: #2a2a2a !important;
+}
+.sidebar-section .text-secondary {
+  color: #7b7b93 !important;
+  letter-spacing: 0.05em;
+}
+hr {
+  border-top: 1px solid #f0f0f0;
+}
+
+.main-content {
+  margin-left: 250px;
+  padding: 2rem;
+}
+
+/* Glassmorphism Login Styles */
+.login-bg {
+  /* min-height: 100vh; */
+  /* background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  transition: box-shadow 0.3s;
+}
+
+.glass-card:hover {
+  box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.45);
+}
+
+@media (max-width: 480px) {
+  .glass-card {
+    min-width: 90vw;
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+/* Optional: Animate background gradient */
+.login-bg {
+  animation: gradientMove 8s ease-in-out infinite alternate;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
