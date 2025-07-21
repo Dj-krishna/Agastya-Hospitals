@@ -1,5 +1,8 @@
-import React from 'react';
+import React from "react";
+import PageHeader from "./common/PageHeader";
 
-const Technologies = () => <div style={{padding: '2rem'}}><h2>Technologies</h2><p>This is the Technologies page.</p></div>;
+const Technologies = () => {
+  return <PageHeader title="Technologies" />;
+};
 
-export default Technologies; 
+export default Technologies;

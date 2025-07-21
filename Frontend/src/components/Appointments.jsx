@@ -1,5 +1,8 @@
-import React from 'react';
+import React from "react";
+import PageHeader from "./common/PageHeader";
 
-const Appointments = () => <div style={{padding: '2rem'}}><h2>Appointments</h2><p>This is the Appointments page.</p></div>;
+const Appointments = () => {
+  return <PageHeader title="Appointments" />;
+};
 
-export default Appointments; 
+export default Appointments;

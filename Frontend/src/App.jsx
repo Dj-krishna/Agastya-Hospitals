@@ -7,11 +7,11 @@ import {
 import { useState } from "react";
 import "./App.css";
 import MainApp from "./components/MainApp";
-import Login from "./components/Login";
+import Login from "./components/Login/Login";
 import PrivateRoute from "./components/PrivateRoute";
 import Dashboard from "./components/Dashboard";
 import Doctors from "./components/Doctors";
-import Specialities from "./components/Specialities";
+import Specialities from "./components/Specialities/Specialities";
 import Departments from "./components/Departments";
 import Technologies from "./components/Technologies";
 import Appointments from "./components/Appointments";
@@ -22,7 +22,6 @@ import Blog from "./components/Blog";
 import Cms from "./components/Cms";
 import RolesPermissions from "./components/RolesPermissions";
 import Settings from "./components/Settings";
-// import Logout from './components/Logout'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -1,4 +1,4 @@
-import { Container, Row, Col, Nav } from "react-bootstrap";
+import { Row, Col, Nav, Container } from "react-bootstrap";
 import {
   FaHome,
   FaThLarge,
@@ -14,143 +14,214 @@ import {
   FaCalendarAlt,
   FaShareAlt,
   FaRegCheckCircle,
+  FaBell,
 } from "react-icons/fa";
 import { BsGrid } from "react-icons/bs";
 import { Outlet, Link } from "react-router-dom";
+import { useState } from "react";
+import SearchInput from "./common/SearchInput";
 
 // Accept onLogout as a prop
 function MainApp({ onLogout }) {
+  const [tabActive, setTabActive] = useState("Dashboard");
+  const [searchInput, setSearchInput] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const handleTabClick = (tab) => {
+    setTabActive(tab);
+  };
+  
   return (
-    <Container fluid>
-      <Row>
-        <Col xs={2} className="sidebar bg-white min-vh-100 p-0 border-end">
-          <div className="sidebar-header d-flex align-items-center p-3 border-bottom">
-            {/* <img src="https://img.icons8.com/color/48/000000/c.png" alt="Logo" style={{ width: 36, height: 36, marginRight: 8 }} /> */}
-            <span className="fs-5 fw-bold">Agastya Hospitals</span>
-            <BsGrid className="ms-auto fs-4" />
-          </div>
-          <div className="sidebar-section px-3 mt-4 sidebar-scroll">
-            <Nav className="flex-column">
-              <Nav.Link
-                as={Link}
-                to="/dashboard"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaHome className="me-2" />
-                Dashboard
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/doctors"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaThLarge className="me-2" />
-                Doctors
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/specialities"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaFolderOpen className="me-2" />
-                Specialities
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/departments"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaFileAlt className="me-2" />
-                Departments
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/technologies"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaShoppingCart className="me-2" />
-                Technologies
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/appointments"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaEnvelope className="me-2" />
-                Appointments
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/patients"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaComments className="me-2" />
-                Patients
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/health-packages"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaUsers className="me-2" />
-                Health Packages
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/enquiries"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaRegBookmark className="me-2" />
-                Enquiries
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/blog"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaPhone className="me-2" />
-                Blog
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/cms"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaTasks className="me-2" />
-                CMS
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/roles-permissions"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaCalendarAlt className="me-2" />
-                Roles & Permissions
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                to="/settings"
-                className="d-flex align-items-center sidebar-link"
-              >
-                <FaShareAlt className="me-2" />
-                Settings
-              </Nav.Link>
-              {/* Logout menu option: call onLogout on click */}
-              <Nav.Link
-                className="d-flex align-items-center sidebar-link"
-                onClick={onLogout}
-                style={{ cursor: 'pointer' }}
-              >
-                <FaRegCheckCircle className="me-2" />
-                Logout
-              </Nav.Link>
-            </Nav>
-          </div>
-        </Col>
-        <Col xs={10} className="main-content">
-          <Outlet />
-        </Col>
-      </Row>
+    <Container fluid className="d-flex">
+      <div className={`sidebar bg-white min-vh-100 p-0 border-end${sidebarOpen ? "" : " collapsed"}`}>
+        <div className="sidebar-header d-flex align-items-center p-3 border-bottom">
+          <span
+            className={`fs-5 fw-bold sidebar-title ${sidebarOpen ? "show" : ""}`}
+            style={{
+              transition: "opacity 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1)",
+              opacity: sidebarOpen ? 1 : 0,
+              maxWidth: sidebarOpen ? "200px" : "0px",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+              display: "inline-block"
+            }}
+          >
+            Agastya Hospitals
+          </span>
+          <BsGrid
+            className="ms-auto fs-4"
+            style={{ cursor: "pointer" }}
+            onClick={() => setSidebarOpen((open) => !open)}
+          />
+        </div>
+        <div className="sidebar-section px-3 mt-2 sidebar-scroll">
+          <Nav className="flex-column">
+            <Nav.Link
+              as={Link}
+              to="/dashboard"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Dashboard" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Dashboard")}
+            >
+              <FaHome className="me-2" />
+              {sidebarOpen && "Dashboard"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/doctors"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Doctors" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Doctors")}
+            >
+              <FaThLarge className="me-2" />
+              {sidebarOpen && "Doctors"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/specialities"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Specialities" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Specialities")}
+            >
+              <FaFolderOpen className="me-2" />
+              {sidebarOpen && "Specialities"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/departments"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Departments" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Departments")}
+            >
+              <FaFileAlt className="me-2" />
+              {sidebarOpen && "Departments"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/technologies"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Technologies" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Technologies")}
+            >
+              <FaShoppingCart className="me-2" />
+              {sidebarOpen && "Technologies"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/appointments"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Appointments" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Appointments")}
+            >
+              <FaEnvelope className="me-2" />
+              {sidebarOpen && "Appointments"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/patients"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Patients" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Patients")}
+            >
+              <FaComments className="me-2" />
+              {sidebarOpen && "Patients"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/health-packages"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Health Packages" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Health Packages")}
+            >
+              <FaUsers className="me-2" />
+              {sidebarOpen && "Health Packages"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/enquiries"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Enquiries" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Enquiries")}
+            >
+              <FaRegBookmark className="me-2" />
+              {sidebarOpen && "Enquiries"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/blog"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Blog" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Blog")}
+            >
+              <FaPhone className="me-2" />
+              {sidebarOpen && "Blog"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/cms"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "CMS" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("CMS")}
+            >
+              <FaTasks className="me-2" />
+              {sidebarOpen && "CMS"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/roles-permissions"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Roles & Permissions" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Roles & Permissions")}
+            >
+              <FaCalendarAlt className="me-2" />
+              {sidebarOpen && "Roles"}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              to="/settings"
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Settings" ? "active" : ""
+              }`}
+              onClick={() => handleTabClick("Settings")}
+            >
+              <FaShareAlt className="me-2" />
+              {sidebarOpen && "Settings"}
+            </Nav.Link>
+            {/* Logout menu option: call onLogout on click */}
+            <Nav.Link
+              className={`d-flex align-items-center sidebar-link ${
+                tabActive === "Logout" ? "active" : ""
+              }`}
+              onClick={() => {
+                handleTabClick("Logout");
+                onLogout();
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <FaRegCheckCircle className="me-2" />
+              {sidebarOpen && "Logout"}
+            </Nav.Link>
+          </Nav>
+        </div>
+      </div>
+      <div className={`main-content-container ${sidebarOpen ? "collapsed" : "expanded"}`}>
+        <SearchInput
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+        />
+        <Outlet />
+      </div>
     </Container>
   );
 }

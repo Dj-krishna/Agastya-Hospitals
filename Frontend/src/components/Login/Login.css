@@ -1,0 +1,117 @@
+.login-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.glass-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+  border: none;
+  max-width: 430px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-title {
+  color: #222;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login-subtitle {
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 1.5rem;
+}
+
+.login-input {
+  background: #f5f4ff !important;
+  border: 1px solid #ecebff !important;
+  border-radius: 8px !important;
+  font-size: 1rem;
+  padding: 0.75rem 1rem !important;
+  margin-bottom: 0.25rem;
+}
+
+.login-btn {
+  background: #7c5cff !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 0.7rem 0;
+  transition: background 0.2s;
+}
+.login-btn:hover {
+  background: #6a4be7 !important;
+}
+
+.login-show-btn {
+  color: #7c5cff !important;
+  font-size: 0.95rem !important;
+  font-weight: 500;
+  padding-right: 1rem !important;
+}
+
+.login-link-forgot {
+  color: #7c5cff !important;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.login-link-forgot:hover {
+  text-decoration: underline !important;
+}
+
+.login-or-label {
+  color: #333;
+  font-size: 1rem;
+}
+
+.login-or-divider {
+  border-color: #eee !important;
+  margin-left: 0.5rem;
+}
+
+.social-btn {
+  border-radius: 8px !important;
+  font-weight: 500;
+  font-size: 1rem;
+  background: #f8f9ff !important;
+  border: 1px solid #eee !important;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.5rem;
+}
+
+.social-btn i {
+  font-size: 1.2rem;
+}
+
+.login-bottom-text {
+  font-size: 1rem;
+  color: #888 !important;
+  margin-top: 0.5rem;
+}
+
+.login-link-create {
+  color: #7c5cff !important;
+  font-weight: 500;
+}
+
+.login-link-create:hover {
+  text-decoration: underline !important;
+}
+
+@media (max-width: 600px) {
+  .glass-card {
+    padding: 1.5rem 0.5rem;
+    min-width: 90vw;
+  }
+}

@@ -1,10 +1,8 @@
 import React from "react";
+import PageHeader from "./common/PageHeader";
 
-const Departments = () => (
-  <div style={{ padding: "2rem" }}>
-    <h2>Departments</h2>
-    <p>This is the Departments page.</p>
-  </div>
-);
+const Departments = () => {
+  return <PageHeader title="Departments" />;
+};
 
 export default Departments;

@@ -1,5 +1,8 @@
-import React from 'react';
+import React from "react";
+import PageHeader from "./common/PageHeader";
 
-const Blog = () => <div style={{padding: '2rem'}}><h2>Blog</h2><p>This is the Blog page.</p></div>;
+const Blog = () => {
+  return <PageHeader title="Blog" />;
+};
 
-export default Blog; 
+export default Blog;

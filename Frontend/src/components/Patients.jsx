@@ -1,5 +1,8 @@
-import React from 'react';
+import React from "react";
+import PageHeader from "./common/PageHeader";
 
-const Patients = () => <div style={{padding: '2rem'}}><h2>Patients</h2><p>This is the Patients page.</p></div>;
+const Patients = () => {
+  return <PageHeader title="Patients" />;
+};
 
-export default Patients; 
+export default Patients;

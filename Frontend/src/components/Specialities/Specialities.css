@@ -1,0 +1,16 @@
+.specialities-container {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.specialities-container h3 {
+  margin-top: 0.5rem;
+  margin-left: 0.5rem;
+  text-align: left;
+}

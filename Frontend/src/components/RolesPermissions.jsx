@@ -1,5 +1,8 @@
 import React from 'react';
+import PageHeader from './common/PageHeader';
 
-const RolesPermissions = () => <div style={{padding: '2rem'}}><h2>Roles & Permissions</h2><p>This is the Roles & Permissions page.</p></div>;
+const RolesPermissions = () => {
+  return <PageHeader title="Roles & Permissions" />;
+};
 
-export default RolesPermissions; 
+export default RolesPermissions;
