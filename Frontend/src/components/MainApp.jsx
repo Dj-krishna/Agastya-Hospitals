@@ -20,12 +20,14 @@ import { BsGrid } from "react-icons/bs";
 import { Outlet, Link } from "react-router-dom";
 import { useState } from "react";
 import SearchInput from "./common/SearchInput";
+import { useDispatch } from "react-redux";
+import { logout } from "../slices/authSlice";
 
-// Accept onLogout as a prop
-function MainApp({ onLogout }) {
+function MainApp() {
   const [tabActive, setTabActive] = useState("Dashboard");
   const [searchInput, setSearchInput] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const dispatch = useDispatch();
   const handleTabClick = (tab) => {
     setTabActive(tab);
   };
@@ -205,7 +207,7 @@ function MainApp({ onLogout }) {
               }`}
               onClick={() => {
                 handleTabClick("Logout");
-                onLogout();
+                dispatch(logout());
               }}
               style={{ cursor: "pointer" }}
             >

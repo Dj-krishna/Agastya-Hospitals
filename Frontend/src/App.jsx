@@ -1,34 +1,39 @@
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import { useState } from "react";
 import "./App.css";
 import MainApp from "./components/MainApp";
 import Login from "./components/Login/Login";
 import PrivateRoute from "./components/PrivateRoute";
-import Dashboard from "./components/Dashboard";
-import Doctors from "./components/Doctors";
-import Specialities from "./components/Specialities/Specialities";
-import Departments from "./components/Departments";
-import Technologies from "./components/Technologies";
-import Appointments from "./components/Appointments";
-import Patients from "./components/Patients";
-import HealthPackages from "./components/HealthPackages";
-import Enquiries from "./components/Enquiries";
-import Blog from "./components/Blog";
-import Cms from "./components/Cms";
-import RolesPermissions from "./components/RolesPermissions";
-import Settings from "./components/Settings";
+import Dashboard from "./components/pages/Dashboard";
+import Doctors from "./components/pages/Doctors/Doctors";
+import Specialities from "./components/pages/Specialities/Specialities";
+import Departments from "./components/pages/Departments";
+import Technologies from "./components/pages/Technologies";
+import Appointments from "./components/pages/Appointments";
+import Patients from "./components/pages/Patients";
+import HealthPackages from "./components/pages/HealthPackages";
+import Enquiries from "./components/pages/Enquiries";
+import Blog from "./components/pages/Blog";
+import Cms from "./components/pages/Cms";
+import RolesPermissions from "./components/pages/RolesPermissions";
+import Settings from "./components/pages/Settings";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "./slices/authSlice";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { loading, error, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
 
-  // handleLogout function to pass to MainApp
+  const dispatch = useDispatch();
+
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    dispatch(logout());
     window.location.href = "/login";
   };
 
@@ -37,7 +42,7 @@ function App() {
       <Routes>
         <Route
           path="/login"
-          element={<Login onLogin={() => setIsAuthenticated(true)} />}
+          element={<Login />}
         />
         {/* <Route path="/" element={<Navigate to="/dashboard" replace />} /> */}
         <Route
