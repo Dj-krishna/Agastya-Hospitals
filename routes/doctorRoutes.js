@@ -27,8 +27,8 @@ router.put('/bulk-update', doctorController.bulkUpdateDoctors);
 router.put('/', doctorController.updateDoctor);
 
 // DELETE routes
-router.delete('/:id', doctorController.deleteDoctorById);
-router.delete('/', doctorController.deleteDoctorsByFilter);
 router.delete('/bulk/:ids', doctorController.bulkDeleteDoctorsByIds);
+router.delete('/', doctorController.deleteDoctorsByFilter);
+router.delete('/:id', doctorController.deleteDoctorById);
 
 module.exports = router;

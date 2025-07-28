@@ -41,6 +41,20 @@ exports.getDoctors = async (req, res) => {
   }
 };
 
+// GET: Fetch doctor by doctorID
+exports.getDoctorById = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const doctor = await Doctor.findOne({ doctorID: id });
+    if (!doctor) {
+      return res.status(404).json({ message: 'Doctor not found' });
+    }
+    return res.json(doctor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}; 
+
 // POST: Add single or multiple doctors with auto-incremented doctorID
 exports.addDoctor = async (req, res) => {
   try {
@@ -233,17 +247,3 @@ exports.bulkDeleteDoctorsByIds = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-// GET: Fetch doctor by doctorID
-exports.getDoctorById = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-    const doctor = await Doctor.findOne({ doctorID: id });
-    if (!doctor) {
-      return res.status(404).json({ message: 'Doctor not found' });
-    }
-    return res.json(doctor);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-}; 

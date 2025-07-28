@@ -4,7 +4,7 @@ const doctorSchema = new mongoose.Schema({
   doctorID: { type: Number, required: true, unique: true },
   fullName: { type: String, required: true },
   designation: { type: String, required: true },
-  specialty: { type: [String], required: true },
+  speciality: { type: [String], required: true },
   email: { type: String, required: true, unique: true },
   gender: { type: String, enum: ['Male', 'Female', 'Others']},
   phone: String,
