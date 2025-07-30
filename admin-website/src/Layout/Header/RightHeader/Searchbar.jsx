@@ -7,7 +7,7 @@ const Searchbar = () => {
     if (searchresponsive) {
       setSearchresponsive(!searchresponsive);
       document.querySelector('.search-full').classList.add('open');
-      document.querySelector('.more_lang').classList.remove('active');
+      // document.querySelector('.more_lang').classList.remove('active');
     } else {
       setSearchresponsive(!searchresponsive);
       document.querySelector('.search-full').classList.remove('open');
@@ -16,7 +16,7 @@ const Searchbar = () => {
 
   return (
     <li>
-      <span className='header-search'>
+      <span className='header-search' title='Search'>
         <SvgIcon iconId='search' onClick={() => SeacrhResposive(searchresponsive)} />
       </span>
     </li>

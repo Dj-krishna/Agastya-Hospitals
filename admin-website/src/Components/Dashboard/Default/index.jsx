@@ -30,13 +30,7 @@ const Dashboard = () => {
           <TableComponent
             title="Today Appointments"
             headers={[
-              "Id",
-              "Status",
-              "Signal Name",
-              "Security",
-              "Stage",
-              "Schedule",
-              "Team Lead",
+             "Patient Name", "Doctor Name", "Date", "Time", "Status", "Action"
             ]}
             data={Hovertabledata}
           />

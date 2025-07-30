@@ -1,4 +1,10 @@
-const api = `/api`;
+const api = `api`;
+const baseUrl = `https://agastya-hospitals-0bfo.onrender.com`;
+export const DOCTORS_API = `${baseUrl}/${api}/doctors`;
+
+
+
+
 export const TaskApi = `${api}/task.json`;
 export const BookmarkApi = `${api}/bookmark.json`;
 export const ChartistApi = `${api}/chartistData.json`;

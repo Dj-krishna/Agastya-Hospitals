@@ -124,7 +124,7 @@ const Header = () => {
                     className="Typeahead-input form-control-plaintext w-100"
                     id="demo-input"
                     type="search"
-                    placeholder="Search Cuba .."
+                    placeholder="Search here..."
                     defaultValue={searchValue}
                     onChange={(e) => handleSearchKeyword(e.target.value)}
                   />

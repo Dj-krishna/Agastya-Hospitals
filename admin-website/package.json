@@ -64,6 +64,7 @@
     "react-leaflet": "^4.2.1",
     "react-masonry-css": "^1.0.16",
     "react-perfect-scrollbar": "^1.5.8",
+    "react-quill": "^2.0.0",
     "react-range": "^1.8.14",
     "react-rating": "^2.0.5",
     "react-ratings-declarative": "^3.4.1",
@@ -87,7 +88,7 @@
     "redux-saga": "^1.2.3",
     "sass": "^1.62.0",
     "slick-carousel": "^1.8.1",
-    "styled-components": "^5.3.10",
+    "styled-components": "^6.1.19",
     "sweetalert2": "^11.15.2",
     "web-vitals": "^3.3.1",
     "world-map-geojson": "^1.0.2"
@@ -150,8 +151,8 @@
     "@svgr/plugin-svgo": "^6.0.0",
     "@svgr/webpack": "^6.0.0",
     "resolve-url-loader": "^5.0.0",
-    "prismjs":"1.29.0",
-    "follow-redirects":"1.15.9",
-    "node-fetch":"3.3.2"
+    "prismjs": "1.29.0",
+    "follow-redirects": "1.15.9",
+    "node-fetch": "3.3.2"
   }
 }

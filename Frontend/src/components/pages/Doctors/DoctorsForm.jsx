@@ -169,24 +169,22 @@ const DoctorsForm = ({ handleClose }) => {
         <Col md={4}>
           <Form.Group>
             <Form.Label>Full Name</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="fullName"
               value={formState.fullName}
               onChange={handleChange}
               placeholder="Enter full name"
-              {...register("fullName", { required: "Full Name is required" })}
-              isInvalid={!!errors.fullName}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.fullName?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
           <Form.Group>
             <Form.Label>Mobile Number</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="mobile"
               value={formState.mobile}
@@ -201,15 +199,15 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.mobile}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.mobile?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
           <Form.Group>
             <Form.Label>Email</Form.Label>
-            <Form.Control
+            <Input
               type="email"
               name="email"
               value={formState.email}
@@ -224,9 +222,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.email}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.email?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -234,7 +232,7 @@ const DoctorsForm = ({ handleClose }) => {
         <Col md={4}>
           <Form.Group>
             <Form.Label>Medical Reg. Number</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="regNumber"
               value={formState.regNumber}
@@ -245,9 +243,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.regNumber}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.regNumber?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
@@ -271,15 +269,15 @@ const DoctorsForm = ({ handleClose }) => {
                 </option>
               ))}
             </Form.Select>
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.department?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
           <Form.Group>
             <Form.Label>Designation</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="designation"
               value={formState.designation}
@@ -290,9 +288,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.designation}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.designation?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -313,15 +311,15 @@ const DoctorsForm = ({ handleClose }) => {
                 </option>
               ))}
             </Form.Select>
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.speciality?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
           <Form.Group>
             <Form.Label>Year of Experience</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="experience"
               value={formState.experience}
@@ -334,15 +332,15 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.experience}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.experience?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={4}>
           <Form.Group>
             <Form.Label>Languages Known</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="languages"
               value={formState.languages}
@@ -351,9 +349,9 @@ const DoctorsForm = ({ handleClose }) => {
               {...register("languages", { required: "Languages are required" })}
               isInvalid={!!errors.languages}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.languages?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -362,7 +360,7 @@ const DoctorsForm = ({ handleClose }) => {
           <Form.Group>
             <Form.Label>Expertise</Form.Label>
             {/* Should be HTML Editor */}
-            <Form.Control
+            <Input
               as="textarea"
               rows={5}
               name="expertise"
@@ -372,9 +370,9 @@ const DoctorsForm = ({ handleClose }) => {
               {...register("expertise", { required: "Expertise is required" })}
               isInvalid={!!errors.expertise}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.expertise?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -382,7 +380,7 @@ const DoctorsForm = ({ handleClose }) => {
         <Col md={6}>
           <Form.Group>
             <Form.Label>Services Offered</Form.Label>
-            <Form.Control
+            <Input
               as="textarea"
               rows={1}
               name="services"
@@ -394,15 +392,15 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.services}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.services?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
         <Col md={6}>
           <Form.Group>
             <Form.Label>Consulting Location</Form.Label>
-            <Form.Control
+            <Input
               type="text"
               name="location"
               value={formState.location}
@@ -413,9 +411,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.location}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.location?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -425,7 +423,7 @@ const DoctorsForm = ({ handleClose }) => {
             <Form.Label>Education Qualification</Form.Label>
             {formState.educationQualification.map((field, index) => (
               <div key={index} className="d-flex align-items-center mb-2">
-                <Form.Control
+                <Input
                   type="text"
                   name={`educationQualification-${index}`}
                   value={field}
@@ -465,7 +463,7 @@ const DoctorsForm = ({ handleClose }) => {
           <Form.Group>
             <Form.Label>Experience - description</Form.Label>
             {/* Should be HTML Editor */}
-            <Form.Control
+            <Input
               as="textarea"
               rows={5}
               name="experienceDesc"
@@ -477,9 +475,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.experienceDesc}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.experienceDesc?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -488,7 +486,7 @@ const DoctorsForm = ({ handleClose }) => {
           <Form.Group>
             <Form.Label>Awards & Achievements</Form.Label>
             {/* Should be HTML Editor */}
-            <Form.Control
+            <Input
               as="textarea"
               rows={5}
               name="awards"
@@ -500,9 +498,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.awards}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.awards?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -511,7 +509,7 @@ const DoctorsForm = ({ handleClose }) => {
           <Form.Group>
             <Form.Label>Research & Publications</Form.Label>
             {/* Should be HTML Editor */}
-            <Form.Control
+            <Input
               as="textarea"
               rows={5}
               name="research"
@@ -523,9 +521,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.research}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.research?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
@@ -536,7 +534,7 @@ const DoctorsForm = ({ handleClose }) => {
 
             {formState.opTimings.map((field, index) => (
               <div key={index} className="d-flex align-items-center mb-2">
-                <Form.Control
+                <Input
                   type="text"
                   name={`opTimings-${index}`}
                   value={field}
@@ -569,7 +567,7 @@ const DoctorsForm = ({ handleClose }) => {
         <Col md={6}>
           <Form.Group>
             <Form.Label>Profile Photo</Form.Label>
-            <Form.Control
+            <Input
               type="file"
               name="profilePhoto"
               onChange={handleChange}
@@ -578,9 +576,9 @@ const DoctorsForm = ({ handleClose }) => {
               })}
               isInvalid={!!errors.profilePhoto}
             />
-            <Form.Control.Feedback type="invalid">
+            <FormFeedback type="invalid">
               {errors.profilePhoto?.message}
-            </Form.Control.Feedback>
+            </FormFeedback>
           </Form.Group>
         </Col>
       </Row>
