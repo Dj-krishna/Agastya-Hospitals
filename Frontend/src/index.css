@@ -1,114 +1,23 @@
-:root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-    color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-
-
-    --theme-default: #7366ff;
-    --theme-secondary: #f73164;
-    --light-background: rgba(242, 243, 247, 0.7);
-    --body-font-color: #2f2f3b;
-    --chart-border: #ecf3fa;
-    --recent-chart-bg: #fcfcfd;
-    --light-bg: #f6f7f9;
-    --white: #fff;
-    --light2: #f5f6f9;
-    --sidebar-border: rgba(0, 0, 0, 0.1);
-    --chart-text-color: rgba(82, 82, 108, 0.8);
-    --recent-dashed-border: rgba(82, 82, 108, 0.3);
-    --chart-dashed-border: rgba(82, 82, 108, 0.2);
-    --chart-progress-light: rgba(82, 82, 108, 0.1);
-    --recent-box-bg: #f2f4f7;
-    --recent-border: rgba(97, 101, 122, 0.25);
-    --course-light-btn: #f2f3f7;
-    --course-bg: #f7f7f7;
-    --balance-profie-bg: #e0dfef;
-    --view-grid-bg: #ecf3fa80;
-    --view-border-marker: #cfcdfc;
-
-    --fc-button-bg-color: var(--theme-default);
-    --fc-button-active-bg-color: var(--theme-default);
-    --fc-button-active-border-color: var(--theme-default);
-    --fc-button-border-color: var(--theme-default);
-    --fc-button-hover-bg-color: var(--theme-default);
-    --fc-button-hover-border-color: var(--theme-default);
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+  }
 }
 
-a {
-    font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
-}
-
-a:hover {
-    color: #535bf2;
-}
-
-body {
-    margin: 0;
-    display: flex;
-    place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
-}
-
-h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
-}
-
-button {
-    border-radius: 8px;
-    border: 1px solid transparent;
-    padding: 0.6em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    background-color: #1a1a1a;
-    cursor: pointer;
-    transition: border-color 0.25s;
-}
-
-.btn-primary {
-    /* background-color: #7366ff !important; */
-    background-color: var(--theme-default) !important;
-    /* border-color: #7366ff !important; */
-    border-color: var(--theme-default) !important;
-}
-
-button:hover {
-    border-color: var(--theme-default);
-}
-
-button:focus,
-button:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-
-    a:hover {
-        color: #747bff;
-    }
-
-    button {
-        background-color: #f9f9f9;
-    }
-}
-
-.cantainer_card {
-    margin: 2.4rem 1.5rem 1.5rem 1.5rem !important;
-}
+@layer components {
+  .btn-primary {
+    @apply bg-hospital-blue text-white px-6 py-2 rounded-md hover:bg-hospital-dark-blue transition-colors duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-hospital-blue border border-hospital-blue px-6 py-2 rounded-md hover:bg-hospital-blue hover:text-white transition-colors duration-200;
+  }
+  
+  .btn-red {
+    @apply bg-hospital-red text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors duration-200;
+  }
+} 
