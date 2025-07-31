@@ -6,7 +6,7 @@ const patientSchema = new mongoose.Schema({
   dob: { type: Date, required: true },
   gender: { type: String, required: true },
   email: { type: String, required: true },
-  phone: { type: String, required: true },
+  mobile: { type: String, required: true },
   address: { type: String, required: true },
   profilePicture: { type: String },
   transactions: [
@@ -36,6 +36,7 @@ const patientSchema = new mongoose.Schema({
   doctorID: { type: Number, required: true },
   packageIDs: [{ type: Number }]
 }, {
+  timestamps: true,
   versionKey: false  // disables __v column when POST request is sent
 });
 

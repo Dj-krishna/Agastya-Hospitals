@@ -3,7 +3,6 @@ const router = express.Router();
 const patientController = require('../controllers/patientController');
 const multer = require('multer');
 
-// Multer storage config for profile images
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/patient-profiles/');
@@ -15,15 +14,21 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Routes
+// GET
 router.get('/', patientController.getPatients);
-router.post('/', patientController.addPatient);
-router.post('/upload-profile-image', upload.single('profileImage'), patientController.uploadPatientImage);
-router.put('/bulk-update', patientController.bulkUpdatePatients);
-router.put('/', patientController.updatePatient);
-router.delete('/:id', patientController.deletePatientById);
-router.delete('/', patientController.deletePatientsByFilter);
-router.delete('/bulk/:ids', patientController.bulkDeletePatientsByIds);
 router.get('/:id', patientController.getPatientById);
 
-module.exports = router; 
+// POST
+router.post('/', patientController.addPatient);
+router.post('/upload-profile-image', upload.single('profileImage'), patientController.uploadPatientImage);
+
+// PUT
+router.put('/bulk-update', patientController.bulkUpdatePatients);
+router.put('/', patientController.updatePatient);
+
+// DELETE
+router.delete('/bulk/:ids', patientController.bulkDeletePatientsByIds);
+router.delete('/', patientController.deletePatientsByFilter);
+router.delete('/:id', patientController.deletePatientById);
+
+module.exports = router;

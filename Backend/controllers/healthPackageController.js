@@ -1,156 +1,158 @@
 const HealthPackage = require('../models/HealthPackages');
 const getNextSequence = require('../utils/getNextSequence');
 
-// Utility: build filter from query for GET
-const buildHealthPackageFilter = (query) => {
+// Auto-calculate discountPrice (if not provided or if auto mode)
+function calculateDiscountPrice(pkg) {
+  if (!pkg) return;
+  if (pkg.discountType === 'Fixed') {
+    pkg.discountPrice = Math.max(0, Number(pkg.price) - Number(pkg.discountAmount));
+  } else if (pkg.discountType === 'Percentage') {
+    pkg.discountPrice = Math.max(0, Number(pkg.price) - (Number(pkg.price) * Number(pkg.discountAmount) / 100));
+  }
+}
+
+// Build filter from query
+const buildPackageFilter = (query) => {
   const filter = {};
-  const numFields = ['packageID', 'price', 'discountPrice', 'totalLabTests'];
   for (const key in query) {
-    const value = query[key];
-    if (value === undefined || value === '') continue;
-    if (numFields.includes(key)) {
+    let value = query[key];
+    if (!value) continue;
+
+    if (['packageID', 'price', 'totalLabTests', 'discountAmount', 'discountPrice'].includes(key)) {
       filter[key] = Number(value);
-    } else if (key === 'packageName') {
+    } else if (['discountType', 'packageName', 'createdBy', 'updatedBy'].includes(key)) {
       filter[key] = { $regex: value, $options: 'i' };
     } else if (key === 'allTestNames') {
-      filter[key] = { allTestNames: { $in: Array.isArray(value) ? value : [value] }};
-    } else {
-      filter[key] = value;
+      filter[key] = { $in: value.split(',').map(s => s.trim()) };
     }
   }
   return filter;
 };
 
-// GET all or filtered packages
+// GET all or filtered
 exports.getHealthPackages = async (req, res) => {
   try {
-    const filter = buildHealthPackageFilter(req.query);
-    const healthPackages = await HealthPackage.find(filter);
-    if (!healthPackages.length) {
-      return res.status(404).json({ message: 'No health packages found.' });
-    }
-    res.json(healthPackages.length === 1 ? healthPackages[0] : healthPackages);
+    const filter = buildPackageFilter(req.query);
+    const packages = await HealthPackage.find(filter).sort({ packageID: 1 });
+    res.json(packages);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET single by packageID
+// GET by ID
 exports.getHealthPackageById = async (req, res) => {
   try {
-    const packageID = Number(req.params.id);
-    const healthPackage = await HealthPackage.findOne({ packageID });
-    if (!healthPackage) return res.status(404).json({ message: 'Health package not found.' });
-    res.json(healthPackage);
+    const pkg = await HealthPackage.findOne({ packageID: Number(req.params.id) });
+    if (!pkg) return res.status(404).json({ message: 'Health package not found' });
+    res.json(pkg);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// POST add one or many
+// ADD single or bulk
 exports.addHealthPackage = async (req, res) => {
   try {
     const payload = req.body;
+
     const getNextPackageID = async () => await getNextSequence('packageID');
 
-    // Uniqueness: Assume packageName should be unique.
-    const exists = async (packageName) => {
-      return await HealthPackage.exists({ packageName });
-    };
-
+    // Single insert
     if (!Array.isArray(payload)) {
-      if (await exists(payload.packageName)) {
-        return res.status(409).json({ error: 'A package with this name already exists.' });
-      }
       if (!payload.packageID) payload.packageID = await getNextPackageID();
-      const newPackage = new HealthPackage(payload);
-      const saved = await newPackage.save();
+      if (!payload.discountPrice) calculateDiscountPrice(payload);
+
+      const pkg = new HealthPackage(payload);
+      const saved = await pkg.save();
       return res.status(201).json(saved);
     }
 
     // Bulk insert
-    const names = payload.map(hp => hp.packageName);
-    const dbPkgs = await HealthPackage.find({ packageName: { $in: names } }, { packageName: 1 });
-    const dbNames = new Set(dbPkgs.map(p => p.packageName));
-    const duplicateNames = names.filter((name, idx) => names.indexOf(name) !== idx);
+    const toInsert = [];
+    for (const pack of payload) {
+      if (!pack.packageID) pack.packageID = await getNextPackageID();
+      if (!pack.discountPrice) calculateDiscountPrice(pack);
+      toInsert.push(pack);
+    }
+    const inserted = await HealthPackage.insertMany(toInsert);
+    res.status(201).json(inserted);
 
-    const errors = [];
-    const pkgsToInsert = [];
-    for (const pkg of payload) {
-      if (dbNames.has(pkg.packageName)) {
-        errors.push({ packageName: pkg.packageName, error: 'Duplicate in DB.' });
-        continue;
-      }
-      if (duplicateNames.includes(pkg.packageName)) {
-        errors.push({ packageName: pkg.packageName, error: 'Duplicate in request payload.' });
-        continue;
-      }
-      if (!pkg.packageID) pkg.packageID = await getNextPackageID();
-      pkgsToInsert.push(pkg);
-    }
-    if (!pkgsToInsert.length) {
-      return res.status(409).json({ error: 'No health packages inserted due to duplicates.', details: errors });
-    }
-    const inserted = await HealthPackage.insertMany(pkgsToInsert);
-    let response = { inserted };
-    if (errors.length) response.errors = errors;
-    res.status(errors.length ? 207 : 201).json(response);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// PUT: Bulk update
-exports.bulkUpdateHealthPackages = async (req, res) => {
-  const { filter, updateFields, updates } = req.body;
-  try {
-    if (filter && updateFields) {
-      const result = await HealthPackage.updateMany(filter, { $set: updateFields });
-      return res.json({ message: 'Health packages updated', modifiedCount: result.modifiedCount });
-    } else if (Array.isArray(updates)) {
-      const bulkOps = updates.map(u => ({
-        updateOne: { filter: u.filter, update: { $set: u.updateFields } }
-      }));
-      const result = await HealthPackage.bulkWrite(bulkOps);
-      return res.json({ message: 'Health packages updated (multi)', modifiedCount: result.modifiedCount });
-    } else {
-      return res.status(400).json({ error: 'Invalid update structure' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// PUT: update by filter (single or many)
+// UPDATE by filter
 exports.updateHealthPackage = async (req, res) => {
   const filter = req.query;
   const updateData = req.body;
-  if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
-  if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
+  if (!Object.keys(filter).length)
+    return res.status(400).json({ error: 'No filter provided' });
+  if (!Object.keys(updateData).length)
+    return res.status(400).json({ error: 'No update data provided' });
+
+  // If price/discount changed, recalc discountPrice
+  if (updateData.price !== undefined || updateData.discountType !== undefined || updateData.discountAmount !== undefined) {
+    calculateDiscountPrice(updateData);
+  }
 
   try {
     const result = await HealthPackage.updateMany(filter, { $set: updateData });
-    if (result.modifiedCount === 0) {
-      return res.status(404).json({ message: 'No matching health packages found to update' });
-    }
+    if (result.modifiedCount === 0)
+      return res.status(404).json({ message: 'No matching packages found to update' });
     const updated = await HealthPackage.find(filter);
-    return res.json({
-      message: 'Health package(s) updated',
-      updatedCount: result.modifiedCount,
-      updatedPackages: updated.length === 1 ? updated[0] : updated,
-    });
+    res.json({ message: 'Package(s) updated', updatedCount: result.modifiedCount, updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE by packageID
+// BULK UPDATE
+exports.bulkUpdateHealthPackages = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!Array.isArray(updates) || updates.length === 0)
+      return res.status(400).json({ error: 'No updates provided' });
+
+    const allowedFields = Object.keys(HealthPackage.schema.paths);
+    const results = [];
+    const warnings = [];
+
+    for (const upd of updates) {
+      const { filter, updateFields } = upd;
+      if (!filter || !updateFields || typeof filter !== 'object' || typeof updateFields !== 'object') {
+        warnings.push({ filter, error: 'Invalid update structure' });
+        continue;
+      }
+      // Validate fields
+      const invalidFields = Object.keys(updateFields).filter(f => !allowedFields.includes(f));
+      if (invalidFields.length) {
+        warnings.push({ filter, warning: `Invalid fields: ${invalidFields.join(', ')}` });
+        continue;
+      }
+      // Recalculate discountPrice if needed
+      if (updateFields.price !== undefined || updateFields.discountType !== undefined || updateFields.discountAmount !== undefined) {
+        calculateDiscountPrice(updateFields);
+      }
+      const result = await HealthPackage.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
+      if (result) results.push(result);
+      else warnings.push({ filter, warning: 'Package not found' });
+    }
+
+    res.json({ message: 'Bulk update completed', updated: results.length, results, warnings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE by ID
 exports.deleteHealthPackageById = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const deleted = await HealthPackage.findOneAndDelete({ packageID: id });
-    if (!deleted) return res.status(404).json({ message: 'Health package not found' });
-    return res.json({ message: 'Health package deleted', healthPackage: deleted });
+    const deleted = await HealthPackage.findOneAndDelete({ packageID: Number(req.params.id) });
+    if (!deleted)
+      return res.status(404).json({ message: 'Health package not found' });
+    res.json({ message: 'Package deleted', package: deleted });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -160,25 +162,30 @@ exports.deleteHealthPackageById = async (req, res) => {
 exports.deleteHealthPackagesByFilter = async (req, res) => {
   try {
     const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
+    if (!filter || typeof filter !== 'object')
+      return res.status(400).json({ error: 'Provide valid filter' });
     const result = await HealthPackage.deleteMany(filter);
-    if (!result.deletedCount) return res.status(404).json({ message: 'No health packages matched filter' });
-    return res.json({ message: 'Health packages deleted', deletedCount: result.deletedCount });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No packages matched filter' });
+    res.json({ message: 'Packages deleted', deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: bulk delete by comma-separated IDs
+// BULK DELETE by IDs
 exports.bulkDeleteHealthPackagesByIds = async (req, res) => {
   try {
     const idsParam = req.params.ids;
-    if (!idsParam) return res.status(400).json({ error: 'No IDs provided' });
+    if (!idsParam)
+      return res.status(400).json({ error: 'No IDs provided' });
     const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+    if (ids.length === 0)
+      return res.status(400).json({ error: 'No valid IDs provided' });
     const result = await HealthPackage.deleteMany({ packageID: { $in: ids } });
-    if (!result.deletedCount) return res.status(404).json({ message: 'No health packages found for provided IDs' });
-    res.json({ message: 'Health packages deleted', deletedCount: result.deletedCount });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No packages found for provided IDs' });
+    res.json({ message: 'Packages deleted', deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -1,43 +1,71 @@
 const User = require('../models/Users');
 const Role = require('../models/UserRoles');
+const Counter = require('../models/Counter');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-const JWT_SECRET = 'my_local_secret_key'; // Keep this secret and safe
+const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key';
 
-// Signup
+// ============================== REGISTER ==============================
 exports.register = async (req, res) => {
   try {
-    console.log("Register Body:", req.body);
+    const {
+      userName,
+      email,
+      password,
+      mobile,
+      isActive,
+      roleID,
+      modules,
+      whatsAppNumber
+    } = req.body;
 
-    const { userName, email, password, mobile, isActive, roleID } = req.body;
+    // 1. Check if user already exists (case-insensitive)
+    const existingUser = await User.findOne({
+      email: { $regex: `^${email}$`, $options: 'i' }
+    });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-    // 1. Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
-
-    // 2. Hash password
+    // 2. Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Generate new userID
-    const lastUser = await User.findOne({}).sort({ userID: -1 });
-    const userID = lastUser ? lastUser.userID + 1 : 1;
+    // 3. Get next userID from counter collection
+    const counter = await Counter.findOneAndUpdate(
+      { _id: 'userID' },
+      { $inc: { sequence_value: 1 } },
+      { new: true, upsert: true }
+    );
+    const userID = counter.sequence_value;
 
-    // 4. Create user object
-    const user = new User({
+    // 4. Validate role and get default modules
+    const role = await Role.findOne({ roleID });
+    if (!role) {
+      return res.status(400).json({ message: 'Invalid roleID' });
+    }
+
+    const assignedModules =
+      Array.isArray(modules) && modules.length > 0
+        ? modules
+        : role.defaultModules || [];
+
+    // 5. Create new user
+    const newUser = new User({
       userID,
       userName,
       email,
       password: hashedPassword,
+      rawPassword: password, // only for testing purpose
       mobile,
-      isActive,
-      roleID
+      whatsAppNumber,
+      isActive: isActive === undefined ? true : isActive,
+      roleID,
+      modules: assignedModules
     });
 
-    await user.save();
-
-    // 5. Get role name
-    const role = await Role.findOne({ roleID });
+    await newUser.save();
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -46,35 +74,52 @@ exports.register = async (req, res) => {
         userName,
         email,
         mobile,
-        isActive,
+        rawPassword: password, // included in response for testing
+        whatsAppNumber,
+        isActive: newUser.isActive,
         roleID,
-        roleName: role ? role.roleName : 'Unknown'
+        roleName: role.roleName,
+        modules: assignedModules
       }
     });
   } catch (err) {
-    console.error("Registration Error:", err);
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
-// Login Controller
+// ============================== LOGIN ==============================
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Find user by email
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findOne({
+      email: { $regex: `^${email}$`, $options: 'i' }
+    });
 
-    // 2. Compare password
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
-    // 3. Generate token
-    const token = jwt.sign({ userID: user.userID }, JWT_SECRET, { expiresIn: '1h' });
-
-    // 4. Get role name
     const role = await Role.findOne({ roleID: user.roleID });
+
+    const token = jwt.sign(
+      {
+        userID: user.userID,
+        email: user.email,
+        roleID: user.roleID,
+        modules: user.modules,
+        isActive: user.isActive,
+        roleName: role ? role.roleName : undefined
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
 
     res.status(200).json({
       message: 'Login successful',
@@ -84,27 +129,36 @@ exports.login = async (req, res) => {
         userName: user.userName,
         email: user.email,
         mobile: user.mobile,
+        whatsAppNumber: user.whatsAppNumber,
         isActive: user.isActive,
         roleID: user.roleID,
-        roleName: role ? role.roleName : 'Unknown'
+        roleName: role ? role.roleName : 'Unknown',
+        modules: user.modules
       }
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
 
-// Forgot Password Controller
+// ============================== FORGOT PASSWORD ==============================
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      email: { $regex: `^${email}$`, $options: 'i' }
+    });
+
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    // Simulation only – in production, send email
-    res.status(200).json({ message: `Reset link sent to ${email} (simulation)` });
+    // Simulated response
+    res.status(200).json({
+      message: `Reset link sent to ${email} (simulation)`
+    });
   } catch (err) {
+    console.error('Forgot password error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
