@@ -62,11 +62,11 @@ const SidebarMenuItems = ({
     <>
       {MENUITEMS.map((Item, i) => (
         <Fragment key={i}>
-          <li className="sidebar-main-title">
-            <div>
-              <h6 className="lan-1">{t(Item.menutitle)}</h6>
-            </div>
-          </li>
+            <li className="sidebar-main-title">
+              <div>
+                <h6 className="lan-1">{t(Item.menutitle)}</h6>
+              </div>
+            </li>
           {Item.Items.map((menuItem, i) => (
             <li className="sidebar-list" key={i}>
               {menuItem.type === "sub" ? (
@@ -99,13 +99,13 @@ const SidebarMenuItems = ({
                   ) : (
                     ""
                   )}
-                  <div className="according-menu">
-                    {menuItem.active ? (
-                      <i className="fa fa-angle-down"></i>
-                    ) : (
-                      <i className="fa fa-angle-right"></i>
-                    )}
-                  </div>
+                    <div className="according-menu">
+                      {menuItem.active ? (
+                        <i className="fa fa-angle-down"></i>
+                      ) : (
+                        <i className="fa fa-angle-right"></i>
+                      )}
+                    </div>
                 </a>
               ) : (
                 ""
@@ -176,16 +176,16 @@ const SidebarMenuItems = ({
                             }}
                           >
                             {t(childrenItem.title)}
-                            <span className="sub-arrow">
-                              <i className="fa fa-chevron-right"></i>
-                            </span>
-                            <div className="according-menu">
-                              {childrenItem.active ? (
-                                <i className="fa fa-angle-down"></i>
-                              ) : (
-                                <i className="fa fa-angle-right"></i>
-                              )}
-                            </div>
+                              <span className="sub-arrow">
+                                <i className="fa fa-chevron-right"></i>
+                              </span>
+                              <div className="according-menu">
+                                {childrenItem.active ? (
+                                  <i className="fa fa-angle-down"></i>
+                                ) : (
+                                  <i className="fa fa-angle-right"></i>
+                                )}
+                              </div>
                           </a>
                         ) : (
                           ""

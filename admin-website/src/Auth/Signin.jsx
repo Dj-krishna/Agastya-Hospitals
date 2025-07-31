@@ -46,7 +46,7 @@ const Signin = ({ selected }) => {
             <div className="login-card">
               <div className="login-main login-tab">
                 <Form className="theme-form">
-                  <H4>{selected === "simpleLogin" ? "" : "Sign In With Simple Login"}</H4>
+                  <H4>Sign In With Agastya Hospitals</H4>
                   <P>{"Enter your email & password to login"}</P>
                   <FormGroup>
                     <Label className="col-form-label">{EmailAddress}</Label>

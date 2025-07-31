@@ -72,7 +72,6 @@ const DoctorForm = ({ onClose }) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [countryCode, setCountryCode] = useState([]);
 
   console.log("formState", formState);
 
@@ -110,25 +109,6 @@ const DoctorForm = ({ onClose }) => {
     }
   };
 
-  const validateAllFields = () => {
-    let valid = true;
-    let errors = { ...initialFormErrors };
-
-    for (const key in formState) {
-      if (Array.isArray(formState[key])) {
-        errors[key] = formState[key].map((val) => validateField(key, val));
-        if (errors[key].some((e) => e !== "")) valid = false;
-      } else {
-        const error = validateField(key, formState[key]);
-        if (error) valid = false;
-        errors[key] = error;
-      }
-    }
-
-    setFormErrors(errors);
-    return valid;
-  };
-
   const validateQuillField = (fieldName, value) => {
     const stripped = value.replace(/<[^>]+>/g, "").trim();
     return stripped === "" ? "This field is required" : "";
@@ -143,24 +123,6 @@ const DoctorForm = ({ onClose }) => {
     if (isSubmitted) {
       const errorMsg = validateField(name, value);
       setFormErrors((prev) => ({ ...prev, [name]: errorMsg }));
-    }
-  };
-
-  const handleMultipleChange = (e, index = null, descriptionType) => {
-    const { name, value } = e.target;
-
-    if (name === "education") {
-      const updatedEducation = [...formState[descriptionType]];
-      updatedEducation[index] = value;
-      const updatedErrors = [...formErrors[descriptionType]];
-      if (isSubmitted) {
-        updatedErrors[index] = validateField(name, value);
-      }
-      setFormState((prev) => ({
-        ...prev,
-        [descriptionType]: updatedEducation,
-      }));
-      setFormErrors((prev) => ({ ...prev, [descriptionType]: updatedErrors }));
     }
   };
 

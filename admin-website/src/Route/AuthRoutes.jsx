@@ -30,7 +30,7 @@ export const authRoutes = [
   { path: `/pages/authentication/login-validation/:layout`, Component: <LoginValidation /> },
   { path: `/pages/authentication/login-tooltip/:layout`, Component: <LoginTooltip /> },
   { path: `/pages/authentication/login-sweetalert/:layout`, Component: <LoginSweetalert /> },
-  { path: `/pages/authentication/register-simple/:layout`, Component: <RegisterSimple /> },
+  { path: `/register-simple`, Component: <RegisterSimple /> },
   { path: `/pages/authentication/register-bg-img/:layout`, Component: <RegisterBgImg /> },
   { path: `/pages/authentication/register-video/:layout`, Component: <RegisterVideo /> },
   { path: `/pages/authentication/unlock-user/:layout`, Component: <UnlockUser /> },

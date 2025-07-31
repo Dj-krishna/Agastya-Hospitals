@@ -54,32 +54,36 @@ const AllCards = () => {
                         item.fullName.split(" ")[2].split("")[0]
                       ).toUpperCase()}
                     </span>
-                    {/* {item.profilePicture ? (
-                      <img src={item.profilePicture} alt="profile" />
-                    ) : (
-                      <span>{item.profilePicture}</span>
-                    )} */}
                   </div>
-                  {/* <div className="edit-icon">
-                    <SvgIcon iconId={item.icon} />
-                  </div> */}
                 </div>
                 <div className="social-details">
-                  <H5 attrH5={{ className: "mb-1" }}>
-                    <Link to={`/app/social-app`}>{item.fullName}</Link>
-                  </H5>
-                  <div>
-                    <span className="f-light">{item.designation} <br /> {item?.experience || "10 Years"}</span>
+                  <H5 attrH5={{ className: "mb-3" }}>{item.fullName}</H5>
+                  <div className="d-flex justify-content-between my-2">
+                    <span className="font-lite">Designation</span>
+                    <span className="font-lite">{item.designation}</span>
                   </div>
-                  <div>
-                    <span className="f-light">{item.email}</span>
+                  <div className="d-flex justify-content-between my-2">
+                    <span className="font-lite">Years of Experience</span>
+                    <span className="font-lite">
+                      {item.yearsOfExperience || "-"} Years
+                    </span>
                   </div>
-                  {/* <SocialLinks /> */}
-                  {/* <SocialData
-                    totalPost={item.totalPost}
-                    follower={item.follower}
-                    following={item.following}
-                  /> */}
+                  <div className="d-flex justify-content-between my-2">
+                    <span className="font-lite">Gender</span>
+                    <span className="font-lite">{item.gender}</span>
+                  </div>
+                  <div className="d-flex justify-content-between my-2">
+                    <span className="font-lite">Contact Number</span>
+                    <span className="font-lite">
+                      {item?.countryCode}
+                      {item?.countryCode && " - "}
+                      {item.mobile}
+                    </span>
+                  </div>
+                  <div className="d-flex justify-content-between my-2">
+                    <span className="font-lite">Email Address</span>
+                    <span className="font-lite">{item.email}</span>
+                  </div>
                 </div>
               </CardBody>
             </Card>

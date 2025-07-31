@@ -187,11 +187,12 @@ import CMSComponent from "../Components/CMS";
 import Blog from "../Components/Blog";
 import RolesPermissions from "../Components/RolesPermissions";
 import Settings from "../Components/Settings";
+import Specialities from "../Components/Specialities";
 
 export const routes = [
   { path: `/dashboard`, Component: <Default /> },
   { path: `/doctors`, Component: <Doctors /> },
-  { path: `/specialities`, Component: <FileManagerContain /> },
+  { path: `/specialities`, Component: <Specialities /> },
   { path: `/slot-management/add-slots`, Component: <AddSlots /> },
   { path: `/slot-management/manage-slots`, Component: <ManageSlots /> },
   { path: `/departments`, Component: <Departments /> },
