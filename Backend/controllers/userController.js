@@ -1,4 +1,4 @@
-const UserDetail = require('../models/Users');
+const UserDetail = require('../models/Users'); // Adjusted model name
 const UserRole = require('../models/UserRoles');
 const getNextSequence = require('../utils/getNextSequence');
 
@@ -22,76 +22,77 @@ const buildUserFilter = (query) => {
   return filter;
 };
 
-// Compose aggregation for joining to UserRole
-const userWithRoleLookup = (match = {}) => ([
+// Compose aggregation pipeline joining UserRole to add roleName
+const userWithRoleLookup = (match = {}) => [
   { $match: match },
   {
     $lookup: {
       from: 'userRoles',
       localField: 'roleID',
       foreignField: 'roleID',
-      as: 'roleData'
+      as: 'roleData',
     }
   },
   { $unwind: { path: '$roleData', preserveNullAndEmptyArrays: true } },
   { $addFields: { roleName: '$roleData.roleName' } },
-  { $project: { roleData: 0, password: 0 } } // Remove internal fields, never show password!
-]);
+  { $project: { roleData: 0, password: 0 } } // never expose password
+];
 
-// GET: all or filtered with roleName
+// GET all or filtered users with roleName
 exports.getUsers = async (req, res) => {
   try {
     const filter = buildUserFilter(req.query);
-    const data = await UserDetail.aggregate(userWithRoleLookup(filter));
-    if (data.length === 0) {
+    const users = await UserDetail.aggregate(userWithRoleLookup(filter));
+    if (users.length === 0) {
       return res.status(404).json({ message: 'No users found.' });
     }
-    res.json(data.length === 1 ? data[0] : data);
+    res.json(users.length === 1 ? users[0] : users);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET: user by userID with roleName
+// GET user by userID with roleName
 exports.getUserById = async (req, res) => {
   try {
     const userID = Number(req.params.id);
     const data = await UserDetail.aggregate(userWithRoleLookup({ userID }));
-    if (!data.length) return res.status(404).json({ message: 'User not found.' });
+    if (data.length === 0) return res.status(404).json({ message: 'User not found.' });
     res.json(data[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// POST: add one or many users (enforce unique email)
+// POST: Add single or bulk users, enforce unique email
 exports.addUser = async (req, res) => {
   try {
     const payload = req.body;
     const getNextUserID = async () => await getNextSequence('userID');
     const emailExists = async (email) => UserDetail.exists({ email });
 
-    // Add single
+    // For single user insert
     if (!Array.isArray(payload)) {
       if (await emailExists(payload.email)) {
         return res.status(409).json({ error: 'User with this email already exists.' });
       }
       if (!payload.userID) payload.userID = await getNextUserID();
+
       const newUser = new UserDetail(payload);
       const saved = await newUser.save();
-      // Join roleName on the fly
+      // Return with roleName joined
       const withRole = await UserDetail.aggregate(userWithRoleLookup({ userID: saved.userID }));
       return res.status(201).json(withRole[0]);
     }
 
-    // Bulk
+    // Bulk insert
     const emails = payload.map(u => u.email);
     const existing = await UserDetail.find({ email: { $in: emails } }, { email: 1 });
     const existingEmails = new Set(existing.map(e => e.email));
     const duplicateEmails = emails.filter((email, i) => emails.indexOf(email) !== i);
 
     const errors = [];
-    const items = [];
+    const itemsToInsert = [];
     for (const user of payload) {
       if (existingEmails.has(user.email)) {
         errors.push({ email: user.email, error: 'Already exists in DB.' });
@@ -102,16 +103,20 @@ exports.addUser = async (req, res) => {
         continue;
       }
       if (!user.userID) user.userID = await getNextUserID();
-      items.push(user);
+      itemsToInsert.push(user);
     }
-    if (!items.length) {
+
+    if (!itemsToInsert.length) {
       return res.status(409).json({ error: 'No users inserted.', details: errors });
     }
-    await UserDetail.insertMany(items);
-    // Fetch with join
-    const userIDs = items.map(u => u.userID);
-    const withRoles = await UserDetail.aggregate(userWithRoleLookup({ userID: { $in: userIDs } }));
-    let response = { inserted: withRoles };
+
+    await UserDetail.insertMany(itemsToInsert);
+
+    // Fetch inserted users with role data
+    const insertedIds = itemsToInsert.map(u => u.userID);
+    const insertedWithRoles = await UserDetail.aggregate(userWithRoleLookup({ userID: { $in: insertedIds } }));
+
+    let response = { inserted: insertedWithRoles };
     if (errors.length) response.errors = errors;
     res.status(errors.length ? 207 : 201).json(response);
   } catch (err) {
@@ -140,7 +145,7 @@ exports.bulkUpdateUsers = async (req, res) => {
   }
 };
 
-// PUT: update by filter
+// PUT: Update user(s) by filter
 exports.updateUser = async (req, res) => {
   const filter = req.query;
   const updateData = req.body;
@@ -151,7 +156,7 @@ exports.updateUser = async (req, res) => {
     if (result.modifiedCount === 0) {
       return res.status(404).json({ message: 'No matching users found to update' });
     }
-    // Return all updated documents with roleName joined
+    // Return updated documents with joined roleName
     const updated = await UserDetail.aggregate(userWithRoleLookup(filter));
     return res.json({
       message: 'User(s) updated',
@@ -163,7 +168,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// DELETE: By userID
+// DELETE: Delete user by userID
 exports.deleteUserById = async (req, res) => {
   try {
     const userID = Number(req.params.id);
@@ -175,7 +180,7 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
-// DELETE: By filter
+// DELETE: Delete users by filter
 exports.deleteUsersByFilter = async (req, res) => {
   try {
     const { filter } = req.body;
@@ -188,7 +193,7 @@ exports.deleteUsersByFilter = async (req, res) => {
   }
 };
 
-// DELETE: Bulk by comma-separated IDs
+// DELETE: Bulk delete by comma-separated userIDs
 exports.bulkDeleteUsersByIds = async (req, res) => {
   try {
     const idsParam = req.params.ids;

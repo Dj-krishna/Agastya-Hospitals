@@ -2,20 +2,22 @@ const express = require('express');
 const router = express.Router();
 const subSpecialityController = require('../controllers/subSpecialityController');
 
-// GET
+// GET all/filter and GET by ID
 router.get('/', subSpecialityController.getSubSpecialities);
 router.get('/:id', subSpecialityController.getSubSpecialityById);
 
-// POST
+// POST add single/bulk
 router.post('/', subSpecialityController.addSubSpeciality);
 
-// PUT
-router.put('/bulk-update', subSpecialityController.bulkUpdateSubSpecialities);
+// PUT update single/many (by query)
 router.put('/', subSpecialityController.updateSubSpeciality);
 
-// DELETE
-router.delete('/:id', subSpecialityController.deleteSubSpecialityById);
-router.delete('/', subSpecialityController.deleteSubSpecialitiesByFilter);
+// PUT bulk update
+router.put('/bulk-update', subSpecialityController.bulkUpdateSubSpecialities);
+
+// DELETE by ID, by filter, or in bulk
 router.delete('/bulk/:ids', subSpecialityController.bulkDeleteSubSpecialitiesByIds);
+router.delete('/', subSpecialityController.deleteSubSpecialitiesByFilter);
+router.delete('/:id', subSpecialityController.deleteSubSpecialityById);
 
 module.exports = router;

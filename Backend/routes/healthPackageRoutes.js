@@ -14,8 +14,8 @@ router.put('/bulk-update', healthPackageController.bulkUpdateHealthPackages);
 router.put('/', healthPackageController.updateHealthPackage);
 
 // DELETE
-router.delete('/:id', healthPackageController.deleteHealthPackageById);
-router.delete('/', healthPackageController.deleteHealthPackagesByFilter);
 router.delete('/bulk/:ids', healthPackageController.bulkDeleteHealthPackagesByIds);
+router.delete('/', healthPackageController.deleteHealthPackagesByFilter);
+router.delete('/:id', healthPackageController.deleteHealthPackageById);
 
 module.exports = router;
