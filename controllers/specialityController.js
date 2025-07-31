@@ -1,190 +1,200 @@
-const Speciality = require('../models/Specialities');
-const getNextSequence = require('../utils/getNextSequence');
+const Speciality = require('../models/Specialities');  // This is your specialities.js model
+const getNextSequence = require('../utils/getNextSequence'); // used for specialityID
 
-// Utility to build filter from query
+// Utility: Build filter object from query params
 const buildSpecialityFilter = (query) => {
   const filter = {};
-  const exactMatchFields = ['specialityID', 'doctorID', 'isActive', 'isNavigationDisplay'];
   for (const key in query) {
-    const value = query[key];
-    if (value === undefined || value === '') continue;
-    if (exactMatchFields.includes(key)) {
-      filter[key] = typeof Speciality.schema.paths[key].instance === 'Boolean'
-        ? value === 'true' // convert to boolean if needed
-        : isNaN(value) ? value : Number(value);
-    } else if (key === 'specialityName') {
-      filter[key] = { $regex: value, $options: 'i' };
+    if (query[key] === undefined || query[key] === '') continue;
+    let value = query[key];
+
+    // Handle booleans and numbers
+    if (key === 'specialityID' || key === 'doctorID' || key === 'displayOrder') {
+      filter[key] = Number(value);
+    } else if (key === 'isActive' || key === 'isNavigationDisplay') {
+      filter[key] = value === 'true';
     } else {
-      filter[key] = value;
+      filter[key] = { $regex: value, $options: 'i' }; // Partial, case-insensitive
     }
   }
   return filter;
 };
 
-// GET: fetch all/some specialities
+// GET all or filtered specialities
 exports.getSpecialities = async (req, res) => {
   try {
     const filter = buildSpecialityFilter(req.query);
-    const specialities = await Speciality.find(filter);
-    if (!specialities.length) {
-      return res.status(404).json({ message: 'No Specialities found.' });
-    }
-    res.json(specialities.length === 1 ? specialities[0] : specialities);
+    const specialities = await Speciality.find(filter).sort({ displayOrder: 1 });
+    res.json(specialities);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET: fetch by specialityID
+// GET one by specialityID
 exports.getSpecialityById = async (req, res) => {
   try {
-    const specialityID = Number(req.params.id);
-    const speciality = await Speciality.findOne({ specialityID });
-    if (!speciality) return res.status(404).json({ message: 'Speciality not found.' });
+    const speciality = await Speciality.findOne({ specialityID: Number(req.params.id) });
+    if (!speciality)
+      return res.status(404).json({ message: 'Speciality not found' });
     res.json(speciality);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// POST: add one/multiple specialities (auto-increment ID)
+// ADD new (single or bulk)
 exports.addSpeciality = async (req, res) => {
   try {
     const payload = req.body;
+
+    // Get next sequence generator
     const getNextSpecialityID = async () => await getNextSequence('specialityID');
 
-    // Helper: check for existing name + doctorID combo
-    const exists = async (specialityName, doctorID) => {
-      return await Speciality.exists({ specialityName, doctorID });
-    };
-
+    // Single insert
     if (!Array.isArray(payload)) {
-      if (await exists(payload.specialityName, payload.doctorID)) {
-        return res.status(409).json({ error: 'This doctor already has a speciality with this name.' });
-      }
-      if (!payload.specialityID) payload.specialityID = await getNextSpecialityID();
-      const newSpeciality = new Speciality(payload);
-      const saved = await newSpeciality.save();
+      if (!payload.specialityID)
+        payload.specialityID = await getNextSpecialityID();
+      const doc = new Speciality(payload);
+      const saved = await doc.save();
       return res.status(201).json(saved);
     }
 
-    // Bulk insert logic
-    const combos = payload.map(d => `${d.specialityName}|${d.doctorID}`);
-    const dbSpecialities = await Speciality.find({ 
-      $or: payload.map(d => ({ specialityName: d.specialityName, doctorID: d.doctorID }))
-    }, { specialityName: 1, doctorID: 1 });
-    const dbCombos = new Set(dbSpecialities.map(s => `${s.specialityName}|${s.doctorID}`));
-    const duplicateCombos = combos.filter((c, idx) => combos.indexOf(c) !== idx);
-
-    const errors = [];
-    const specialitiesToInsert = [];
-    for (const spec of payload) {
-      const combo = `${spec.specialityName}|${spec.doctorID}`;
-      if (dbCombos.has(combo)) {
-        errors.push({ specialityName: spec.specialityName, doctorID: spec.doctorID, error: 'Duplicate in DB.' });
-        continue;
-      }
-      if (duplicateCombos.includes(combo)) {
-        errors.push({ specialityName: spec.specialityName, doctorID: spec.doctorID, error: 'Duplicate in payload.' });
-        continue;
-      }
-      if (!spec.specialityID) spec.specialityID = await getNextSpecialityID();
-      specialitiesToInsert.push(spec);
+    // Bulk insert
+    const toInsert = [];
+    for (const sp of payload) {
+      if (!sp.specialityID)
+        sp.specialityID = await getNextSpecialityID();
+      toInsert.push(sp);
     }
-
-    if (!specialitiesToInsert.length) {
-      return res.status(409).json({ error: 'No specialities inserted because of duplicates.', details: errors });
-    }
-    const inserted = await Speciality.insertMany(specialitiesToInsert);
-    let response = { inserted };
-    if (errors.length) response.errors = errors;
-    res.status(errors.length ? 207 : 201).json(response);
+    const inserted = await Speciality.insertMany(toInsert);
+    res.status(201).json(inserted);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// PUT: bulk update or many-at-once
-exports.bulkUpdateSpecialities = async (req, res) => {
-  const { filter, updateFields, updates } = req.body;
+// UPLOAD icon or banner for a speciality
+exports.uploadSpecialityImage = async (req, res) => {
   try {
-    if (filter && updateFields) {
-      const result = await Speciality.updateMany(filter, { $set: updateFields });
-      return res.json({ message: 'Specialities updated', modifiedCount: result.modifiedCount });
-    } else if (Array.isArray(updates)) {
-      const bulkOps = updates.map(u => ({
-        updateOne: { filter: u.filter, update: { $set: u.updateFields } }
-      }));
-      const result = await Speciality.bulkWrite(bulkOps);
-      return res.json({ message: 'Specialities updated (multi)', modifiedCount: result.modifiedCount });
-    } else {
-      return res.status(400).json({ error: 'Invalid update structure' });
-    }
+    const { specialityID, type } = req.body;
+    if (!specialityID || !type || !req.file)
+      return res.status(400).json({ error: 'specialityID, type, and file are required' });
+    if (type !== 'icon' && type !== 'banner')
+      return res.status(400).json({ error: 'type must be icon or banner' });
+
+    const updateField = {};
+    updateField[type] = req.file.path;
+    const updated = await Speciality.findOneAndUpdate(
+      { specialityID: Number(specialityID) },
+      { $set: updateField },
+      { new: true }
+    );
+    if (!updated)
+      return res.status(404).json({ error: 'Speciality not found' });
+    res.json({ message: 'Image uploaded', speciality: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// PUT: update by filter (single or many)
+// UPDATE (single or by filter)
 exports.updateSpeciality = async (req, res) => {
   const filter = req.query;
   const updateData = req.body;
-  if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
-  if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
+  if (!Object.keys(filter).length)
+    return res.status(400).json({ error: 'No filter provided' });
+  if (!Object.keys(updateData).length)
+    return res.status(400).json({ error: 'No update data provided' });
 
   try {
     const result = await Speciality.updateMany(filter, { $set: updateData });
-    if (result.modifiedCount === 0) {
+    if (result.modifiedCount === 0)
       return res.status(404).json({ message: 'No matching specialities found to update' });
-    }
     const updated = await Speciality.find(filter);
-    return res.json({
-      message: 'Speciality(s) updated',
-      updatedCount: result.modifiedCount,
-      updatedSpecialities: updated.length === 1 ? updated[0] : updated,
-    });
+    res.json({ message: 'Speciality(s) updated', updatedCount: result.modifiedCount, updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: by specialityID
+// BULK UPDATE
+exports.bulkUpdateSpecialities = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    if (!Array.isArray(updates) || updates.length === 0)
+      return res.status(400).json({ error: 'No updates provided' });
+
+    const allowedFields = Object.keys(Speciality.schema.paths);
+    const results = [];
+    const warnings = [];
+
+    for (const upd of updates) {
+      const { filter, updateFields } = upd;
+      if (!filter || !updateFields || typeof filter !== 'object' || typeof updateFields !== 'object') {
+        warnings.push({ filter, error: 'Invalid update structure' });
+        continue;
+      }
+      // Invalid fields
+      const invalidFields = Object.keys(updateFields).filter(f => !allowedFields.includes(f));
+      if (invalidFields.length) {
+        warnings.push({ filter, warning: `Invalid fields: ${invalidFields.join(', ')}` });
+        continue;
+      }
+      const result = await Speciality.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
+      if (result)
+        results.push(result);
+      else
+        warnings.push({ filter, warning: 'Speciality not found' });
+    }
+
+    res.json({ message: 'Bulk update completed', updated: results.length, results, warnings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// DELETE by ID
 exports.deleteSpecialityById = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const deleted = await Speciality.findOneAndDelete({ specialityID: id });
-    if (!deleted) return res.status(404).json({ message: 'Speciality not found' });
-    return res.json({ message: 'Speciality deleted', speciality: deleted });
+    const deleted = await Speciality.findOneAndDelete({ specialityID: Number(req.params.id) });
+    if (!deleted)
+      return res.status(404).json({ message: 'Speciality not found' });
+    res.json({ message: 'Speciality deleted', speciality: deleted });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: by filter object
+// DELETE by filter (from body)
 exports.deleteSpecialitiesByFilter = async (req, res) => {
   try {
     const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
+    if (!filter || typeof filter !== 'object')
+      return res.status(400).json({ error: 'Provide valid filter' });
     const result = await Speciality.deleteMany(filter);
-    if (!result.deletedCount) return res.status(404).json({ message: 'No specialities matched filter' });
-    return res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// DELETE: bulk delete by comma-separated IDs
-exports.bulkDeleteSpecialitiesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam) return res.status(400).json({ error: 'No IDs provided' });
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
-    const result = await Speciality.deleteMany({ specialityID: { $in: ids } });
-    if (!result.deletedCount) return res.status(404).json({ message: 'No specialities found for provided IDs' });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No specialities matched filter' });
     res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// BULK delete by comma-separated IDs
+exports.bulkDeleteSpecialitiesByIds = async (req, res) => {
+  try {
+    const idsParam = req.params.ids;
+    if (!idsParam)
+      return res.status(400).json({ error: 'No IDs provided' });
+    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
+    if (ids.length === 0)
+      return res.status(400).json({ error: 'No valid IDs provided' });
+    const result = await Speciality.deleteMany({ specialityID: { $in: ids } });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No specialities found for provided IDs' });
+    res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

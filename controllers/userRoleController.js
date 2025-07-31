@@ -17,7 +17,6 @@ const buildUserRoleFilter = (query) => {
       filter[key] = value;
     }
   }
-
   return filter;
 };
 
