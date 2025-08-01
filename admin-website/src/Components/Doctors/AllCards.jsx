@@ -59,30 +59,30 @@ const AllCards = () => {
                 <div className="social-details">
                   <H5 attrH5={{ className: "mb-3" }}>{item.fullName}</H5>
                   <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite">Designation</span>
-                    <span className="font-lite">{item.designation}</span>
+                    <span className="font-lite f-12">Designation:</span>
+                    <span className="font-lite f-12">{item.designation}</span>
                   </div>
                   <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite">Years of Experience</span>
-                    <span className="font-lite">
+                    <span className="font-lite f-12">Years of Experience:</span>
+                    <span className="font-lite f-12">
                       {item.yearsOfExperience || "-"} Years
                     </span>
                   </div>
                   <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite">Gender</span>
-                    <span className="font-lite">{item.gender}</span>
+                    <span className="font-lite f-12">Gender:</span>
+                    <span className="font-lite f-12">{item.gender}</span>
                   </div>
                   <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite">Contact Number</span>
-                    <span className="font-lite">
+                    <span className="font-lite f-12">Contact Number:</span>
+                    <span className="font-lite f-12">
                       {item?.countryCode}
                       {item?.countryCode && " - "}
                       {item.mobile}
                     </span>
                   </div>
                   <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite">Email Address</span>
-                    <span className="font-lite">{item.email}</span>
+                    <span className="font-lite f-12">Email Address:</span>
+                    <span className="font-lite f-12">{item.email}</span>
                   </div>
                 </div>
               </CardBody>

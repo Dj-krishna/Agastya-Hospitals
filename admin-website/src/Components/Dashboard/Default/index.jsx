@@ -30,9 +30,34 @@ const Dashboard = () => {
           <TableComponent
             title="Today Appointments"
             headers={[
-             "Patient Name", "Doctor Name", "Date", "Time", "Status", "Action"
+              "Patient Name",
+              "Doctor Name",
+              "Date",
+              "Time",
+              "Status",
+              "Action",
             ]}
-            data={Hovertabledata}
+            tableBody={
+              <tbody>
+                {Hovertabledata.map((item) => (
+                  <tr key={item.id}>
+                    <th scope="row">{item.id}</th>
+                    <td className="d-flex align-items-center">
+                      <span
+                        className={`${item.bgClass} rounded-1 p-1 me-2 d-flex align-items-center`}
+                      >
+                        {item.icon}
+                      </span>
+                      {item.status}
+                    </td>
+                    <td>{item.signalName}</td>
+                    <td>{item.security}</td>
+                    <td>{item.stage}</td>
+                    <td>{item.schedule}</td>
+                  </tr>
+                ))}
+              </tbody>
+            }
           />
         </Row>
       </Container>

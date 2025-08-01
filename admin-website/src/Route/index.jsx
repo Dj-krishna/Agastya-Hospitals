@@ -1,6 +1,7 @@
 import React from "react";
 import { Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Loader from "../Layout/Loader";
 import { authRoutes } from "./AuthRoutes";
 import LayoutRoutes from "../Route/LayoutRoutes";
@@ -15,6 +16,9 @@ const Routers = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const defaultLayoutObj = classes.find((item) => Object.values(item).pop(1) === "compact-wrapper");
   const layout = localStorage.getItem("layout") || Object.keys(defaultLayoutObj).pop();
+  
+  // Get authentication state from Redux
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
     let abortController = new AbortController();
@@ -26,12 +30,15 @@ const Routers = () => {
     };
   }, []);
 
+  // Check if user is authenticated (either from Redux or localStorage)
+  const isUserAuthenticated = isAuthenticated || login || authenticated;
+
   return (
     <BrowserRouter basename={"/"}>
       <Suspense fallback={<Loader />}>
         <Routes>
           <Route path={"/"} element={<PrivateRoute />}>
-            {login || authenticated ? (
+            {isUserAuthenticated ? (
               <>
                 <Route exact path={`/`} element={<Navigate to={`/dashboard`} />} />
                 <Route exact path={`/`} element={<Navigate to={`/dashboard`} />} />

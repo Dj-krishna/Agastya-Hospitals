@@ -55,12 +55,6 @@ export const MENUITEMS = [
         ],
       },
       {
-        path: `/departments`,
-        icon: "project",
-        title: "Departments",
-        type: "link",
-      },
-      {
         title: "Technologies",
         icon: "home",
         type: "link",

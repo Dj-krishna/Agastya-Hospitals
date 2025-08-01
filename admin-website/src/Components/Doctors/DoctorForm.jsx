@@ -787,7 +787,7 @@ const DoctorForm = ({ onClose }) => {
                       </Col>
                     )}
                   </Row>
-                  <Btn attrBtn={{ color: "primary" }}>{"Submit form"}</Btn>
+                  <Btn attrBtn={{ color: "primary" }}>{"Submit"}</Btn>
                 </Form>
               </CardBody>
             </Card>
