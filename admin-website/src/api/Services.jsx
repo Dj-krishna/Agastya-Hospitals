@@ -104,8 +104,11 @@ export const createDoctor = async (doctorData) => {
 
 export const updateDoctor = async (id, doctorData) => {
   try {
-    console.log("doctordataend",doctorData);
-    const response = await axios.put(`${DOCTORS_API}/${id}`, doctorData);
+    console.log("doctordataend", doctorData);
+    const response = await axios.put(
+      `${DOCTORS_API}?doctorID=${id}`, // Use query param instead of path param
+      doctorData
+    );
     return response.data;
   } catch (error) {
     throw error;
