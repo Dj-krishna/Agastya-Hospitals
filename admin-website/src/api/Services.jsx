@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LOGIN_URL } from "./index";
+import { LOGIN_URL, DOCTORS_API } from "./index";
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
@@ -77,4 +77,46 @@ export const deleteSpeciality = async (id) => {
     throw new Error("Failed to delete");
   }
   return response.json();
+};
+
+// Doctor-specific API functions
+export const fetchDoctorById = async (id) => {
+  try {
+    const response = await axios.get(`${DOCTORS_API}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createDoctor = async (doctorData) => {
+  try {
+    const response = await axios.post(DOCTORS_API, doctorData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateDoctor = async (id, doctorData) => {
+  try {
+    console.log("doctordataend",doctorData);
+    const response = await axios.put(`${DOCTORS_API}/${id}`, doctorData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteDoctor = async (id) => {
+  try {
+    const response = await axios.delete(`${DOCTORS_API}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };

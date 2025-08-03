@@ -23,55 +23,72 @@ import { fi } from "date-fns/locale";
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import axios from "axios";
 import { countryCodes } from "../../api/countryCode";
+import { createDoctor, updateDoctor } from "../../api/Services";
 
 const initialFormState = {
   fullName: "",
   mobile: "",
   email: "",
-  regNumber: "",
+  medicalRegNumber: "",
   department: "",
   designation: "",
   speciality: "",
-  experience: "",
-  languages: "",
+  languagesKnown: "",
   expertise: "",
-  services: "",
-  location: "",
+  servicesOffered: "",
+  consultingLocation: "",
   educationQualification: [""],
-  experienceDesc: "",
-  awards: "",
-  research: "",
+  experienceDescription: "",
+  awardsAndAchievements: "",
+  researchAndPublications: "",
   opTimings: [""],
   profilePhoto: null,
   countryCode: "+91",
+  gender: "",
+  yearsOfExperience: "",
 };
 
 const initialFormErrors = {
   fullName: "",
   mobile: "",
   email: "",
-  regNumber: "",
+  medicalRegNumber: "",
   department: "",
   designation: "",
   speciality: "",
-  experience: "",
-  languages: "",
+  languagesKnown: "",
   expertise: "",
-  services: "",
-  location: "",
+  servicesOffered: "",
+  consultingLocation: "",
   educationQualification: [""],
-  experienceDesc: "",
-  awards: "",
-  research: "",
+  experienceDescription: "",
+  awardsAndAchievements: "",
+  researchAndPublications: "",
   opTimings: [""],
   profilePhoto: null,
   countryCode: "",
+  gender: "",
+  yearsOfExperience: "",
 };
 
-const DoctorForm = ({ onClose }) => {
+const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load initial data when editing
+  useEffect(() => {
+    if (initialData && isEditMode) {
+      setFormState({
+        ...initialFormState,
+        ...initialData,
+        // Handle array fields properly
+        educationQualification: initialData.educationQualification || [""],
+        opTimings: initialData.opTimings || [""],
+      });
+    }
+  }, [initialData, isEditMode]);
 
   console.log("formState", formState);
 
@@ -85,7 +102,7 @@ const DoctorForm = ({ onClose }) => {
           : "Valid Mobile Number is required";
       case "email":
         return /\S+@\S+\.\S+/.test(value) ? "" : "Valid Email is required";
-      case "regNumber":
+      case "medicalRegNumber":
         return value === "" ? "Medical Reg. Number is required" : "";
       case "department":
         return value === "" ? "Department is required" : "";
@@ -96,13 +113,15 @@ const DoctorForm = ({ onClose }) => {
       case "educationQualification":
       case "opTimings":
         return value === "" ? "This field is required" : "";
-      case "experience":
-        return value === "" ? "Experience is required" : "";
-      case "languages":
+      case "yearsOfExperience":
+        return value === "" ? "Years of Experience is required" : "";
+      case "gender":
+        return value === "" ? "Gender is required" : "";
+      case "languagesKnown":
         return value === "" ? "Languages are required" : "";
-      case "services":
+      case "servicesOffered":
         return value === "" ? "Services are required" : "";
-      case "location":
+      case "consultingLocation":
         return value === "" ? "Location is required" : "";
       default:
         return "";
@@ -174,9 +193,10 @@ const DoctorForm = ({ onClose }) => {
     }));
   };
 
-  const onSubmit = (e, data) => {
+  const onSubmit = async (e, data) => {
     e.preventDefault();
     setIsSubmitted(true);
+    setIsLoading(true);
 
     const newformErrors = {};
     Object.keys(formState).forEach((key) => {
@@ -186,9 +206,9 @@ const DoctorForm = ({ onClose }) => {
         );
       } else if (
         key === "expertise" ||
-        key === "awards" ||
-        key === "research" ||
-        key === "experienceDesc"
+        key === "awardsAndAchievements" ||
+        key === "researchAndPublications" ||
+        key === "experienceDescription"
       ) {
         newformErrors[key] = validateQuillField(key, formState[key]);
       } else {
@@ -202,10 +222,39 @@ const DoctorForm = ({ onClose }) => {
     const isValid = Object.values(newformErrors)
       .flat()
       .every((msg) => msg === "");
+    
     if (isValid) {
-      console.log("Form submitted successfully:", formState);
+      try {
+        // Prepare data for API (remove profilePhoto if it's a File object)
+        const submitData = { ...formState };
+        if (submitData.profilePhoto instanceof File) {
+          delete submitData.profilePhoto; // Remove file object for now
+        }
+
+        if (isEditMode && initialData?.doctorID) {
+          // Update existing doctor
+          console.log("submitdata",submitData);
+          await updateDoctor(initialData.doctorID, submitData);
+          console.log("Doctor updated successfully");
+        } else {
+          // Create new doctor
+          await createDoctor(submitData);
+          console.log("Doctor created successfully");
+        }
+        
+        // Close form and refresh data
+        if (onClose) {
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error saving doctor:", error);
+        // You can add error handling here (show toast, etc.)
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       console.log("Validation failed");
+      setIsLoading(false);
     }
   };
 
@@ -311,7 +360,7 @@ const DoctorForm = ({ onClose }) => {
   return (
     <>
       <Breadcrumbs
-        mainTitle="Add Doctor"
+        mainTitle={isEditMode ? "Edit Doctor" : "Add Doctor"}
         buttonTitle={"Cancel"}
         btnColor={"secondary"}
         onClick={onClose}
@@ -396,18 +445,18 @@ const DoctorForm = ({ onClose }) => {
                   </Row>
                   <Row>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="regNumber">
+                      <Label className="form-label" for="medicalRegNumber">
                         Medical Reg. Number
                       </Label>
                       <Input
                         type="text"
-                        name="regNumber"
-                        value={formState.regNumber}
+                        name="medicalRegNumber"
+                        value={formState.medicalRegNumber}
                         onChange={handleChange}
                         placeholder="Enter medical reg. number"
-                        invalid={!!formErrors.regNumber}
+                        invalid={!!formErrors.medicalRegNumber}
                       />
-                      <ValidationAlert error={formErrors.regNumber} />
+                      <ValidationAlert error={formErrors.medicalRegNumber} />
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="department">
@@ -473,32 +522,50 @@ const DoctorForm = ({ onClose }) => {
                       <ValidationAlert error={formErrors.speciality} />
                     </Col>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="experience">
+                      <Label className="form-label" for="yearsOfExperience">
                         Years of Experience
                       </Label>
                       <Input
                         type="text"
-                        name="experience"
-                        value={formState.experience}
+                        name="yearsOfExperience"
+                        value={formState.yearsOfExperience}
                         onChange={handleChange}
-                        placeholder="Enter experience"
-                        invalid={!!formErrors.experience}
+                        placeholder="Enter years of experience"
+                        invalid={!!formErrors.yearsOfExperience}
                       />
-                      <ValidationAlert error={formErrors.experience} />
+                      <ValidationAlert error={formErrors.yearsOfExperience} />
                     </Col>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="languages">
+                      <Label className="form-label" for="gender">
+                        Gender
+                      </Label>
+                      <Input
+                        type="select"
+                        name="gender"
+                        value={formState.gender}
+                        onChange={handleChange}
+                        invalid={!!formErrors.gender}
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </Input>
+                      <ValidationAlert error={formErrors.gender} />
+                    </Col>
+                    <Col md="4 mb-3">
+                      <Label className="form-label" for="languagesKnown">
                         Languages Known
                       </Label>
                       <Input
                         type="text"
-                        name="languages"
-                        value={formState.languages}
+                        name="languagesKnown"
+                        value={formState.languagesKnown}
                         onChange={handleChange}
                         placeholder="Enter languages spoken"
-                        invalid={!!formErrors.languages}
+                        invalid={!!formErrors.languagesKnown}
                       />
-                      <ValidationAlert error={formErrors.languages} />
+                      <ValidationAlert error={formErrors.languagesKnown} />
                     </Col>
                   </Row>
                   <Row>
@@ -524,32 +591,32 @@ const DoctorForm = ({ onClose }) => {
                       />
                     </Col>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="services">
+                      <Label className="form-label" for="servicesOffered">
                         Services Offered
                       </Label>
                       <Input
                         type="text"
-                        name="services"
-                        value={formState.services}
+                        name="servicesOffered"
+                        value={formState.servicesOffered}
                         onChange={handleChange}
                         placeholder="Enter services"
-                        invalid={!!formErrors.services}
+                        invalid={!!formErrors.servicesOffered}
                       />
-                      <ValidationAlert error={formErrors.services} />
+                      <ValidationAlert error={formErrors.servicesOffered} />
                     </Col>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="location">
+                      <Label className="form-label" for="consultingLocation">
                         Consulting Location
                       </Label>
                       <Input
                         type="text"
-                        name="location"
-                        value={formState.location}
+                        name="consultingLocation"
+                        value={formState.consultingLocation}
                         onChange={handleChange}
                         placeholder="Enter location"
-                        invalid={!!formErrors.location}
+                        invalid={!!formErrors.consultingLocation}
                       />
-                      <ValidationAlert error={formErrors.location} />
+                      <ValidationAlert error={formErrors.consultingLocation} />
                     </Col>
                   </Row>
                   <Row>
@@ -627,63 +694,63 @@ const DoctorForm = ({ onClose }) => {
                   </Row>
                   <Row>
                     <Col md="12 mb-3">
-                      <Label className="form-label" for="experienceDesc">
+                      <Label className="form-label" for="experienceDescription">
                         Experience - Description
                       </Label>
                       <HTMLTextEditor
-                        name="experienceDesc"
-                        state={formState.experienceDesc}
+                        name="experienceDescription"
+                        state={formState.experienceDescription}
                         onChange={(value) =>
-                          handleQuillChange("experienceDesc", value)
+                          handleQuillChange("experienceDescription", value)
                         }
                         placeholder="Enter experience description"
                         onBlur={() => handleQuillBlur("expertise")}
                         errors={
-                          formErrors.experienceDesc && (
+                          formErrors.experienceDescription && (
                             <div className="text-danger">
-                              {formErrors.experienceDesc}
+                              {formErrors.experienceDescription}
                             </div>
                           )
                         }
                       />
                     </Col>
                     <Col md="12 mb-3">
-                      <Label className="form-label" for="awards">
+                      <Label className="form-label" for="awardsAndAchievements">
                         Awards & Achievements
                       </Label>
                       <HTMLTextEditor
-                        name="awards"
-                        state={formState.awards}
+                        name="awardsAndAchievements"
+                        state={formState.awardsAndAchievements}
                         handleChange={(value) =>
-                          handleQuillChange("awards", value)
+                          handleQuillChange("awardsAndAchievements", value)
                         }
                         placeholder="Enter awards and achievements"
-                        onBlur={() => handleQuillBlur("awards")}
+                        onBlur={() => handleQuillBlur("awardsAndAchievements")}
                         errors={
-                          formErrors.awards && (
+                          formErrors.awardsAndAchievements && (
                             <div className="text-danger">
-                              {formErrors.awards}
+                              {formErrors.awardsAndAchievements}
                             </div>
                           )
                         }
                       />
                     </Col>
                     <Col md="12 mb-3">
-                      <Label className="form-label" for="research">
+                      <Label className="form-label" for="researchAndPublications">
                         Research & Publications
                       </Label>
                       <HTMLTextEditor
-                        name="research"
-                        state={formState.research}
+                        name="researchAndPublications"
+                        state={formState.researchAndPublications}
                         handleChange={(value) =>
-                          handleQuillChange("research", value)
+                          handleQuillChange("researchAndPublications", value)
                         }
                         placeholder="Enter research and publications"
-                        onBlur={() => handleQuillBlur("research")}
+                        onBlur={() => handleQuillBlur("researchAndPublications")}
                         errors={
-                          formErrors.research && (
+                          formErrors.researchAndPublications && (
                             <div className="text-danger">
-                              {formErrors.research}
+                              {formErrors.researchAndPublications}
                             </div>
                           )
                         }
@@ -787,7 +854,15 @@ const DoctorForm = ({ onClose }) => {
                       </Col>
                     )}
                   </Row>
-                  <Btn attrBtn={{ color: "primary" }}>{"Submit"}</Btn>
+                  <Btn 
+                    attrBtn={{ 
+                      color: "primary", 
+                      type: "submit",
+                      disabled: isLoading 
+                    }}
+                  >
+                    {isLoading ? "Saving..." : (isEditMode ? "Update Doctor" : "Save Doctor")}
+                  </Btn>
                 </Form>
               </CardBody>
             </Card>

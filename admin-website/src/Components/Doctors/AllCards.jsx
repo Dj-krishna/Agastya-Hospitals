@@ -10,14 +10,45 @@ import { DOCTORS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 // import images from '../../assets/images'
 
-const AllCards = () => {
+const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
   const [cards, setCards] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDoctors = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchDataGet(DOCTORS_API);
+      setCards(data);
+    } catch (error) {
+      console.error("Error fetching doctors:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const ac = new AbortController();
-    fetchDataGet(DOCTORS_API).then((res) => setCards(res));
-    return () => ac.abort();
-  }, []);
+    fetchDoctors();
+  }, [refreshTrigger]);
+
   console.log("DOCTOR CARDS ", cards);
+
+  const handleCardClick = (doctor) => {
+    if (onEditDoctor) {
+      onEditDoctor(doctor);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Col xs="12">
+        <div className="text-center p-4">
+          <div className="spinner-border" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+        </div>
+      </Col>
+    );
+  }
 
   return (
     <Fragment>
@@ -30,7 +61,11 @@ const AllCards = () => {
             xxl="3"
             className="col-ed-4 box-col-4"
           >
-            <Card className="social-profile">
+            <Card 
+              className="social-profile" 
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleCardClick(item)}
+            >
               <CardBody>
                 <div className="social-img-wrap">
                   <div className="social-img">
@@ -50,8 +85,8 @@ const AllCards = () => {
                       }}
                     >
                       {(
-                        item.fullName.split(" ")[1].split("")[0] +
-                        item.fullName.split(" ")[2].split("")[0]
+                        item.fullName.split(" ")[1]?.split("")[0] +
+                        item.fullName.split(" ")[2]?.split("")[0]
                       ).toUpperCase()}
                     </span>
                   </div>
