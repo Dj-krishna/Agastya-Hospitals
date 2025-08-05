@@ -207,8 +207,8 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
       } else if (
         key === "expertise" ||
         key === "awardsAndAchievements" ||
-        key === "researchAndPublications" ||
-        key === "experienceDescription"
+        key === "researchAndPublications"
+        //key === "experienceDescription"
       ) {
         newformErrors[key] = validateQuillField(key, formState[key]);
       } else {
@@ -222,18 +222,24 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
     const isValid = Object.values(newformErrors)
       .flat()
       .every((msg) => msg === "");
-    
+
     if (isValid) {
       try {
         // Prepare data for API (remove profilePhoto if it's a File object)
+        const formattedName = formState.fullName.startsWith("Dr. ")
+          ? formState.fullName
+          : `Dr. ${formState.fullName}`;
         const submitData = { ...formState };
+
+        submitData.fullName = formattedName;
+
         if (submitData.profilePhoto instanceof File) {
           delete submitData.profilePhoto; // Remove file object for now
         }
 
         if (isEditMode && initialData?.doctorID) {
           // Update existing doctor
-          console.log("submitdata",submitData);
+          console.log("submitdata", submitData);
           await updateDoctor(initialData.doctorID, submitData);
           console.log("Doctor updated successfully");
         } else {
@@ -241,7 +247,6 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
           await createDoctor(submitData);
           console.log("Doctor created successfully");
         }
-        
         // Close form and refresh data
         if (onClose) {
           onClose();
@@ -250,6 +255,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
         console.error("Error saving doctor:", error);
         // You can add error handling here (show toast, etc.)
       } finally {
+        setIsSubmitted(false);
         setIsLoading(false);
       }
     } else {
@@ -380,15 +386,20 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       <Label className="form-label" for="fullName">
                         Full name
                       </Label>
-                      <Input
-                        type="text"
-                        name="fullName"
-                        id="fullName"
-                        value={formState.fullName}
-                        onChange={handleChange}
-                        placeholder="Enter full name"
-                        invalid={!!formErrors.fullName}
-                      />
+                      <InputGroup
+                        className={formErrors.fullName ? " is-invalid" : ""}
+                      >
+                        <InputGroupText>{"Dr. "}</InputGroupText>
+                        <Input
+                          type="text"
+                          name="fullName"
+                          id="fullName"
+                          value={formState.fullName.replace(/^(Dr\.)\s*/, "")}
+                          onChange={handleChange}
+                          placeholder="Enter full name"
+                          invalid={!!formErrors.fullName}
+                        />
+                      </InputGroup>
                       <ValidationAlert error={formErrors.fullName} />
                     </Col>
                     <Col md="4 mb-3">
@@ -704,7 +715,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                           handleQuillChange("experienceDescription", value)
                         }
                         placeholder="Enter experience description"
-                        onBlur={() => handleQuillBlur("expertise")}
+                        onBlur={() => handleQuillBlur("experienceDescription")}
                         errors={
                           formErrors.experienceDescription && (
                             <div className="text-danger">
@@ -736,7 +747,10 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       />
                     </Col>
                     <Col md="12 mb-3">
-                      <Label className="form-label" for="researchAndPublications">
+                      <Label
+                        className="form-label"
+                        for="researchAndPublications"
+                      >
                         Research & Publications
                       </Label>
                       <HTMLTextEditor
@@ -746,7 +760,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                           handleQuillChange("researchAndPublications", value)
                         }
                         placeholder="Enter research and publications"
-                        onBlur={() => handleQuillBlur("researchAndPublications")}
+                        onBlur={() =>
+                          handleQuillBlur("researchAndPublications")
+                        }
                         errors={
                           formErrors.researchAndPublications && (
                             <div className="text-danger">
@@ -854,14 +870,18 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       </Col>
                     )}
                   </Row>
-                  <Btn 
-                    attrBtn={{ 
-                      color: "primary", 
+                  <Btn
+                    attrBtn={{
+                      color: "primary",
                       type: "submit",
-                      disabled: isLoading 
+                      disabled: isLoading,
                     }}
                   >
-                    {isLoading ? "Saving..." : (isEditMode ? "Update Doctor" : "Save Doctor")}
+                    {isLoading
+                      ? "Saving..."
+                      : isEditMode
+                      ? "Update Doctor"
+                      : "Save Doctor"}
                   </Btn>
                 </Form>
               </CardBody>
