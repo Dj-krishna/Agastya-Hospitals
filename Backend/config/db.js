@@ -6,10 +6,7 @@ const connectDB = async () => {
     // Prefer MONGO_URI from env, fallback to local MongoDB URI
     const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/Agastya';
 
-    await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(uri);
 
     console.log(`MongoDB connected: ${uri.startsWith('mongodb+srv') ? 'Atlas' : 'Local'}`);
   } catch (err) {

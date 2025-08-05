@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
 
+// Sub-schema for daily schedule
+const dailyScheduleSchema = new mongoose.Schema({
+  date: { type: Date, required: true },
+  morningSlot: [{ type: String }],   // e.g., ["09:00", "09:30"]
+  eveningSlot: [{ type: String }],   // e.g., ["15:00", "15:30"]
+}, { _id: false });  // Prevent Mongoose from creating _id for sub-docs
+
 const appointmentSchema = new mongoose.Schema({
   appointmentID: { type: Number, required: true, unique: true },
   doctorID: { type: Number, required: true },
   fromDate: { type: Date, required: true },
   toDate: { type: Date, required: true },
-  morningSlot: [{ type: String }],  // Stored as ["09:00", "09:30", ...]
-  eveningSlot: [{ type: String }],
+  schedule: [dailyScheduleSchema],            // Per-day slots
   timeSlotInterval: { type: Number, default: 30 },
   isActive: { type: Boolean, default: true },
 }, {

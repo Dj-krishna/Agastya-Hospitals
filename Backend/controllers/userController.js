@@ -1,5 +1,6 @@
-const UserDetail = require('../models/Users'); // Adjusted model name
+const UserDetail = require('../models/Users');
 const UserRole = require('../models/UserRoles');
+const Module = require('../models/Modules');
 const getNextSequence = require('../utils/getNextSequence');
 
 // Helper to build filters from req.query
@@ -22,121 +23,94 @@ const buildUserFilter = (query) => {
   return filter;
 };
 
-// Compose aggregation pipeline joining UserRole to add roleName
-const userWithRoleLookup = (match = {}) => [
+// Compose aggregation pipeline joining UserRole and Modules
+const userWithRoleAndModulesLookup = (match = {}) => [
   { $match: match },
   {
     $lookup: {
       from: 'userRoles',
       localField: 'roleID',
       foreignField: 'roleID',
-      as: 'roleData',
+      as: 'roleData'
     }
   },
   { $unwind: { path: '$roleData', preserveNullAndEmptyArrays: true } },
-  { $addFields: { roleName: '$roleData.roleName' } },
-  { $project: { roleData: 0, password: 0 } } // never expose password
+  {
+    $lookup: {
+      from: 'modules',
+      localField: 'modules',
+      foreignField: 'moduleID',
+      as: 'moduleDetails'
+    }
+  },
+  {
+    $addFields: {
+      roleName: '$roleData.roleName',
+      moduleNames: {
+        $cond: [
+          { $isArray: '$moduleDetails' },
+          { $map: { input: '$moduleDetails', as: 'm', in: '$$m.moduleName' } },
+          []
+        ]
+      }
+    }
+  },
+  { $project: { roleData: 0, moduleDetails: 0, password: 0 } }
 ];
 
-// GET all or filtered users with roleName
+// Helper to transform modules array into key-value object
+const transformModules = (user) => {
+  if (Array.isArray(user.modules) && Array.isArray(user.moduleNames)) {
+    const mapped = {};
+    user.modules.forEach((id, idx) => {
+      mapped[id] = user.moduleNames[idx] || 'Unknown';
+    });
+    user.modules = mapped;
+    delete user.moduleNames;
+  }
+  return user;
+};
+
 exports.getUsers = async (req, res) => {
   try {
     const filter = buildUserFilter(req.query);
-    const users = await UserDetail.aggregate(userWithRoleLookup(filter));
-    if (users.length === 0) {
-      return res.status(404).json({ message: 'No users found.' });
-    }
-    res.json(users.length === 1 ? users[0] : users);
+    const users = await UserDetail.aggregate(userWithRoleAndModulesLookup(filter));
+    if (users.length === 0) return res.status(404).json({ message: 'No users found.' });
+
+    const transformed = users.map(transformModules);
+    res.json(transformed.length === 1 ? transformed[0] : transformed);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET user by userID with roleName
 exports.getUserById = async (req, res) => {
   try {
     const userID = Number(req.params.id);
-    const data = await UserDetail.aggregate(userWithRoleLookup({ userID }));
+    const data = await UserDetail.aggregate(userWithRoleAndModulesLookup({ userID }));
     if (data.length === 0) return res.status(404).json({ message: 'User not found.' });
-    res.json(data[0]);
+
+    const transformed = transformModules(data[0]);
+    res.json(transformed);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// POST: Add single or bulk users, enforce unique email
-exports.addUser = async (req, res) => {
-  try {
-    const payload = req.body;
-    const getNextUserID = async () => await getNextSequence('userID');
-    const emailExists = async (email) => UserDetail.exists({ email });
-
-    // For single user insert
-    if (!Array.isArray(payload)) {
-      if (await emailExists(payload.email)) {
-        return res.status(409).json({ error: 'User with this email already exists.' });
-      }
-      if (!payload.userID) payload.userID = await getNextUserID();
-
-      const newUser = new UserDetail(payload);
-      const saved = await newUser.save();
-      // Return with roleName joined
-      const withRole = await UserDetail.aggregate(userWithRoleLookup({ userID: saved.userID }));
-      return res.status(201).json(withRole[0]);
-    }
-
-    // Bulk insert
-    const emails = payload.map(u => u.email);
-    const existing = await UserDetail.find({ email: { $in: emails } }, { email: 1 });
-    const existingEmails = new Set(existing.map(e => e.email));
-    const duplicateEmails = emails.filter((email, i) => emails.indexOf(email) !== i);
-
-    const errors = [];
-    const itemsToInsert = [];
-    for (const user of payload) {
-      if (existingEmails.has(user.email)) {
-        errors.push({ email: user.email, error: 'Already exists in DB.' });
-        continue;
-      }
-      if (duplicateEmails.includes(user.email)) {
-        errors.push({ email: user.email, error: 'Duplicate in request.' });
-        continue;
-      }
-      if (!user.userID) user.userID = await getNextUserID();
-      itemsToInsert.push(user);
-    }
-
-    if (!itemsToInsert.length) {
-      return res.status(409).json({ error: 'No users inserted.', details: errors });
-    }
-
-    await UserDetail.insertMany(itemsToInsert);
-
-    // Fetch inserted users with role data
-    const insertedIds = itemsToInsert.map(u => u.userID);
-    const insertedWithRoles = await UserDetail.aggregate(userWithRoleLookup({ userID: { $in: insertedIds } }));
-
-    let response = { inserted: insertedWithRoles };
-    if (errors.length) response.errors = errors;
-    res.status(errors.length ? 207 : 201).json(response);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// PUT: Bulk update
 exports.bulkUpdateUsers = async (req, res) => {
   const { filter, updateFields, updates } = req.body;
   try {
     if (filter && updateFields) {
       const result = await UserDetail.updateMany(filter, { $set: updateFields });
-      return res.json({ message: 'Users updated', modifiedCount: result.modifiedCount });
+      const updated = await UserDetail.aggregate(userWithRoleAndModulesLookup(filter));
+      const transformed = updated.map(transformModules);
+      return res.json({ message: 'Users updated', modifiedCount: result.modifiedCount, updatedUsers: transformed });
     } else if (Array.isArray(updates)) {
       const bulkOps = updates.map(u => ({
         updateOne: { filter: u.filter, update: { $set: u.updateFields } }
       }));
       const result = await UserDetail.bulkWrite(bulkOps);
-      return res.json({ message: 'Users updated (multi)', modifiedCount: result.modifiedCount });
+      return res.json({ message: 'Users updated successfully', modifiedCount: result.modifiedCount });
     } else {
       return res.status(400).json({ error: 'Invalid update structure' });
     }
@@ -145,7 +119,6 @@ exports.bulkUpdateUsers = async (req, res) => {
   }
 };
 
-// PUT: Update user(s) by filter
 exports.updateUser = async (req, res) => {
   const filter = req.query;
   const updateData = req.body;
@@ -156,19 +129,18 @@ exports.updateUser = async (req, res) => {
     if (result.modifiedCount === 0) {
       return res.status(404).json({ message: 'No matching users found to update' });
     }
-    // Return updated documents with joined roleName
-    const updated = await UserDetail.aggregate(userWithRoleLookup(filter));
+    const updated = await UserDetail.aggregate(userWithRoleAndModulesLookup(buildUserFilter(filter)));
+    const transformed = updated.map(transformModules);
     return res.json({
       message: 'User(s) updated',
       updatedCount: result.modifiedCount,
-      updatedUsers: updated.length === 1 ? updated[0] : updated
+      updatedUsers: transformed.length === 1 ? transformed[0] : transformed
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: Delete user by userID
 exports.deleteUserById = async (req, res) => {
   try {
     const userID = Number(req.params.id);
@@ -180,7 +152,6 @@ exports.deleteUserById = async (req, res) => {
   }
 };
 
-// DELETE: Delete users by filter
 exports.deleteUsersByFilter = async (req, res) => {
   try {
     const { filter } = req.body;
@@ -193,7 +164,6 @@ exports.deleteUsersByFilter = async (req, res) => {
   }
 };
 
-// DELETE: Bulk delete by comma-separated userIDs
 exports.bulkDeleteUsersByIds = async (req, res) => {
   try {
     const idsParam = req.params.ids;
