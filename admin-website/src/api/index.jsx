@@ -4,6 +4,7 @@ export const LOGIN_URL = `${baseUrl}/${api}/auth/login`;
 export const DOCTORS_API = `${baseUrl}/${api}/doctors`;
 export const SPECIALITIES_API = `${baseUrl}/${api}/specialities`;
 export const USER_ROLES_API = `${baseUrl}/${api}/user-roles`;
+export const MODULES_API = `${baseUrl}/${api}/modules`;
 
 export const TaskApi = `${api}/task.json`;
 export const BookmarkApi = `${api}/bookmark.json`;

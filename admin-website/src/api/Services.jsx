@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LOGIN_URL, DOCTORS_API } from "./index";
+import { LOGIN_URL, DOCTORS_API, USER_ROLES_API, MODULES_API } from "./index";
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
@@ -121,5 +121,24 @@ export const deleteDoctor = async (id) => {
     return response.data;
   } catch (error) {
     throw error;
+  }
+};
+
+// Login Types and Modules API functions
+export const fetchLoginTypes = async () => {
+  try {
+    const response = await axios.get(USER_ROLES_API);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching login types:", error);
+  }
+};
+
+export const fetchModules = async () => {
+  try {
+    const response = await axios.get(MODULES_API);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching modules:", error);
   }
 };
