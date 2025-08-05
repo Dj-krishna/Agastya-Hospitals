@@ -19,6 +19,8 @@ import { fetchDataGet } from "../../../api/Services";
 import { DOCTORS_API } from "../../../api";
 import DatePicker from "react-datepicker";
 import { FaCalendar, FaCalendarAlt, FaClock } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDoctors } from "../../../slices/doctorsSlice";
 
 const today = new Date();
 const initialFormState = {
@@ -45,14 +47,16 @@ function AddSlots() {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [doctorsList, setDoctorsList] = useState([]);
   const [enableReset, setEnableReset] = useState(false);
 
+  const dispatch = useDispatch();
+  const { data: doctors } = useSelector((state) => {
+    return state.doctors;
+  });
+
   useEffect(() => {
-    const ac = new AbortController();
-    fetchDataGet(DOCTORS_API).then((res) => setDoctorsList(res));
-    return () => ac.abort();
-  }, []);
+    dispatch(fetchDoctors());
+  }, [dispatch]);
 
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
     const hours = Math.floor(i / 2);
@@ -136,12 +140,7 @@ function AddSlots() {
 
   return (
     <>
-      <Breadcrumbs
-        mainTitle="Add Slots For Doctor"
-        //buttonTitle={"Cancel"}
-        btnColor={"secondary"}
-        //onClick={onClose}
-      />
+      <Breadcrumbs mainTitle="Add Slots For Doctor" btnColor={"secondary"} />
       <Container fluid={true}>
         <Row>
           <Col sm="12">
@@ -164,7 +163,7 @@ function AddSlots() {
                         invalid={!!formErrors.selectedDoctor}
                       >
                         <option value="">Select a doctor</option>
-                        {doctorsList.map((doc, index) => (
+                        {doctors.map((doc, index) => (
                           <option key={index} value={doc.fullName}>
                             {doc.fullName}
                           </option>
