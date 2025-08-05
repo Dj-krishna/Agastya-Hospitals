@@ -6,10 +6,11 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   rawPassword: { type: String },
+  countryCode: { type: String, required: true }, 
   mobile: { type: String, required: true },
   isActive: { type: Boolean, required: true },
   roleID: { type: Number, required: true },         // links to Role.roleID
-  modules: [{ type: String }],
+  modules: [{ type: Number }],
   whatsAppNumber: { type: String }
 }, {
   timestamps: true,

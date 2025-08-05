@@ -14,6 +14,7 @@ const subSpecialityRoutes = require('./routes/subSpecialityRoutes');
 const userRoutes = require('./routes/userRoutes');
 const userRoleRoutes = require('./routes/userRoleRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const moduleRoutes = require('./routes/moduleRoutes');
 
 connectDB(); // Connect to MongoDB
 
@@ -30,6 +31,7 @@ app.use('/api/sub-specialities', subSpecialityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/user-roles', userRoleRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/modules', moduleRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -6,9 +6,6 @@ const userController = require('../controllers/userController');
 router.get('/', userController.getUsers);
 router.get('/:id', userController.getUserById);
 
-// POST
-router.post('/', userController.addUser);
-
 // PUT
 router.put('/bulk-update', userController.bulkUpdateUsers);
 router.put('/', userController.updateUser);
