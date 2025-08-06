@@ -17,6 +17,7 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
+  Button,
 } from "reactstrap";
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import { fetchLoginTypes, fetchModules } from "../../api/Services";
@@ -97,7 +98,7 @@ const UserRolesForm = () => {
         console.log("Fetching login types and modules...");
         const [loginTypesData, modulesData] = await Promise.all([
           fetchLoginTypes(),
-          fetchModules()
+          fetchModules(),
         ]);
         console.log("Login Types:", loginTypesData);
         console.log("Modules:", modulesData);
@@ -115,7 +116,7 @@ const UserRolesForm = () => {
 
   // Inject custom CSS for checkboxes
   useEffect(() => {
-    const styleElement = document.createElement('style');
+    const styleElement = document.createElement("style");
     styleElement.textContent = checkboxStyles;
     document.head.appendChild(styleElement);
 
@@ -139,7 +140,9 @@ const UserRolesForm = () => {
       case "loginType":
         return value === "" ? "Login type is required" : "";
       case "selectedModules":
-        return Array.isArray(value) && value.length === 0 ? "Please select at least one module" : "";
+        return Array.isArray(value) && value.length === 0
+          ? "Please select at least one module"
+          : "";
       case "userStatus":
         return value === "" ? "User status is required" : "";
       default:
@@ -163,11 +166,11 @@ const UserRolesForm = () => {
     setFormState((prev) => {
       const updatedModules = checked
         ? [...prev.selectedModules, moduleName]
-        : prev.selectedModules.filter(module => module !== moduleName);
-      
+        : prev.selectedModules.filter((module) => module !== moduleName);
+
       return {
         ...prev,
-        selectedModules: updatedModules
+        selectedModules: updatedModules,
       };
     });
 
@@ -187,10 +190,10 @@ const UserRolesForm = () => {
   };
 
   const handleSelectAllModules = () => {
-    const allModuleNames = modules.map(module => module.moduleName);
+    const allModuleNames = modules.map((module) => module.moduleName);
     setFormState((prev) => ({
       ...prev,
-      selectedModules: allModuleNames
+      selectedModules: allModuleNames,
     }));
     if (isSubmitted) {
       const errorMsg = validateField("selectedModules", allModuleNames);
@@ -201,7 +204,7 @@ const UserRolesForm = () => {
   const handleClearAllModules = () => {
     setFormState((prev) => ({
       ...prev,
-      selectedModules: []
+      selectedModules: [],
     }));
     if (isSubmitted) {
       const errorMsg = validateField("selectedModules", []);
@@ -256,7 +259,9 @@ const UserRolesForm = () => {
   const removeModule = (moduleName) => {
     setFormState((prev) => ({
       ...prev,
-      selectedModules: prev.selectedModules.filter(module => module !== moduleName)
+      selectedModules: prev.selectedModules.filter(
+        (module) => module !== moduleName
+      ),
     }));
   };
 
@@ -373,40 +378,57 @@ const UserRolesForm = () => {
               </Input>
               <ValidationAlert error={formErrors.loginType} />
             </Col>
+            <Col md="4 mb-3"></Col>
             <Col md="4 mb-3">
-              <Label className="form-label">
-                Selected Modules
-              </Label>
-              <Dropdown isOpen={moduleDropdownOpen} toggle={toggleModuleDropdown}>
-                <DropdownToggle 
-                  caret 
+              <Label className="form-label">Select Modules</Label>
+              <Dropdown
+                isOpen={moduleDropdownOpen}
+                toggle={toggleModuleDropdown}
+              >
+                <DropdownToggle
+                  caret
                   className="w-100 text-start d-flex justify-content-between align-items-center"
-                  style={{ 
-                    textAlign: 'left', 
-                    backgroundColor: 'white',
-                    border: formErrors.selectedModules ? '1px solid #dc3545' : '1px solid #ced4da',
-                    borderRadius: '0.375rem',
-                    padding: '0.375rem 0.75rem',
-                    minHeight: '38px',
-                    fontSize: '0.875rem'
+                  style={{
+                    textAlign: "left",
+                    backgroundColor: "white",
+                    border: formErrors.selectedModules
+                      ? "1px solid #dc3545"
+                      : "1px solid #ced4da",
+                    borderRadius: "0.375rem",
+                    padding: "0.375rem 0.75rem",
+                    minHeight: "38px",
+                    fontSize: "0.875rem",
                   }}
                 >
-                  <span className={formState.selectedModules.length === 0 ? 'text-muted' : ''}>
+                  <span
+                    className={
+                      formState.selectedModules.length === 0 ? "text-muted" : ""
+                    }
+                  >
                     {getDropdownText()}
                   </span>
-                  <span className="text-muted">▼</span>
+                  {/* <span className="text-muted">▼</span> */}
                 </DropdownToggle>
-                <DropdownMenu className="w-100" style={{ maxHeight: '300px', overflowY: 'auto', minWidth: '300px' }}>
-                  <div className="p-3 border-bottom bg-light">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <small className="text-muted fw-bold">Select Modules</small>
+                <DropdownMenu
+                  className="w-100"
+                  style={{
+                    maxHeight: "300px",
+                    overflowY: "auto",
+                    minWidth: "300px",
+                  }}
+                >
+                  <div className="px-3 py-1 border-bottom bg-light">
+                    <div className="">
+                      <small className="text-muted fw-bold">
+                        Select Modules
+                      </small>
                       <div>
                         <Btn
                           attrBtn={{
                             color: "outline-primary",
                             size: "sm",
                             onClick: handleSelectAllModules,
-                            className: "me-1"
+                            className: "me-1 py-1 px-3",
                           }}
                         >
                           All
@@ -415,7 +437,8 @@ const UserRolesForm = () => {
                           attrBtn={{
                             color: "outline-secondary",
                             size: "sm",
-                            onClick: handleClearAllModules
+                            onClick: handleClearAllModules,
+                            className: "me-1 py-1 px-3",
                           }}
                         >
                           Clear
@@ -423,43 +446,65 @@ const UserRolesForm = () => {
                       </div>
                     </div>
                   </div>
-                                     {modules.map((module) => (
-                     <DropdownItem key={module.moduleID} className="p-2 border-bottom">
-                       <div className="d-flex align-items-start">
-                         <Input
-                           type="checkbox"
-                           id={`module-${module.moduleID}`}
-                           checked={formState.selectedModules.includes(module.moduleName)}
-                           onChange={(e) => handleModuleChange(module.moduleID, module.moduleName, e.target.checked)}
-                           onClick={(e) => e.stopPropagation()}
-                           className="custom-checkbox mt-1"
-                         />
-                         <Label check for={`module-${module.moduleID}`} className="mb-0 flex-grow-1 ms-2">
-                           <div>
-                             <div className="fw-semibold">{module.moduleName}</div>
-                             <small className="text-muted">{module.description}</small>
-                           </div>
-                         </Label>
-                       </div>
-                     </DropdownItem>
-                   ))}
+                  {modules.map((module, index) => (
+                    <DropdownItem
+                      key={module.moduleID + index}
+                      className="p-2 border-bottom"
+                    >
+                      <div className="d-flex align-items-start">
+                        <Input
+                          type="checkbox"
+                          id={`module-${module.moduleID}-${index}`}
+                          checked={formState.selectedModules.includes(
+                            module.moduleName
+                          )}
+                          onChange={(e) =>
+                            handleModuleChange(
+                              module.moduleID,
+                              module.moduleName,
+                              e.target.checked
+                            )
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="custom-checkbox mt-1"
+                        />
+                        <Label
+                          check
+                          for={`module-${module.moduleID}-${index}`}
+                          className="mb-0 flex-grow-1 ms-2"
+                        >
+                          <div>
+                            <div className="fw-semibold">
+                              {module.moduleName}
+                            </div>
+                            <small className="text-muted">
+                              {module.description}
+                            </small>
+                          </div>
+                        </Label>
+                      </div>
+                    </DropdownItem>
+                  ))}
                 </DropdownMenu>
               </Dropdown>
+              <ValidationAlert error={formErrors.selectedModules} />
+            </Col>
+            <Col md={8}>
               {formState.selectedModules.length > 0 && (
-                <div className="mt-2">
-                  <small className="text-muted d-block mb-1">Selected modules:</small>
+                <div className="">
+                  <Label className="d-block mb-1">Selected modules:</Label>
                   <div className="d-flex flex-wrap gap-1">
                     {formState.selectedModules.map((moduleName, index) => (
                       <span
                         key={index}
                         className="badge bg-primary d-flex align-items-center"
-                        style={{ fontSize: '0.75rem' }}
+                        style={{ fontSize: "0.75rem" }}
                       >
                         {moduleName}
                         <button
                           type="button"
                           className="btn-close btn-close-white ms-1"
-                          style={{ fontSize: '0.5rem' }}
+                          style={{ fontSize: "0.5rem" }}
                           onClick={() => removeModule(moduleName)}
                           aria-label="Remove module"
                         />
@@ -468,7 +513,6 @@ const UserRolesForm = () => {
                   </div>
                 </div>
               )}
-              <ValidationAlert error={formErrors.selectedModules} />
             </Col>
             <Col md="12 my-3">
               <FormGroup tag="fieldset">
