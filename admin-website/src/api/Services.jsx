@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LOGIN_URL, DOCTORS_API, USER_ROLES_API, MODULES_API } from "./index";
+import { LOGIN_URL, DOCTORS_API, USER_ROLES_API,USERS_API, MODULES_API } from "./index";
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
@@ -140,5 +140,53 @@ export const fetchModules = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching modules:", error);
+  }
+};
+
+// User Roles CRUD API functions
+export const fetchUserRoleById = async (id) => {
+  try {
+    const response = await axios.get(`${USERS_API}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user role by ID:", error);
+    throw error;
+  }
+};
+
+export const createUserRole = async (userRoleData) => {
+  try {
+    const response = await axios.post(USERS_API, userRoleData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating user role:", error);
+    throw error;
+  }
+};
+
+export const updateUserRole = async (id, userRoleData) => {
+  try {
+    console.log("updateUserRequest", userRoleData);
+    const response = await axios.put(
+      `${USERS_API}?userID=${id}`, // Use query param instead of path param
+      userRoleData
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteUserRole = async (id) => {
+  try {
+    const response = await axios.delete(`${USER_ROLES_API}/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting user role:", error);
+    throw error;
   }
 };

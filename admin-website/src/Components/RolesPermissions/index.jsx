@@ -3,7 +3,7 @@ import { Breadcrumbs, Btn } from "../../AbstractElements";
 import { Card, Container, Form, Row } from "reactstrap";
 import UserRolesForm from "./UserRolesForm";
 import TableComponent from "../Common/Component/TableComponent";
-import { USER_ROLES_API } from "../../api";
+import { USERS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import Swal from "sweetalert2"; // Add this import
 import { FaEdit, FaInfoCircle, FaPencilAlt, FaUserEdit } from "react-icons/fa"; // Add this import
@@ -14,14 +14,20 @@ const RolesPermissions = () => {
   const [userRoles, setUserRoles] = useState([]);
   const [openModules, setOpenModules] = useState(false);
   const [moduleData, setModuleData] = useState([]);
+  const [editingUserRole, setEditingUserRole] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchUserRoles = async () => {
     try {
-      const response = await fetchDataGet(USER_ROLES_API);
+      setLoading(true);
+      const response = await fetchDataGet(USERS_API);
       setUserRoles(response);
       console.log("User Roles:", response);
     } catch (error) {
       console.error("Error fetching user roles:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,40 +42,91 @@ const RolesPermissions = () => {
     setOpenModules(true);
   };
 
+  const handleAddNew = () => {
+    setEditingUserRole(null);
+    setIsEditMode(false);
+    setShowUserRoleForm(true);
+  };
+
+  const handleEdit = (userRole) => {
+    setEditingUserRole(userRole);
+    setIsEditMode(true);
+    setShowUserRoleForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowUserRoleForm(false);
+    setEditingUserRole(null);
+    setIsEditMode(false);
+  };
+
+  const handleFormSuccess = () => {
+    fetchUserRoles(); // Refresh the table data
+    handleCloseForm();
+  };
+
   return (
     <Fragment>
       {!showUserRoleForm ? (
         <>
-          <Breadcrumbs mainTitle="User Roles and Permissions" />
+          <Breadcrumbs 
+            mainTitle="User Roles and Permissions" 
+            buttonTitle="Add New User Role"
+            onClick={handleAddNew}
+          />
 
           <Container fluid={true}>
             <UserRolesForm />
             <Row className="widget-grid">
               <TableComponent
                 title={"User Role Details"}
-                headers={["Role Name", "Role ID", "Action"]}
+                headers={["User Name","Role Name", "Action"]}
                 tableBody={
                   <tbody>
-                    {userRoles?.map((role, index) => (
-                      <tr key={index}>
-                        <td>{role.roleName}</td>
-                        <td>{role.roleID}</td>
-                        {/* <td>
-                          <Btn
-                            attrBtn={{
-                              color: "info",
-                              onClick: () => showModules(role.defaultModules),
-                              outline: true,
-                            }}
-                          >
-                            View Modules
-                          </Btn>
-                        </td> */}
-                        <td>
-                          <FaPencilAlt />
+                    {loading ? (
+                      <tr>
+                        <td colSpan="4" className="text-center">
+                          <div className="spinner-border" role="status">
+                            <span className="sr-only">Loading...</span>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    ) : userRoles?.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="text-center">
+                          No user roles found
+                        </td>
+                      </tr>
+                    ) : (
+                      userRoles?.map((role, index) => (
+                        <tr key={index}>
+                          <td>{role.userName || role.fullName || "N/A"}</td>
+                          <td>{role.roleName || role.loginType || "N/A"}</td>
+                          {/* <td>
+                            {role.selectedModules && role.selectedModules.length > 0 ? (
+                              <span className="badge bg-primary">
+                                {role.selectedModules.length} modules
+                              </span>
+                            ) : (
+                              "No modules"
+                            )}
+                          </td> */}
+                          <td>
+                            <Btn
+                              attrBtn={{
+                                color: "primary",
+                                size: "sm",
+                                onClick: () => handleEdit(role),
+                                outline: true,
+                              }}
+                            >
+                              <FaPencilAlt className="me-1" />
+                              Edit
+                            </Btn>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 }
               />
@@ -77,7 +134,12 @@ const RolesPermissions = () => {
           </Container>
         </>
       ) : (
-        <UserRolesForm onClose={() => setShowUserRoleForm(false)} />
+        <UserRolesForm 
+          isEditMode={isEditMode}
+          userRoleData={editingUserRole}
+          onClose={handleCloseForm}
+          onSuccess={handleFormSuccess}
+        />
       )}
       {/* <ModulesModal
         openModules={openModules}
