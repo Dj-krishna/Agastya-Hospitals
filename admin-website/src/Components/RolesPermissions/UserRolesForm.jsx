@@ -17,10 +17,14 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  Button,
 } from "reactstrap";
 import ValidationAlert from "../Common/Component/ValidationAlert";
-import { fetchLoginTypes, fetchModules, createUserRole, updateUserRole } from "../../api/Services";
+import {
+  fetchLoginTypes,
+  fetchModules,
+  createUserRole,
+  updateUserRole,
+} from "../../api/Services";
 
 // Custom CSS for better checkbox visibility
 const checkboxStyles = `
@@ -82,7 +86,12 @@ const initialFormErrors = {
   userStatus: "",
 };
 
-const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null, onSuccess = null }) => {
+const UserRolesForm = ({
+  isEditMode = false,
+  userRoleData = null,
+  onClose = null,
+  onSuccess = null,
+}) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -133,19 +142,24 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
       // Convert modules object to array of module names and IDs
       let selectedModulesArray = [];
       let selectedModuleIdsArray = [];
-      
+
       if (userRoleData.modules) {
-        if (typeof userRoleData.modules === 'object' && !Array.isArray(userRoleData.modules)) {
+        if (
+          typeof userRoleData.modules === "object" &&
+          !Array.isArray(userRoleData.modules)
+        ) {
           // If modules is an object, extract the values (module names) and keys (module IDs)
           selectedModulesArray = Object.values(userRoleData.modules);
-          selectedModuleIdsArray = Object.keys(userRoleData.modules).map(id => parseInt(id));
+          selectedModuleIdsArray = Object.keys(userRoleData.modules).map((id) =>
+            parseInt(id)
+          );
         } else if (Array.isArray(userRoleData.modules)) {
           // If modules is already an array, use it as is
           selectedModulesArray = userRoleData.modules;
           // For array case, we'll need to map module names to IDs when modules are loaded
         }
       }
-      
+
       setFormState({
         // fullName: userRoleData.userName || "",
         email: userRoleData.email || "",
@@ -200,16 +214,16 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
     setFormState((prev) => {
       const updatedModules = checked
         ? [...prev.selectedModules, moduleName]
-        : prev.selectedModules.filter(module => module !== moduleName);
-      
+        : prev.selectedModules.filter((module) => module !== moduleName);
+
       const updatedModuleIds = checked
         ? [...prev.selectedModuleIds, moduleId]
-        : prev.selectedModuleIds.filter(id => id !== moduleId);
-      
+        : prev.selectedModuleIds.filter((id) => id !== moduleId);
+
       return {
         ...prev,
         selectedModules: updatedModules,
-        selectedModuleIds: updatedModuleIds
+        selectedModuleIds: updatedModuleIds,
       };
     });
 
@@ -235,12 +249,12 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
   };
 
   const handleSelectAllModules = () => {
-    const allModuleNames = modules.map(module => module.moduleName);
-    const allModuleIds = modules.map(module => module.moduleID);
+    const allModuleNames = modules.map((module) => module.moduleName);
+    const allModuleIds = modules.map((module) => module.moduleID);
     setFormState((prev) => ({
       ...prev,
       selectedModules: allModuleNames,
-      selectedModuleIds: allModuleIds
+      selectedModuleIds: allModuleIds,
     }));
     if (isSubmitted) {
       const errorMsg = validateField("selectedModules", allModuleNames);
@@ -252,7 +266,7 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
     setFormState((prev) => ({
       ...prev,
       selectedModules: [],
-      selectedModuleIds: []
+      selectedModuleIds: [],
     }));
     if (isSubmitted) {
       const errorMsg = validateField("selectedModules", []);
@@ -284,7 +298,9 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
     if (isValid) {
       try {
         // Find the roleID for the selected login type
-        const selectedRole = loginTypes.find(role => role.roleName === formState.loginType);
+        const selectedRole = loginTypes.find(
+          (role) => role.roleName === formState.loginType
+        );
         const roleID = selectedRole ? selectedRole.roleID : null;
 
         // Prepare submit data according to API requirements
@@ -293,7 +309,7 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
           email: formState.email,
           roleID: roleID,
           modules: formState.selectedModuleIds,
-          isActive: formState.userStatus === "Active"?1:0
+          isActive: formState.userStatus === "Active" ? 1 : 0,
         };
 
         // Add password only if it's provided (for create mode or password change)
@@ -306,12 +322,12 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
         if (isEditMode && userRoleData?.userID) {
           await updateUserRole(userRoleData.userID, submitData);
           console.log("User role updated successfully!");
-        } 
+        }
         // else {
         //   await createUserRole(submitData);
         //   console.log("User role created successfully!");
         // }
-        
+
         if (onSuccess) {
           onSuccess();
         }
@@ -347,13 +363,17 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
   const removeModule = (moduleName) => {
     setFormState((prev) => {
       // Find the module ID for the given module name
-      const module = modules.find(m => m.moduleName === moduleName);
+      const module = modules.find((m) => m.moduleName === moduleName);
       const moduleId = module ? module.moduleID : null;
-      
+
       return {
         ...prev,
-        selectedModules: prev.selectedModules.filter(module => module !== moduleName),
-        selectedModuleIds: prev.selectedModuleIds.filter(id => id !== moduleId)
+        selectedModules: prev.selectedModules.filter(
+          (module) => module !== moduleName
+        ),
+        selectedModuleIds: prev.selectedModuleIds.filter(
+          (id) => id !== moduleId
+        ),
       };
     });
   };
@@ -396,11 +416,7 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
         </div>
       </CardHeader>
       <CardBody>
-        <Form
-          className="needs-validation"
-          noValidate=""
-          onSubmit={onSubmit}
-        >
+        <Form className="needs-validation" noValidate="" onSubmit={onSubmit}>
           <Row>
             {/* <Col md="4 mb-3">
               <Label className="form-label" for="fullName">
@@ -448,21 +464,6 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
               />
               <ValidationAlert error={formErrors.userName} />
             </Col>
-            {/* <Col md="4 mb-3">
-              <Label className="form-label" for="password">
-                Password
-              </Label>
-                             <Input
-                 type="text"
-                 name="password"
-                 id="password"
-                 value={formState.password}
-                 onChange={handleChange}
-                 placeholder={isEditMode ? "Leave blank to keep current password" : "Enter password"}
-                 invalid={!!formErrors.password}
-               />
-              <ValidationAlert error={formErrors.password} />
-            </Col> */}
             <Col md="4 mb-3">
               <Label className="form-label" for="loginType">
                 Login Type
@@ -485,7 +486,6 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
               </Input>
               <ValidationAlert error={formErrors.loginType} />
             </Col>
-            <Col md="4 mb-3"></Col>
             <Col md="4 mb-3">
               <Label className="form-label">Select Modules</Label>
               <Dropdown
@@ -514,7 +514,6 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
                   >
                     {getDropdownText()}
                   </span>
-                  {/* <span className="text-muted">▼</span> */}
                 </DropdownToggle>
                 <DropdownMenu
                   className="w-100"
@@ -524,8 +523,8 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
                     minWidth: "300px",
                   }}
                 >
-                  <div className="px-3 py-1 border-bottom bg-light">
-                    <div className="">
+                  <div className="p-3 border-bottom bg-light">
+                    <div className="d-flex justify-content-between align-items-center">
                       <small className="text-muted fw-bold">
                         Select Modules
                       </small>
@@ -535,7 +534,7 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
                             color: "outline-primary",
                             size: "sm",
                             onClick: handleSelectAllModules,
-                            className: "me-1 py-1 px-3",
+                            className: "me-1 px-2 py-1",
                           }}
                         >
                           All
@@ -545,7 +544,7 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
                             color: "outline-secondary",
                             size: "sm",
                             onClick: handleClearAllModules,
-                            className: "me-1 py-1 px-3",
+                            className: "me-1 px-2 py-1",
                           }}
                         >
                           Clear
@@ -553,34 +552,55 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
                       </div>
                     </div>
                   </div>
-                                     {modules.map((module) => (
-                     <DropdownItem key={module.moduleID} className="p-2 border-bottom">
-                       <div className="d-flex align-items-start">
-                                                   <Input
-                            type="checkbox"
-                            id={`module-${module.moduleID}`}
-                            checked={formState.selectedModuleIds.includes(module.moduleID)}
-                            onChange={(e) => handleModuleChange(module.moduleID, module.moduleName, e.target.checked)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="custom-checkbox mt-1"
-                          />
-                         <Label check for={`module-${module.moduleID}`} className="mb-0 flex-grow-1 ms-2">
-                           <div>
-                             <div className="fw-semibold">{module.moduleName}</div>
-                             <small className="text-muted">{module.description}</small>
-                           </div>
-                         </Label>
-                       </div>
-                     </DropdownItem>
-                   ))}
+                  {modules.map((module) => (
+                    <DropdownItem
+                      key={module.moduleID}
+                      className="p-2 border-bottom"
+                    >
+                      <div className="d-flex align-items-start">
+                        <Input
+                          type="checkbox"
+                          id={`module-${module.moduleID}`}
+                          checked={formState.selectedModuleIds.includes(
+                            module.moduleID
+                          )}
+                          onChange={(e) =>
+                            handleModuleChange(
+                              module.moduleID,
+                              module.moduleName,
+                              e.target.checked
+                            )
+                          }
+                          onClick={(e) => e.stopPropagation()}
+                          className="custom-checkbox mt-1"
+                        />
+                        <Label
+                          check
+                          for={`module-${module.moduleID}`}
+                          className="mb-0 flex-grow-1 ms-2"
+                        >
+                          <div>
+                            <div className="fw-semibold">
+                              {module.moduleName}
+                            </div>
+                            <small className="text-muted">
+                              {module.description}
+                            </small>
+                          </div>
+                        </Label>
+                      </div>
+                    </DropdownItem>
+                  ))}
                 </DropdownMenu>
               </Dropdown>
               <ValidationAlert error={formErrors.selectedModules} />
             </Col>
             <Col md={8}>
               {formState.selectedModules.length > 0 && (
-                <div className="">
-                  <Label className="d-block mb-1">Selected modules:</Label>
+                <div className="mt-2">
+                  <small className="text-muted d-block mb-1">
+                    Selected modules:
+                  </small>
                   <div className="d-flex flex-wrap gap-1">
                     {formState.selectedModules.map((moduleName, index) => (
                       <span
@@ -640,14 +660,14 @@ const UserRolesForm = ({ isEditMode = false, userRoleData = null, onClose = null
               </FormGroup>
             </Col>
           </Row>
-                     <Btn 
-             attrBtn={{ 
-               color: "primary", 
-               disabled: isSubmitting 
-             }}
-           >
-             {isSubmitting ? "Saving..." : (isEditMode ? "Update" : "Submit")}
-           </Btn>
+          <Btn
+            attrBtn={{
+              color: "primary",
+              disabled: isSubmitting,
+            }}
+          >
+            {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Submit"}
+          </Btn>
         </Form>
       </CardBody>
     </Card>
