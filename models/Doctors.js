@@ -6,10 +6,10 @@ const doctorSchema = new mongoose.Schema({
   countryCode: { type: String, required: true }, 
   mobile: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  medicalRegNumber: { type: String, required: true },
-  department: { type: String, required: true },
+  medicalRegNumber: { type: String, required: true }, 
   designation: { type: String, required: true },
-  speciality: { type: [String], required: true },
+  departmentID: { type: Number, required: true },        // links to Departments.departmentID
+  speciality: [{ type: Number }],
   yearsOfExperience: { type: String },
   languagesKnown: { type: [String] },
   expertise: { type: String }, 
@@ -29,4 +29,3 @@ const doctorSchema = new mongoose.Schema({
 
 module.exports = mongoose.model('Doctor', doctorSchema); 
  
-

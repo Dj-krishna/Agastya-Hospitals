@@ -13,7 +13,7 @@ router.post('/', appointmentController.addAppointments);          // single or a
 router.put('/', appointmentController.updateAppointment);         // ?doctorID=1
 
 // DELETE routes
-router.delete('/:id', appointmentController.deleteAppointmentById);        // by appointmentID
 router.delete('/', appointmentController.deleteAppointmentsByFilter);     // bulk by filter in req.body
+router.delete('/:id', appointmentController.deleteAppointmentById);        // by appointmentID
 
 module.exports = router;

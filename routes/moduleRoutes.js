@@ -14,8 +14,8 @@ router.put('/bulk-update', moduleController.bulkUpdateModules);
 router.put('/', moduleController.updateModule);
 
 // DELETE user role(s)
-router.delete('/:id', moduleController.deleteModuleById);
-router.delete('/', moduleController.deleteModulesByFilter);
 router.delete('/bulk/:ids', moduleController.bulkDeleteModulesByIds);
+router.delete('/', moduleController.deleteModulesByFilter);
+router.delete('/:id', moduleController.deleteModuleById);
 
 module.exports = router;

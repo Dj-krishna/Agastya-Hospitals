@@ -11,8 +11,8 @@ router.put('/bulk-update', userController.bulkUpdateUsers);
 router.put('/', userController.updateUser);
 
 // DELETE
-router.delete('/:id', userController.deleteUserById);
-router.delete('/', userController.deleteUsersByFilter);
 router.delete('/bulk/:ids', userController.bulkDeleteUsersByIds);
+router.delete('/', userController.deleteUsersByFilter);
+router.delete('/:id', userController.deleteUserById);
 
 module.exports = router;

@@ -15,6 +15,7 @@ const userRoutes = require('./routes/userRoutes');
 const userRoleRoutes = require('./routes/userRoleRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
+const departmentRoutes = require('./routes/departmentRoutes');
 
 connectDB(); // Connect to MongoDB
 
@@ -32,6 +33,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/user-roles', userRoleRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/modules', moduleRoutes);
+app.use('/api/departments', departmentRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
