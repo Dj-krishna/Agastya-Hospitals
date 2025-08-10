@@ -1,7 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import {
   Card,
-  CardHeader,
   Col,
   Container,
   Form,
@@ -11,26 +10,21 @@ import {
   CardBody,
   Label,
   Row,
-  FormFeedback,
   Button,
 } from "reactstrap";
-import { Breadcrumbs, Btn, H5 } from "../../AbstractElements";
-import { useFieldArray, useForm } from "react-hook-form";
+import { Breadcrumbs, Btn } from "../../AbstractElements";
 import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
-import { FaMinusCircle, FaPlusCircle } from "react-icons/fa";
 import { MinusSquare, PlusSquare } from "react-feather";
-import { fi } from "date-fns/locale";
 import ValidationAlert from "../Common/Component/ValidationAlert";
-import axios from "axios";
 import { countryCodes } from "../../api/countryCode";
-import { createDoctor, updateDoctor } from "../../api/Services";
+import { createDoctor, updateDoctor, fetchDepartments, fetchSpecialities } from "../../api/Services";
 
 const initialFormState = {
   fullName: "",
   mobile: "",
   email: "",
   medicalRegNumber: "",
-  department: "",
+  departmentName: "",
   designation: "",
   speciality: "",
   languagesKnown: "",
@@ -53,7 +47,7 @@ const initialFormErrors = {
   mobile: "",
   email: "",
   medicalRegNumber: "",
-  department: "",
+  departmentName: "",
   designation: "",
   speciality: "",
   languagesKnown: "",
@@ -76,19 +70,69 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [specialities, setSpecialities] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [dataError, setDataError] = useState(null);
+
+  // Fetch departments and specialities data
+  const fetchData = async () => {
+    try {
+      setIsLoadingData(true);
+      setDataError(null);
+      const [departmentsData, specialitiesData] = await Promise.all([
+        fetchDepartments(),
+        fetchSpecialities()
+      ]);
+      setDepartments(departmentsData);
+      setSpecialities(specialitiesData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      setDataError("Failed to load departments and specialities. Please refresh the page.");
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Load initial data when editing
   useEffect(() => {
     if (initialData && isEditMode) {
+      // Handle speciality data mapping for edit mode
+      let mappedSpeciality = initialData.speciality;
+      
+      if (initialData.speciality) {
+        if (Array.isArray(initialData.speciality)) {
+          // Handle array format [1] - find speciality name by ID
+          if (initialData.speciality.length > 0) {
+            const specialityId = initialData.speciality[0];
+            const foundSpeciality = specialities.find(spec => spec.specialityID === specialityId);
+            if (foundSpeciality) {
+              mappedSpeciality = foundSpeciality.specialityName;
+            }
+          }
+        } else if (typeof initialData.speciality === 'object') {
+          // Handle object format {"1": "Cardiology"}
+          const specialityValues = Object.values(initialData.speciality);
+          if (specialityValues.length > 0) {
+            mappedSpeciality = specialityValues[0];
+          }
+        }
+      }
+
       setFormState({
         ...initialFormState,
         ...initialData,
+        speciality: mappedSpeciality,
         // Handle array fields properly
         educationQualification: initialData.educationQualification || [""],
         opTimings: initialData.opTimings || [""],
       });
     }
-  }, [initialData, isEditMode]);
+  }, [initialData, isEditMode, specialities]);
 
   console.log("formState", formState);
 
@@ -233,6 +277,33 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
         submitData.fullName = formattedName;
 
+        // Format speciality data according to expected API format
+        if (submitData.speciality) {
+          // Find the speciality object that matches the selected speciality name
+          const selectedSpeciality = specialities.find(spec => spec.specialityName === submitData.speciality);
+          if (selectedSpeciality) {
+            // For update API, use array of IDs; for create API, use object format
+            if (isEditMode) {
+              submitData.speciality = [selectedSpeciality.specialityID];
+              console.log("Update mode - speciality formatted as array:", submitData.speciality);
+            } else {
+              submitData.speciality = {
+                [selectedSpeciality.specialityID.toString()]: selectedSpeciality.specialityName
+              };
+              console.log("Create mode - speciality formatted as object:", submitData.speciality);
+            }
+          }
+        }
+
+        // Format department data
+        if (submitData.departmentName) {
+          // Find the department object that matches the selected department name
+          const selectedDepartment = departments.find(dept => dept.departmentName === submitData.departmentName);
+          if (selectedDepartment) {
+            submitData.departmentID = selectedDepartment.departmentID;
+          }
+        }
+
         if (submitData.profilePhoto instanceof File) {
           delete submitData.profilePhoto; // Remove file object for now
         }
@@ -266,102 +337,6 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
   console.log("education", formErrors.educationQualification);
 
-  const specialties = [
-    "Cardiology",
-    "Critical Care",
-    "Emergency Services",
-    "Neuro Science",
-    "Gastroenterology",
-    "Orthopaedics",
-    "Gynaecology",
-    "Oncology",
-    "General Medicine",
-    "General Surgery",
-    "Liver Transplant",
-    "Nephrology",
-    "Pulmonology",
-    "Robotic Science",
-    "Spine Surgery",
-    "ENT",
-    "Endocrinology",
-    "Urology",
-    "Rheumatology",
-    "Dermatology",
-    "Hepatology",
-    "Pain Medicine",
-    "Movement Disorders",
-    "Parkinson’s Center",
-    "Radiology",
-    "Physiotherapy",
-    "Dental Surgery",
-  ];
-
-  // Clinical Departments
-  const clinicalDepartments = [
-    "Emergency Department (ED) / Casualty",
-    "Outpatient Department (OPD)",
-    "Inpatient Department (IPD)",
-    "Surgery / Operating Theatres",
-    "Intensive Care Unit (ICU)",
-    "General Medicine",
-    "General Surgery",
-    "Obstetrics and Gynecology (OB/GYN)",
-    "Pediatrics",
-    "Orthopedics",
-    "Cardiology",
-    "Neurology",
-    "Neurosurgery",
-    "Nephrology",
-    "Urology",
-    "Gastroenterology",
-    "Oncology",
-    "Hematology",
-    "Pulmonology / Respiratory Medicine",
-    "Endocrinology",
-    "Dermatology",
-    "Ophthalmology (Eye)",
-    "Otolaryngology (ENT – Ear, Nose, Throat)",
-    "Dentistry / Oral & Maxillofacial Surgery",
-    "Rheumatology",
-    "Psychiatry / Mental Health",
-    "Infectious Diseases",
-    "Geriatrics (Elderly Care)",
-  ];
-
-  // Diagnostic & Laboratory Departments
-  const diagnosticDepartments = [
-    "Radiology / Imaging (X-ray, MRI, CT)",
-    "Pathology",
-    "Microbiology",
-    "Biochemistry",
-    "Hematology Lab",
-    "Molecular Diagnostics",
-  ];
-
-  // Supportive & Allied Services
-  const supportiveServices = [
-    "Pharmacy",
-    "Physiotherapy",
-    "Dietetics / Nutrition",
-    "Anesthesiology",
-    "Biomedical Engineering",
-    "Blood Bank / Transfusion Services",
-    "Ambulance / Transport",
-    "Medical Records",
-  ];
-
-  // Administrative & Other Departments
-  const administrativeDepartments = [
-    "Administration / Management",
-    "Billing and Insurance",
-    "IT / Health Informatics",
-    "Human Resources",
-    "Housekeeping",
-    "Security",
-    "Maintenance / Engineering",
-    "Laundry / Linen Services",
-  ];
-
   console.log("countryCode", countryCodes);
   return (
     <>
@@ -381,6 +356,40 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                   noValidate=""
                   onSubmit={(e) => onSubmit(e, formState)}
                 >
+                  {isLoadingData && (
+                    <Row>
+                      <Col md="12" className="mb-3">
+                        <div className="alert alert-info text-center">
+                          <i className="fa fa-spinner fa-spin me-2"></i>
+                          Loading departments and specialities...
+                        </div>
+                      </Col>
+                    </Row>
+                  )}
+                  {dataError && (
+                    <Row>
+                      <Col md="12" className="mb-3">
+                        <div className="alert alert-danger text-center">
+                          <i className="fa fa-exclamation-triangle me-2"></i>
+                          {dataError}
+                          <br />
+                          <Button 
+                            color="primary" 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={() => {
+                              setDataError(null);
+                              setIsLoadingData(true);
+                              fetchData();
+                            }}
+                          >
+                            <i className="fa fa-refresh me-1"></i>
+                            Retry
+                          </Button>
+                        </div>
+                      </Col>
+                    </Row>
+                  )}
                   <Row>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="fullName">
@@ -475,22 +484,18 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       </Label>
                       <Input
                         type="select"
-                        name="department"
+                        name="departmentName"
                         id="department"
                         className="form-control digits"
-                        invalid={!!formErrors.department}
-                        value={formState.department}
+                        invalid={!!formErrors.departmentName}
+                        value={formState.departmentName}
                         onChange={handleChange}
+                        disabled={isLoadingData}
                       >
-                        <option value="">Select Department</option>
-                        {[
-                          ...clinicalDepartments,
-                          ...diagnosticDepartments,
-                          ...supportiveServices,
-                          ...administrativeDepartments,
-                        ].map((department, index) => (
-                          <option key={index + department} value={department}>
-                            {department}
+                        <option value="">{isLoadingData ? "Loading departments..." : "Select Department"}</option>
+                        {departments.map((department) => (
+                          <option key={department._id} value={department.departmentName}>
+                            {department.departmentName}
                           </option>
                         ))}
                       </Input>
@@ -522,11 +527,12 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         onChange={handleChange}
                         className="form-control digits"
                         invalid={!!formErrors.speciality}
+                        disabled={isLoadingData}
                       >
-                        <option value="">Select Speciality</option>
-                        {specialties.map((spec, index) => (
-                          <option key={index + spec} value={spec}>
-                            {spec}
+                        <option value="">{isLoadingData ? "Loading specialities..." : "Select Speciality"}</option>
+                        {specialities.map((speciality) => (
+                          <option key={speciality._id} value={speciality.specialityName}>
+                            {speciality.specialityName}
                           </option>
                         ))}
                       </Input>

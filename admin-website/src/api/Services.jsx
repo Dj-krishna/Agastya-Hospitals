@@ -1,5 +1,5 @@
 import axios from "axios";
-import { LOGIN_URL, DOCTORS_API, USER_ROLES_API,USERS_API, MODULES_API } from "./index";
+import { LOGIN_URL, DOCTORS_API, USER_ROLES_API,USERS_API, MODULES_API, DEPARTMENTS_API, SPECIALITIES_API_DROPDOWN } from "./index";
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
@@ -187,6 +187,27 @@ export const deleteUserRole = async (id) => {
     return response.data;
   } catch (error) {
     console.error("Error deleting user role:", error);
+    throw error;
+  }
+};
+
+// Department and Speciality API functions
+export const fetchDepartments = async () => {
+  try {
+    const response = await axios.get(DEPARTMENTS_API);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching departments:", error);
+    throw error;
+  }
+};
+
+export const fetchSpecialities = async () => {
+  try {
+    const response = await axios.get(SPECIALITIES_API_DROPDOWN);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching specialities:", error);
     throw error;
   }
 };
