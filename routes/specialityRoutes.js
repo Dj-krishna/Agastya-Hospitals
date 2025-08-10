@@ -15,7 +15,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// GET all, GET by ID
+// GET only Id and Name, all, GET by ID
+router.get('/shortlist', specialityController.getSpecialityList);
 router.get('/', specialityController.getSpecialities);
 router.get('/:id', specialityController.getSpecialityById);
 
