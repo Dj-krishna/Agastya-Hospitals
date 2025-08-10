@@ -66,10 +66,8 @@ const checkboxStyles = `
 `;
 
 const initialFormState = {
-  // fullName: "",
+  fullName: "",
   email: "",
-  userName: "",
-  // password: "",
   loginType: "",
   selectedModules: [],
   selectedModuleIds: [], // Add this to store module IDs
@@ -77,10 +75,8 @@ const initialFormState = {
 };
 
 const initialFormErrors = {
-  // fullName: "",
+  fullName: "",
   email: "",
-  userName: "",
-  // password: "",
   loginType: "",
   selectedModules: "",
   userStatus: "",
@@ -161,10 +157,8 @@ const UserRolesForm = ({
       }
 
       setFormState({
-        // fullName: userRoleData.userName || "",
+        fullName: userRoleData.userName || "",
         email: userRoleData.email || "",
-        userName: userRoleData.userName || "",
-        // password: "", // Password is not editable in this form
         loginType: userRoleData.loginType || userRoleData.roleName || "",
         selectedModules: selectedModulesArray,
         selectedModuleIds: selectedModuleIdsArray,
@@ -175,16 +169,10 @@ const UserRolesForm = ({
 
   const validateField = (name, value) => {
     switch (name) {
-      // case "fullName":
-      //   return value.trim() === "" ? "Full Name is required" : "";
-
+      case "fullName":
+        return value.trim() === "" ? "Full Name is required" : "";
       case "email":
         return /\S+@\S+\.\S+/.test(value) ? "" : "Valid Email is required";
-
-      case "userName":
-        return value === "" ? "User name is required" : "";
-      // case "password":
-      //   return value === "" && !isEditMode ? "Password is required" : "";
       case "loginType":
         return value === "" ? "Login type is required" : "";
       case "selectedModules":
@@ -305,7 +293,7 @@ const UserRolesForm = ({
 
         // Prepare submit data according to API requirements
         const submitData = {
-          userName: formState.userName,
+          userName: formState.fullName,
           email: formState.email,
           roleID: roleID,
           modules: formState.selectedModuleIds,
@@ -323,10 +311,6 @@ const UserRolesForm = ({
           await updateUserRole(userRoleData.userID, submitData);
           console.log("User role updated successfully!");
         }
-        // else {
-        //   await createUserRole(submitData);
-        //   console.log("User role created successfully!");
-        // }
 
         if (onSuccess) {
           onSuccess();
@@ -396,282 +380,270 @@ const UserRolesForm = ({
     );
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <div className="d-flex justify-content-between align-items-center">
-          <H5>{isEditMode ? "Edit User Role" : "Add New User Role"}</H5>
-          {onClose && (
-            <Btn
-              attrBtn={{
-                color: "secondary",
-                size: "sm",
-                onClick: onClose,
-                outline: true,
-              }}
-            >
-              Back to List
-            </Btn>
-          )}
-        </div>
-      </CardHeader>
-      <CardBody>
-        <Form className="needs-validation" noValidate="" onSubmit={onSubmit}>
-          <Row>
-            {/* <Col md="4 mb-3">
-              <Label className="form-label" for="fullName">
-                Full name
-              </Label>
-              <Input
-                type="text"
-                name="fullName"
-                id="fullName"
-                value={formState.fullName}
-                onChange={handleChange}
-                placeholder="Enter full name"
-                invalid={!!formErrors.fullName}
-              />
-              <ValidationAlert error={formErrors.fullName} />
-            </Col> */}
-            <Col md="4 mb-3">
-              <Label htmlFor="email">Email</Label>
-              <InputGroup>
-                <InputGroupText>{"@"}</InputGroupText>
+
+  if(isEditMode){
+    return (
+      <Card>
+        <CardHeader>
+          <div className="d-flex justify-content-between align-items-center">
+            <H5>{isEditMode ? "Edit User Role" : "Add New User Role"}</H5>
+            {onClose && (
+              <Btn
+                attrBtn={{
+                  color: "secondary",
+                  size: "sm",
+                  onClick: onClose,
+                  outline: true,
+                }}
+              >
+                Back to List
+              </Btn>
+            )}
+          </div>
+        </CardHeader>
+        <CardBody>
+          <Form className="needs-validation" noValidate="" onSubmit={onSubmit}>
+            <Row>
+              <Col md="4 mb-3">
+                <Label className="form-label" for="fullName">
+                  Full name
+                </Label>
                 <Input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={formState.email}
+                  type="text"
+                  name="fullName"
+                  id="fullName"
+                  value={formState.fullName}
                   onChange={handleChange}
-                  invalid={!!formErrors.email}
-                  placeholder="Enter email address"
+                  placeholder="Enter full name"
+                  invalid={!!formErrors.fullName}
                 />
-              </InputGroup>
-              <ValidationAlert error={formErrors.email} />
-            </Col>
-            <Col md="4 mb-3">
-              <Label className="form-label" for="userName">
-                User Name
-              </Label>
-              <Input
-                type="text"
-                name="userName"
-                id="userName"
-                value={formState.userName}
-                onChange={handleChange}
-                placeholder="Enter user name"
-                invalid={!!formErrors.userName}
-              />
-              <ValidationAlert error={formErrors.userName} />
-            </Col>
-            <Col md="4 mb-3">
-              <Label className="form-label" for="loginType">
-                Login Type
-              </Label>
-              <Input
-                type="select"
-                name="loginType"
-                id="loginType"
-                className="form-control digits"
-                invalid={!!formErrors.loginType}
-                value={formState.loginType}
-                onChange={handleChange}
-              >
-                <option value="">Select login type</option>
-                {loginTypes.map((loginType) => (
-                  <option key={loginType.roleID} value={loginType.roleName}>
-                    {loginType.roleName}
-                  </option>
-                ))}
-              </Input>
-              <ValidationAlert error={formErrors.loginType} />
-            </Col>
-            <Col md="4 mb-3">
-              <Label className="form-label">Select Modules</Label>
-              <Dropdown
-                isOpen={moduleDropdownOpen}
-                toggle={toggleModuleDropdown}
-              >
-                <DropdownToggle
-                  caret
-                  className="w-100 text-start d-flex justify-content-between align-items-center"
-                  style={{
-                    textAlign: "left",
-                    backgroundColor: "white",
-                    border: formErrors.selectedModules
-                      ? "1px solid #dc3545"
-                      : "1px solid #ced4da",
-                    borderRadius: "0.375rem",
-                    padding: "0.375rem 0.75rem",
-                    minHeight: "38px",
-                    fontSize: "0.875rem",
-                  }}
+                <ValidationAlert error={formErrors.fullName} />
+              </Col>
+              <Col md="4 mb-3">
+                <Label htmlFor="email">Email</Label>
+                <InputGroup>
+                  <InputGroupText>{"@"}</InputGroupText>
+                  <Input
+                    type="email"
+                    name="email"
+                    id="email"
+                    value={formState.email}
+                    onChange={handleChange}
+                    invalid={!!formErrors.email}
+                    placeholder="Enter email address"
+                  />
+                </InputGroup>
+                <ValidationAlert error={formErrors.email} />
+              </Col>
+              <Col md="4 mb-3">
+                <Label className="form-label" for="loginType">
+                  Login Type
+                </Label>
+                <Input
+                  type="select"
+                  name="loginType"
+                  id="loginType"
+                  className="form-control digits"
+                  invalid={!!formErrors.loginType}
+                  value={formState.loginType}
+                  onChange={handleChange}
                 >
-                  <span
-                    className={
-                      formState.selectedModules.length === 0 ? "text-muted" : ""
-                    }
+                  <option value="">Select login type</option>
+                  {loginTypes.map((loginType) => (
+                    <option key={loginType.roleID} value={loginType.roleName}>
+                      {loginType.roleName}
+                    </option>
+                  ))}
+                </Input>
+                <ValidationAlert error={formErrors.loginType} />
+              </Col>
+              <Col md="4 mb-3">
+                <Label className="form-label">Select Modules</Label>
+                <Dropdown
+                  isOpen={moduleDropdownOpen}
+                  toggle={toggleModuleDropdown}
+                >
+                  <DropdownToggle
+                    caret
+                    className="w-100 text-start d-flex justify-content-between align-items-center"
+                    style={{
+                      textAlign: "left",
+                      backgroundColor: "white",
+                      border: formErrors.selectedModules
+                        ? "1px solid #dc3545"
+                        : "1px solid #ced4da",
+                      borderRadius: "0.375rem",
+                      padding: "0.375rem 0.75rem",
+                      minHeight: "38px",
+                      fontSize: "0.875rem",
+                    }}
                   >
-                    {getDropdownText()}
-                  </span>
-                </DropdownToggle>
-                <DropdownMenu
-                  className="w-100"
-                  style={{
-                    maxHeight: "300px",
-                    overflowY: "auto",
-                    minWidth: "300px",
-                  }}
-                >
-                  <div className="p-3 border-bottom bg-light">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <small className="text-muted fw-bold">
-                        Select Modules
-                      </small>
-                      <div>
-                        <Btn
-                          attrBtn={{
-                            color: "outline-primary",
-                            size: "sm",
-                            onClick: handleSelectAllModules,
-                            className: "me-1 px-2 py-1",
-                          }}
-                        >
-                          All
-                        </Btn>
-                        <Btn
-                          attrBtn={{
-                            color: "outline-secondary",
-                            size: "sm",
-                            onClick: handleClearAllModules,
-                            className: "me-1 px-2 py-1",
-                          }}
-                        >
-                          Clear
-                        </Btn>
+                    <span
+                      className={
+                        formState.selectedModules.length === 0 ? "text-muted" : ""
+                      }
+                    >
+                      {getDropdownText()}
+                    </span>
+                  </DropdownToggle>
+                  <DropdownMenu
+                    className="w-100"
+                    style={{
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                      minWidth: "300px",
+                    }}
+                  >
+                    <div className="p-3 border-bottom bg-light">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <small className="text-muted fw-bold">
+                          Select Modules
+                        </small>
+                        <div>
+                          <Btn
+                            attrBtn={{
+                              color: "outline-primary",
+                              size: "sm",
+                              onClick: handleSelectAllModules,
+                              className: "me-1 px-2 py-1",
+                            }}
+                          >
+                            All
+                          </Btn>
+                          <Btn
+                            attrBtn={{
+                              color: "outline-secondary",
+                              size: "sm",
+                              onClick: handleClearAllModules,
+                              className: "me-1 px-2 py-1",
+                            }}
+                          >
+                            Clear
+                          </Btn>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {modules.map((module) => (
-                    <DropdownItem
-                      key={module.moduleID}
-                      className="p-2 border-bottom"
-                    >
-                      <div className="d-flex align-items-start">
-                        <Input
-                          type="checkbox"
-                          id={`module-${module.moduleID}`}
-                          checked={formState.selectedModuleIds.includes(
-                            module.moduleID
-                          )}
-                          onChange={(e) =>
-                            handleModuleChange(
-                              module.moduleID,
-                              module.moduleName,
-                              e.target.checked
-                            )
-                          }
-                          onClick={(e) => e.stopPropagation()}
-                          className="custom-checkbox mt-1"
-                        />
-                        <Label
-                          check
-                          for={`module-${module.moduleID}`}
-                          className="mb-0 flex-grow-1 ms-2"
-                        >
-                          <div>
-                            <div className="fw-semibold">
-                              {module.moduleName}
-                            </div>
-                            <small className="text-muted">
-                              {module.description}
-                            </small>
-                          </div>
-                        </Label>
-                      </div>
-                    </DropdownItem>
-                  ))}
-                </DropdownMenu>
-              </Dropdown>
-              <ValidationAlert error={formErrors.selectedModules} />
-            </Col>
-            <Col md={8}>
-              {formState.selectedModules.length > 0 && (
-                <div className="mt-2">
-                  <small className="text-muted d-block mb-1">
-                    Selected modules:
-                  </small>
-                  <div className="d-flex flex-wrap gap-1">
-                    {formState.selectedModules.map((moduleName, index) => (
-                      <span
-                        key={index}
-                        className="badge bg-primary d-flex align-items-center"
-                        style={{ fontSize: "0.75rem" }}
+                    {modules.map((module) => (
+                      <DropdownItem
+                        key={module.moduleID}
+                        className="p-2 border-bottom"
                       >
-                        {moduleName}
-                        <button
-                          type="button"
-                          className="btn-close btn-close-white ms-1"
-                          style={{ fontSize: "0.5rem" }}
-                          onClick={() => removeModule(moduleName)}
-                          aria-label="Remove module"
-                        />
-                      </span>
+                        <div className="d-flex align-items-start">
+                          <Input
+                            type="checkbox"
+                            id={`module-${module.moduleID}`}
+                            checked={formState.selectedModuleIds.includes(
+                              module.moduleID
+                            )}
+                            onChange={(e) =>
+                              handleModuleChange(
+                                module.moduleID,
+                                module.moduleName,
+                                e.target.checked
+                              )
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                            className="custom-checkbox mt-1"
+                          />
+                          <Label
+                            check
+                            for={`module-${module.moduleID}`}
+                            className="mb-0 flex-grow-1 ms-2"
+                          >
+                            <div>
+                              <div className="fw-semibold">
+                                {module.moduleName}
+                              </div>
+                              <small className="text-muted">
+                                {module.description}
+                              </small>
+                            </div>
+                          </Label>
+                        </div>
+                      </DropdownItem>
                     ))}
+                  </DropdownMenu>
+                </Dropdown>
+                <ValidationAlert error={formErrors.selectedModules} />
+              </Col>
+              <Col md={8}>
+                {formState.selectedModules.length > 0 && (
+                  <div className="mt-2">
+                    <small className="text-muted d-block mb-1">
+                      Selected modules:
+                    </small>
+                    <div className="d-flex flex-wrap gap-1">
+                      {formState.selectedModules.map((moduleName, index) => (
+                        <span
+                          key={index}
+                          className="badge bg-primary d-flex align-items-center"
+                          style={{ fontSize: "0.75rem" }}
+                        >
+                          {moduleName}
+                          <button
+                            type="button"
+                            className="btn-close btn-close-white ms-1"
+                            style={{ fontSize: "0.5rem" }}
+                            onClick={() => removeModule(moduleName)}
+                            aria-label="Remove module"
+                          />
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </Col>
-            <Col md="12 my-3">
-              <FormGroup tag="fieldset">
-                <Row className="align-items-center">
-                  <Col sm="auto">
-                    <Label className="form-label">User Status</Label>
-                  </Col>
-                  <Col sm="auto" className="mt-1">
-                    <FormGroup check inline>
-                      <Input
-                        type="radio"
-                        name="userStatus"
-                        id="userStatusActive"
-                        value="Active"
-                        checked={formState.userStatus === "Active"}
-                        onChange={handleRadioChange}
-                      />{" "}
-                      <Label check for="userStatusActive">
-                        Active
-                      </Label>
-                    </FormGroup>
-                    <FormGroup check inline>
-                      <Input
-                        type="radio"
-                        name="userStatus"
-                        id="userStatusInactive"
-                        value="Inactive"
-                        checked={formState.userStatus === "Inactive"}
-                        onChange={handleRadioChange}
-                      />{" "}
-                      <Label check for="userStatusInactive">
-                        Inactive
-                      </Label>
-                    </FormGroup>
-                  </Col>
-                </Row>
-              </FormGroup>
-            </Col>
-          </Row>
-          <Btn
-            attrBtn={{
-              color: "primary",
-              disabled: isSubmitting,
-            }}
-          >
-            {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Submit"}
-          </Btn>
-        </Form>
-      </CardBody>
-    </Card>
-  );
+                )}
+              </Col>
+              <Col md="12 my-3">
+                <FormGroup tag="fieldset">
+                  <Row className="align-items-center">
+                    <Col sm="auto">
+                      <Label className="form-label">User Status</Label>
+                    </Col>
+                    <Col sm="auto" className="mt-1">
+                      <FormGroup check inline>
+                        <Input
+                          type="radio"
+                          name="userStatus"
+                          id="userStatusActive"
+                          value="Active"
+                          checked={formState.userStatus === "Active"}
+                          onChange={handleRadioChange}
+                        />{" "}
+                        <Label check for="userStatusActive">
+                          Active
+                        </Label>
+                      </FormGroup>
+                      <FormGroup check inline>
+                        <Input
+                          type="radio"
+                          name="userStatus"
+                          id="userStatusInactive"
+                          value="Inactive"
+                          checked={formState.userStatus === "Inactive"}
+                          onChange={handleRadioChange}
+                        />{" "}
+                        <Label check for="userStatusInactive">
+                          Inactive
+                        </Label>
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                </FormGroup>
+              </Col>
+            </Row>
+            <Btn
+              attrBtn={{
+                color: "primary",
+                disabled: isSubmitting,
+              }}
+            >
+              {isSubmitting ? "Saving..." : isEditMode ? "Update" : "Submit"}
+            </Btn>
+          </Form>
+        </CardBody>
+      </Card>
+    );
+  }
 };
 
 export default UserRolesForm;

@@ -42,12 +42,6 @@ const RolesPermissions = () => {
     setOpenModules(true);
   };
 
-  const handleAddNew = () => {
-    setEditingUserRole(null);
-    setIsEditMode(false);
-    setShowUserRoleForm(true);
-  };
-
   const handleEdit = (userRole) => {
     setEditingUserRole(userRole);
     setIsEditMode(true);
@@ -70,9 +64,7 @@ const RolesPermissions = () => {
       {!showUserRoleForm ? (
         <>
           <Breadcrumbs 
-            mainTitle="User Roles and Permissions" 
-            buttonTitle="Add New User Role"
-            onClick={handleAddNew}
+            mainTitle="User Roles and Permissions"
           />
 
           <Container fluid={true}>
