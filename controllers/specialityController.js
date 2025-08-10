@@ -31,6 +31,17 @@ exports.getSpecialities = async (req, res) => {
   }
 };
 
+// GET speciality list with only specialityID and specialityName
+exports.getSpecialityList = async (req, res) => {
+  try {
+    const specialities = await Speciality.find({}, { specialityID: 1, specialityName: 1, _id: 0 })
+      .sort({ specialityName: 1 }); // optional: sort alphabetically
+    res.json(specialities);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // GET one by specialityID
 exports.getSpecialityById = async (req, res) => {
   try {
