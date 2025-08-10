@@ -28,7 +28,7 @@ const userWithRoleAndModulesLookup = (match = {}) => [
   { $match: match },
   {
     $lookup: {
-      from: 'userroles',
+      from: 'userRoles',
       localField: 'roleID',
       foreignField: 'roleID',
       as: 'roleData'
