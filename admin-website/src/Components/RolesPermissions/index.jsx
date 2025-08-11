@@ -12,8 +12,6 @@ import ModulesModal from "./ModulesModal";
 const RolesPermissions = () => {
   const [showUserRoleForm, setShowUserRoleForm] = useState(false);
   const [userRoles, setUserRoles] = useState([]);
-  const [openModules, setOpenModules] = useState(false);
-  const [moduleData, setModuleData] = useState([]);
   const [editingUserRole, setEditingUserRole] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,12 +34,6 @@ const RolesPermissions = () => {
     fetchUserRoles();
   }, []);
 
-  // Function to show modules in SweetAlert
-  const showModules = (modules) => {
-    setModuleData(modules);
-    setOpenModules(true);
-  };
-
   const handleEdit = (userRole) => {
     setEditingUserRole(userRole);
     setIsEditMode(true);
@@ -63,16 +55,13 @@ const RolesPermissions = () => {
     <Fragment>
       {!showUserRoleForm ? (
         <>
-          <Breadcrumbs 
-            mainTitle="User Roles and Permissions"
-          />
+          <Breadcrumbs mainTitle="User Roles and Permissions" />
 
           <Container fluid={true}>
             <UserRolesForm />
             <Row className="widget-grid">
               <TableComponent
-                title={"User Role Details"}
-                headers={["User Name","Role Name", "Action"]}
+                headers={["User Name", "Role Name", "Action"]}
                 tableBody={
                   <tbody>
                     {loading ? (
@@ -94,27 +83,12 @@ const RolesPermissions = () => {
                         <tr key={index}>
                           <td>{role.userName || role.fullName || "N/A"}</td>
                           <td>{role.roleName || role.loginType || "N/A"}</td>
-                          {/* <td>
-                            {role.selectedModules && role.selectedModules.length > 0 ? (
-                              <span className="badge bg-primary">
-                                {role.selectedModules.length} modules
-                              </span>
-                            ) : (
-                              "No modules"
-                            )}
-                          </td> */}
                           <td>
-                            <Btn
-                              attrBtn={{
-                                color: "primary",
-                                size: "sm",
-                                onClick: () => handleEdit(role),
-                                outline: true,
-                              }}
-                            >
-                              <FaPencilAlt className="me-1" />
-                              Edit
-                            </Btn>
+                            <FaPencilAlt
+                              color="#7366ff"
+                              onClick={() => handleEdit(role)}
+                              className="cursor-pointer"
+                            />
                           </td>
                         </tr>
                       ))
@@ -126,22 +100,13 @@ const RolesPermissions = () => {
           </Container>
         </>
       ) : (
-        <UserRolesForm 
+        <UserRolesForm
           isEditMode={isEditMode}
           userRoleData={editingUserRole}
           onClose={handleCloseForm}
           onSuccess={handleFormSuccess}
         />
       )}
-      {/* <ModulesModal
-        openModules={openModules}
-        toggler={() => setOpenModules(!openModules)}
-        children={moduleData.map((module, index) => (
-          <Card className="shadow-lg b-primary rounded-none" key={index}>
-            {module}
-          </Card>
-        ))}
-      /> */}
     </Fragment>
   );
 };

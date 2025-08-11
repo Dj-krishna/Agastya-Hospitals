@@ -14,10 +14,10 @@ const TableComponent = ({ title, headers, tableBody }) => {
           )}
           <div className="table-responsive">
             <Table hover={true} className="table-border-horizontal">
-              <thead className="table-dark">
+              <thead className="">
                 <tr>
                   {headers.map((header) => (
-                    <th scope="col">{header}</th>
+                    <th scope="col" key={header}>{header}</th>
                   ))}
                 </tr>
               </thead>

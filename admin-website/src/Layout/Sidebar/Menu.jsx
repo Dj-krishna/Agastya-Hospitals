@@ -53,6 +53,12 @@ export const MENUITEMS = [
             title: "Manage Slots",
           },
         ],
+      }, ///health-packages
+      {
+        title: "Health Packages",
+        icon: "home",
+        type: "link",
+        path: `/health-packages`,
       },
       {
         title: "Technologies",
