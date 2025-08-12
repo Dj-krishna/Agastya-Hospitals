@@ -188,10 +188,12 @@ import Blog from "../Components/Blog";
 import RolesPermissions from "../Components/RolesPermissions";
 import Settings from "../Components/Settings";
 import Specialities from "../Components/Specialities";
+import Patients from "../Components/Patients";
 
 export const routes = [
   { path: `/dashboard`, Component: <Default /> },
   { path: `/doctors`, Component: <Doctors /> },
+  { path: `/patients`, Component: <Patients /> }, // Assuming Patients is similar to Doctors
   { path: `/specialities`, Component: <Specialities /> },
   { path: `/slot-management/add-slots`, Component: <AddSlots /> },
   { path: `/slot-management/manage-slots`, Component: <ManageSlots /> },

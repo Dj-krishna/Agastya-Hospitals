@@ -17,11 +17,11 @@ const ModelComponent = ({
       <ModalHeader toggle={toggler}>{title}</ModalHeader>
       <ModalBody className={bodyClass ? bodyClass : ""}>{children}</ModalBody>
       <ModalFooter>
-        <Btn attrBtn={{ color: "secondary", onClick: toggler }}>
+        {closeBtnText && <Btn attrBtn={{ color: "secondary", onClick: toggler, type: "button" }}>
           {closeBtnText}
-        </Btn>
+        </Btn>}
         {submitBtnText && (
-          <Btn attrBtn={{ color: "primary", onClick: toggler }}>
+          <Btn attrBtn={{ color: "primary", onClick: toggler, type: "submit" }}>
             {submitBtnText}
           </Btn>
         )}

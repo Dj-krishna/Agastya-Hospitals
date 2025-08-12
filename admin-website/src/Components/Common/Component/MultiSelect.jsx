@@ -68,36 +68,6 @@ const MultiSelect = ({
           </div>
         </div>
         {items}
-        {/* {modules.map((module) => (
-          <DropdownItem key={module.moduleID} className="p-2 border-bottom">
-            <div className="d-flex align-items-start">
-              <Input
-                type="checkbox"
-                id={`module-${module.moduleID}`}
-                checked={formState.selectedModuleIds.includes(module.moduleID)}
-                onChange={(e) =>
-                  handleModuleChange(
-                    module.moduleID,
-                    module.moduleName,
-                    e.target.checked
-                  )
-                }
-                onClick={(e) => e.stopPropagation()}
-                className="custom-checkbox mt-1"
-              />
-              <Label
-                check
-                for={`module-${module.moduleID}`}
-                className="mb-0 flex-grow-1 ms-2"
-              >
-                <div>
-                  <div className="fw-semibold">{module.moduleName}</div>
-                  <small className="text-muted">{module.description}</small>
-                </div>
-              </Label>
-            </div>
-          </DropdownItem>
-        ))} */}
       </DropdownMenu>
     </Dropdown>
   );

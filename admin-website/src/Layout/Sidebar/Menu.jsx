@@ -17,6 +17,13 @@ export const MENUITEMS = [
         path: `/doctors`,
         type: "link",
       },
+
+      {
+        title: "Patients",
+        icon: "widget",
+        path: `/patients`,
+        type: "link",
+      },
       {
         path: `/specialities`,
         icon: "file",

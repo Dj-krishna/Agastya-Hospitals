@@ -16,6 +16,7 @@ import {
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
 import MultiSelect from "../Common/Component/MultiSelect";
+import ModelComponent from "../Common/Component/ModelComponent";
 
 // Custom CSS for better checkbox visibility
 const checkboxStyles = `
@@ -84,11 +85,28 @@ const initialFormErrors = {
   descriptionOfPackage: "",
   guidelines: "",
 };
+
+const initialModalData = {
+  fullName: "",
+  emailId: "",
+  phoneNumber: "",
+};
+const initialModalErrors = {
+  fullName: "",
+  emailId: "",
+  phoneNumber: "",
+};
+
 const HealthPackagesForm = ({ onClose }) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isIdealForOpen, setIsIdealForOpen] = useState(false);
+  const [openPreview, setOpenPreview] = useState(false);
+  const [modalErrors, setModalErrors] = useState(initialModalErrors);
+  const [modalData, setModalData] = useState(initialModalData);
+  const [isModalSubmitted, setIsModalSubmitted] = useState(false);
+
   const idealForList = [
     { name: "Male", id: 1 },
     { name: "Female", id: 2 },
@@ -131,6 +149,12 @@ const HealthPackagesForm = ({ onClose }) => {
         return value === "" ? "Description of health packages is required" : "";
       case "guidelines":
         return value === "" ? "Guidelines are required" : "";
+      case "fullName":
+        return value === "" ? "Full name is required" : "";
+      case "emailId":
+        return value === "" ? "Email address is required" : "";
+      case "phoneNumber":
+        return value === "" ? "Phone number is required" : "";
       default:
         return "";
     }
@@ -180,12 +204,27 @@ const HealthPackagesForm = ({ onClose }) => {
       }
     });
     setFormErrors(newErrors);
+    const isValid =
+      Object.values(newErrors)
+        .flat()
+        .every((msg) => msg === "") &&
+      Object.values(data).every((value) => value !== "");
+    const isHTMLValid = Object.values(formState).every((value) => {
+      if (typeof value === "string") {
+        const stripped = value.replace(/<[^>]+>/g, "").trim();
+        return stripped !== "";
+      }
+      return true;
+    });
 
-    if (Object.keys(newErrors).length === 0) {
+    if (isValid && isHTMLValid) {
       console.log("Form submitted successfully with data:", formState);
+      setOpenPreview(true);
+      setIsSubmitted(false);
       // Here you can handle the form submission, e.g., send data to an API
     } else {
       console.log("Form has errors:", newErrors);
+      console.log("Form errors with data:", formState);
     }
   };
   const handleRadioChange = (e) => {
@@ -283,7 +322,39 @@ const HealthPackagesForm = ({ onClose }) => {
     });
   };
 
-  console.log("IDEAL FOR:::::::  ", formState.idealFor, formState.idealForIds);
+  const handleModalChange = (e) => {
+    const { name, value } = e.target;
+    setModalData((prev) => ({ ...prev, [name]: value }));
+    if (isSubmitted) {
+      const errorMsg = validateField(name, value);
+      setModalErrors((prev) => ({ ...prev, [name]: errorMsg }));
+    }
+  };
+
+  const handleModalSubmit = (e) => {
+    e.preventDefault();
+    setIsModalSubmitted(true);
+    const newErrors = {};
+    Object.keys(modalData).forEach((key) => {
+      newErrors[key] = validateField(key, modalData[key]);
+    });
+    setModalErrors(newErrors);
+    const isValid =
+      Object.values(newErrors)
+        .flat()
+        .every((msg) => msg === "") &&
+      Object.values(modalData).every((value) => value !== "");
+    if (isValid) {
+      console.log("Modal form submitted successfully with data:", modalData);
+      setOpenPreview(false);
+      setModalData(initialModalData);
+      setIsModalSubmitted(false);
+      // Here you can handle the modal form submission, e.g., send data to an API
+    } else {
+      console.log("Modal form has errors:", newErrors);
+      console.log("Modal form errors with data:", modalData);
+    }
+  };
 
   return (
     <>
@@ -586,6 +657,74 @@ const HealthPackagesForm = ({ onClose }) => {
           </Col>
         </Row>
       </Container>
+      <ModelComponent
+        children={
+          <Form
+            className="needs-validation"
+            noValidate=""
+            onSubmit={(e) => handleModalSubmit(e, modalData)}
+          >
+            <Row>
+              <Col md="md-12 mb-3">
+                <Label className="form-label" for="fullName">
+                  Full Name
+                </Label>
+                <Input
+                  type="text"
+                  name="fullName"
+                  id="fullName"
+                  value={modalData.fullName}
+                  onChange={handleModalChange}
+                  placeholder="Enter full name"
+                  invalid={!!modalErrors.fullName}
+                />
+                <ValidationAlert error={modalErrors.fullName} />
+              </Col>
+              <Col md="md-12 mb-3">
+                <Label className="form-label" for="emailId">
+                  Email Address
+                </Label>
+                <Input
+                  type="email"
+                  name="emailId"
+                  id="emailId"
+                  value={modalData.emailId}
+                  onChange={handleModalChange}
+                  placeholder="Enter email address"
+                  invalid={!!modalErrors.emailId}
+                />
+                <ValidationAlert error={modalErrors.emailId} />
+              </Col>
+              <Col md="md-12 mb-3">
+                <Label className="form-label" for="phoneNumber">
+                  Phone Number
+                </Label>
+                <Input
+                  type="text"
+                  name="phoneNumber"
+                  id="phoneNumber"
+                  value={modalData.phoneNumber}
+                  onChange={handleModalChange}
+                  placeholder="Enter phone number"
+                  invalid={!!modalErrors.phoneNumber}
+                />
+                <ValidationAlert error={modalErrors.phoneNumber} />
+              </Col>
+              <Col className="text-center">
+                <Button
+                  type="submit"
+                  color="primary"
+                >
+                  Submit
+                </Button>
+              </Col>
+            </Row>
+          </Form>
+        }
+        isOpen={openPreview}
+        toggler={() => setOpenPreview(!openPreview)}
+        title={"Preview Health Package"}
+      />
     </>
   );
 };
