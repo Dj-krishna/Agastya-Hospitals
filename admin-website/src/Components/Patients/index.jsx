@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Breadcrumbs } from "../../AbstractElements";
 import { Button, Container, Row } from "reactstrap";
 import TableComponent from "../Common/Component/TableComponent";
@@ -6,13 +6,21 @@ import { PATIENTS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
 import PatientForm from "./PatientForm";
+import PatientDetails from "./PatientDetails";
 
 const Patients = () => {
-  const [showPatientsForm, setShowPatientsForm] = React.useState(false);
-  const [patients, setPatients] = React.useState([]);
-  const [editingPatient, setEditingPatient] = React.useState(null);
-  const [isEditMode, setIsEditMode] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  const [showPatientsForm, setShowPatientsForm] = useState(false);
+  const [patients, setPatients] = useState([]);
+  const [editingPatient, setEditingPatient] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [viewPatientDetails, setViewPatientDetails] = useState(false);
+  const [patientData, setPatientData] = useState(null);
+
+  const handleViewDetails = (data) => {
+    setPatientData(data);
+    setViewPatientDetails(!viewPatientDetails);
+  };
 
   const fetchPatients = async () => {
     try {
@@ -41,45 +49,55 @@ const Patients = () => {
       {!showPatientsForm ? (
         <>
           <Breadcrumbs
-            mainTitle="Patients"
-            buttonTitle={"Add Patient"}
-            onClick={() => setShowPatientsForm(true)}
+            mainTitle={viewPatientDetails ? "Patient Details" : "Patients"}
+            buttonTitle={viewPatientDetails ? "Back to list" : "Add Patient"}
+            onClick={
+              viewPatientDetails
+                ? () => setViewPatientDetails(false)
+                : () => setShowPatientsForm(true)
+            }
+            btnColor={viewPatientDetails ? "secondary" : "primary"}
           />
 
           <Container fluid={true}>
-            <Row className="widget-grid">
-              <TableComponent
-                headers={["UHID", "Name", "Phone Number", "Email", "Action"]}
-                tableBody={
-                  <tbody>
-                    {patients.map((data, index) => (
-                      <tr key={index}>
-                        <td>{data.patientID}</td>
-                        <td>{data.fullName}</td>
-                        <td>{data.mobile}</td>
-                        <td>{data.email}</td>
-                        <td>
-                          <FaPencilAlt color="#7366ff" />
-                          &nbsp;&nbsp;<span className="text-muted">|</span>
-                          &nbsp;&nbsp;
-                          <Button
-                            color="success"
-                            outline
-                            className="px-1"
-                            size="sm"
-                          >
-                            View Patient
-                          </Button>
-                          &nbsp;&nbsp;<span className="text-muted">|</span>
-                          &nbsp;&nbsp;
-                          <FaTrashAlt color="#fc4438" />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                }
-              />
-            </Row>
+            {!viewPatientDetails ? (
+              <Row className="widget-grid">
+                <TableComponent
+                  headers={["UHID", "Name", "Phone Number", "Email", "Action"]}
+                  tableBody={
+                    <tbody>
+                      {patients.map((data, index) => (
+                        <tr key={index}>
+                          <td>{data.patientID}</td>
+                          <td>{data.fullName}</td>
+                          <td>{data.mobile}</td>
+                          <td>{data.email}</td>
+                          <td>
+                            <FaPencilAlt color="#7366ff" />
+                            &nbsp;&nbsp;<span className="text-muted">|</span>
+                            &nbsp;&nbsp;
+                            <Button
+                              color="success"
+                              outline
+                              className="px-1"
+                              size="sm"
+                              onClick={() => handleViewDetails(data)}
+                            >
+                              View Patient
+                            </Button>
+                            &nbsp;&nbsp;<span className="text-muted">|</span>
+                            &nbsp;&nbsp;
+                            <FaTrashAlt color="#fc4438" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  }
+                />
+              </Row>
+            ) : (
+              <PatientDetails patientDetails={patientData} />
+            )}
           </Container>
         </>
       ) : (

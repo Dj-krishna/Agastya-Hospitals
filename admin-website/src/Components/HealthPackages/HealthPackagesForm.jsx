@@ -128,15 +128,24 @@ const HealthPackagesForm = ({ onClose }) => {
       case "packageName":
         return value === "" ? "Package name is required" : "";
       case "price":
-        return value === "" ? "Price is required" : "";
+        if (!value.trim()) return "Price is required";
+        if (!/^\d+$/.test(value)) return "Price must contain digits only";
+        return "";
       case "discountType":
         return value === "" ? "Discount type is required" : "";
       case "image":
         return value === "" ? "Please upload image" : "";
       case "testsQuantity":
-        return value === "" ? "No. of lab tests is required" : "";
+        if (!value.trim()) return "No. of lab tests is required";
+        if (!/^[1-9]\d*$/.test(value))
+          return "Tests quantity must be a positive number";
+        return "";
+
       case "discountAmount":
-        return value === "" ? "Discount amount is required" : "";
+        if (!value.trim()) return "Discount amount is required";
+        if (!/^\d+$/.test(value))
+          return "Discount amount must contain digits only";
+        return "";
       case "listOfCoveredTests":
         return value === "" ? "List of covered tests are required" : "";
       case "idealFor":
@@ -144,7 +153,10 @@ const HealthPackagesForm = ({ onClose }) => {
           ? "Please select at least one module"
           : "";
       case "ageGroup":
-        return value === "" ? "Age group is required" : "";
+        if (!value.trim()) return "Age group is required";
+        if (!/^\d{1,3}\s?-\s?\d{1,3}$/.test(value))
+          return "Age group must be in the format 'X - Y'";
+        return "";
       case "descriptionOfPackage":
         return value === "" ? "Description of health packages is required" : "";
       case "guidelines":
@@ -152,9 +164,16 @@ const HealthPackagesForm = ({ onClose }) => {
       case "fullName":
         return value === "" ? "Full name is required" : "";
       case "emailId":
-        return value === "" ? "Email address is required" : "";
+        if (!value.trim()) return "Email address is required";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          return "Invalid email format";
+        return "";
+
       case "phoneNumber":
-        return value === "" ? "Phone number is required" : "";
+        if (!value.trim()) return "Phone number is required";
+        if (!/^\+?[0-9]{10,15}$/.test(value))
+          return "Phone number must be 10-15 digits, with optional + at the start";
+        return "";
       default:
         return "";
     }
@@ -711,10 +730,7 @@ const HealthPackagesForm = ({ onClose }) => {
                 <ValidationAlert error={modalErrors.phoneNumber} />
               </Col>
               <Col className="text-center">
-                <Button
-                  type="submit"
-                  color="primary"
-                >
+                <Button type="submit" color="primary">
                   Submit
                 </Button>
               </Col>

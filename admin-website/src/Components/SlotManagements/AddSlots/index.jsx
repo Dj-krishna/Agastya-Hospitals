@@ -186,6 +186,7 @@ function AddSlots() {
                             handleDateChange("fromDate", date)
                           }
                           dateFormat="dd/MM/yyyy"
+                        
                         />
                         <div
                           className="input-group-text"
