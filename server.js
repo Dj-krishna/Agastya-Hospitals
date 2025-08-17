@@ -13,7 +13,7 @@ const healthPackageRoutes = require('./routes/healthPackageRoutes');
 const subSpecialityRoutes = require('./routes/subSpecialityRoutes');
 const userRoutes = require('./routes/userRoutes');
 const userRoleRoutes = require('./routes/userRoleRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
+const doctorSlotRoutes  = require('./routes/doctorSlotRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 
@@ -31,7 +31,7 @@ app.use('/api/health-packages', healthPackageRoutes);
 app.use('/api/sub-specialities', subSpecialityRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/user-roles', userRoleRoutes);
-app.use('/api/appointments', appointmentRoutes);
+app.use('/api/doctor-slots', doctorSlotRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/departments', departmentRoutes);
 
