@@ -1,6 +1,6 @@
 const User = require('../models/Users');
 const Role = require('../models/UserRoles');
-const Counter = require('../models/Counter');
+const getNextSequence = require('../utils/getNextSequence');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -32,13 +32,8 @@ exports.register = async (req, res) => {
     // 2. Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Get next userID from counter collection
-    const counter = await Counter.findOneAndUpdate(
-      { _id: 'userID' },
-      { $inc: { sequence_value: 1 } },
-      { new: true, upsert: true }
-    );
-    const userID = counter.sequence_value;
+    // 3. Get next userID using counter util
+    const userID = await getNextSequence('userID');
 
     // 4. Validate role and get default modules
     const role = await Role.findOne({ roleID });

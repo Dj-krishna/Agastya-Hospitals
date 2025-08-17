@@ -42,6 +42,7 @@ exports.getSpecialityList = async (req, res) => {
   }
 };
 
+
 // GET one by specialityID
 exports.getSpecialityById = async (req, res) => {
   try {
