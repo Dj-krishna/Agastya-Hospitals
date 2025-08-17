@@ -97,17 +97,16 @@ exports.getSlotById = async (req, res) => {
   }
 };
 
-// POST: Add new slots (auto-generate eachSchedule)
+// POST: Add new slots (uses {from, to} to generate slots)
 exports.addSlots = async (req, res) => {
   try {
-    const payload = req.body;
+    const payload = Array.isArray(req.body) ? req.body : [req.body];
     const getNextSlotID = async () => await getNextSequence('slotID');
 
-    const processSlot = async (slot) => {
-      if (!slot.slotID) slot.slotID = await getNextSlotID();
-      const interval = slot.timeSlotInterval || 30;
+    const processedSlots = [];
 
-      // support root-level from/to slots if schedule not provided
+    for (const slot of payload) {
+      const interval = slot.timeSlotInterval || 30;
       const scheduleArray = slot.schedule?.length ? slot.schedule : [{
         fromDate: slot.fromDate,
         toDate: slot.toDate,
@@ -115,12 +114,29 @@ exports.addSlots = async (req, res) => {
         eveningSlot: slot.eveningSlot
       }];
 
-      const scheduleRanges = scheduleArray.map(range => {
+      let existingSlot = await DoctorSlot.findOne({ doctorID: slot.doctorID });
+      if (!existingSlot) {
+        existingSlot = new DoctorSlot({
+          slotID: await getNextSlotID(),
+          doctorID: slot.doctorID,
+          schedule: [],
+          timeSlotInterval: interval,
+          isActive: slot.isActive ?? true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+
+      for (const range of scheduleArray) {
         const from = new Date(range.fromDate);
         const to = new Date(range.toDate);
-        const dates = getDateRange(from, to);
 
-        const eachSchedule = dates.map(date => ({
+        const overlappingRange = existingSlot.schedule.find(r =>
+          new Date(r.fromDate).getTime() === from.getTime() &&
+          new Date(r.toDate).getTime() === to.getTime()
+        );
+
+        const eachSchedule = getDateRange(from, to).map(date => ({
           date,
           morningSlot: range.morningSlot?.from && range.morningSlot?.to
             ? generateTimeSlots(range.morningSlot.from, range.morningSlot.to, interval)
@@ -130,90 +146,94 @@ exports.addSlots = async (req, res) => {
             : [],
         }));
 
-        return { fromDate: from, toDate: to, eachSchedule };
-      });
+        if (overlappingRange) {
+          eachSchedule.forEach(newDateSchedule => {
+            const existingDate = overlappingRange.eachSchedule.find(
+              es => new Date(es.date).toISOString().slice(0,10) === new Date(newDateSchedule.date).toISOString().slice(0,10)
+            );
+            if (existingDate) {
+              existingDate.morningSlot = newDateSchedule.morningSlot.length ? newDateSchedule.morningSlot : existingDate.morningSlot;
+              existingDate.eveningSlot = newDateSchedule.eveningSlot.length ? newDateSchedule.eveningSlot : existingDate.eveningSlot;
+            } else {
+              overlappingRange.eachSchedule.push(newDateSchedule);
+            }
+          });
+        } else {
+          existingSlot.schedule.push({
+            fromDate: from,
+            toDate: to,
+            eachSchedule
+          });
+        }
+      }
 
-      return {
-        slotID: slot.slotID,
-        doctorID: slot.doctorID,
-        schedule: scheduleRanges,
-        timeSlotInterval: interval,
-        isActive: slot.isActive ?? true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-    };
-
-    if (!Array.isArray(payload)) {
-      const processed = await processSlot(payload);
-      const saved = await new DoctorSlot(processed).save();
-      return res.status(201).json(saved);
+      existingSlot.updatedAt = new Date();
+      await existingSlot.save();
+      processedSlots.push(existingSlot);
     }
 
-    const processedSlots = await Promise.all(payload.map(processSlot));
-    const inserted = await DoctorSlot.insertMany(processedSlots);
-    res.status(201).json(inserted);
+    res.status(201).json(processedSlots.length === 1 ? processedSlots[0] : processedSlots);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// PUT: Update slot(s) with root-level from/to times
+// PUT: Update slot(s) directly using arrays (no generateTimeSlots)
 exports.updateSlot = async (req, res) => {
   const slotID = req.body.slotID || Number(req.query.slotID);
-  const { date, fromDate, toDate, morningSlot, eveningSlot, timeSlotInterval } = req.body;
+  const { fromDate, toDate, morningSlot, eveningSlot, timeSlotInterval } = req.body;
 
-  if (!slotID || (!date && !(fromDate && toDate))) {
-    return res.status(400).json({ error: 'slotID and date or fromDate/toDate are required' });
+  if (!slotID || !(fromDate && toDate)) {
+    return res.status(400).json({ error: 'slotID and fromDate/toDate are required' });
   }
 
   try {
     const slot = await DoctorSlot.findOne({ slotID });
     if (!slot) return res.status(404).json({ message: 'Slot not found' });
 
-    const start = date ? new Date(date) : new Date(fromDate);
-    const end = date ? new Date(date) : new Date(toDate);
+    const start = new Date(fromDate);
+    const end = new Date(toDate);
     const interval = timeSlotInterval || slot.timeSlotInterval || 30;
 
-    // Update overlapping ranges
-    for (const range of slot.schedule) {
+    let updated = false;
+
+    slot.schedule.forEach(range => {
       const rangeStart = new Date(range.fromDate);
       const rangeEnd = new Date(range.toDate);
-      const overlapStart = start > rangeStart ? start : rangeStart;
-      const overlapEnd = end < rangeEnd ? end : rangeEnd;
 
-      const datesToUpdate = getDateRange(overlapStart, overlapEnd);
+      if (end >= rangeStart && start <= rangeEnd) {
+        const overlapStart = start > rangeStart ? start : rangeStart;
+        const overlapEnd = end < rangeEnd ? end : rangeEnd;
 
-      datesToUpdate.forEach(d => {
-        const existing = range.eachSchedule.find(
-          es => new Date(es.date).toISOString().slice(0,10) === d.toISOString().slice(0,10)
-        );
-        if (existing) {
-          if (morningSlot) existing.morningSlot = generateTimeSlots(morningSlot.from, morningSlot.to, interval);
-          if (eveningSlot) existing.eveningSlot = generateTimeSlots(eveningSlot.from, eveningSlot.to, interval);
-        } else {
-          range.eachSchedule.push({
-            date: d,
-            morningSlot: morningSlot ? generateTimeSlots(morningSlot.from, morningSlot.to, interval) : [],
-            eveningSlot: eveningSlot ? generateTimeSlots(eveningSlot.from, eveningSlot.to, interval) : []
-          });
-        }
-      });
-    }
+        getDateRange(overlapStart, overlapEnd).forEach(d => {
+          const existingDate = range.eachSchedule.find(
+            es => new Date(es.date).toISOString().slice(0,10) === d.toISOString().slice(0,10)
+          );
 
-    // Add new range if no overlap
-    const existingRanges = slot.schedule.map(r => ({ start: new Date(r.fromDate), end: new Date(r.toDate) }));
-    const isOverlapping = existingRanges.some(r => end >= r.start && start <= r.end);
+          if (existingDate) {
+            if (morningSlot) existingDate.morningSlot = morningSlot; // assign array directly
+            if (eveningSlot) existingDate.eveningSlot = eveningSlot; // assign array directly
+          } else {
+            range.eachSchedule.push({
+              date: d,
+              morningSlot: morningSlot || [],
+              eveningSlot: eveningSlot || []
+            });
+          }
+        });
 
-    if (!isOverlapping) {
-      const datesExtra = getDateRange(start, end);
+        updated = true;
+      }
+    });
+
+    if (!updated) {
       slot.schedule.push({
         fromDate: start,
         toDate: end,
-        eachSchedule: datesExtra.map(d => ({
+        eachSchedule: getDateRange(start, end).map(d => ({
           date: d,
-          morningSlot: morningSlot ? generateTimeSlots(morningSlot.from, morningSlot.to, interval) : [],
-          eveningSlot: eveningSlot ? generateTimeSlots(eveningSlot.from, eveningSlot.to, interval) : []
+          morningSlot: morningSlot || [],
+          eveningSlot: eveningSlot || []
         }))
       });
     }
@@ -222,12 +242,11 @@ exports.updateSlot = async (req, res) => {
     slot.updatedAt = new Date();
     await slot.save();
 
-    res.json({ message: 'Schedule updated', slot });
+    res.json({ message: 'Schedule updated successfully', slot });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
-
 
 // DELETE: Slot by slotID
 exports.deleteSlotById = async (req, res) => {
