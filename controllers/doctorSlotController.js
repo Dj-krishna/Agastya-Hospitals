@@ -97,7 +97,7 @@ exports.getSlotById = async (req, res) => {
   }
 };
 
-// POST: Add new slots
+// POST: Add new slots (auto-generate eachSchedule from from/to times)
 exports.addSlots = async (req, res) => {
   try {
     const payload = req.body;
@@ -107,33 +107,29 @@ exports.addSlots = async (req, res) => {
       if (!slot.slotID) slot.slotID = await getNextSlotID();
       const interval = slot.timeSlotInterval || 30;
 
-      const scheduleRanges = await Promise.all(
-        (slot.schedule || []).map(async (range) => {
-          const from = new Date(range.fromDate);
-          const to = new Date(range.toDate);
-          const dates = getDateRange(from, to);
+      const scheduleRanges = (slot.schedule || []).map((range) => {
+        const from = new Date(range.fromDate);
+        const to = new Date(range.toDate);
+        const dates = getDateRange(from, to);
 
-          const eachSchedule = dates.map((date) => {
-            const existing = range.eachSchedule?.find(
-              d => new Date(d.date).toISOString().slice(0,10) === date.toISOString().slice(0,10)
-            );
-            if (existing)
-              return { date, morningSlot: existing.morningSlot || [], eveningSlot: existing.eveningSlot || [] };
+        const eachSchedule = dates.map((date) => {
+          return {
+            date,
+            morningSlot: range.morningSlot?.from && range.morningSlot?.to
+              ? generateTimeSlots(range.morningSlot.from, range.morningSlot.to, interval)
+              : [],
+            eveningSlot: range.eveningSlot?.from && range.eveningSlot?.to
+              ? generateTimeSlots(range.eveningSlot.from, range.eveningSlot.to, interval)
+              : [],
+          };
+        });
 
-            return {
-              date,
-              morningSlot: range.morningSlot?.from && range.morningSlot?.to
-                ? generateTimeSlots(range.morningSlot.from, range.morningSlot.to, interval)
-                : [],
-              eveningSlot: range.eveningSlot?.from && range.eveningSlot?.to
-                ? generateTimeSlots(range.eveningSlot.from, range.eveningSlot.to, interval)
-                : [],
-            };
-          });
-
-          return { ...range, eachSchedule };
-        })
-      );
+        return {
+          fromDate: from,
+          toDate: to,
+          eachSchedule
+        };
+      });
 
       return {
         slotID: slot.slotID,
