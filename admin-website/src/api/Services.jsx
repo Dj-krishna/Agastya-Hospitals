@@ -109,6 +109,7 @@ export const updateDoctor = async (id, doctorData) => {
       `${DOCTORS_API}?doctorID=${id}`, // Use query param instead of path param
       doctorData
     );
+    console.log("DOCTOR response  ", response);
     return response.data;
   } catch (error) {
     throw error;

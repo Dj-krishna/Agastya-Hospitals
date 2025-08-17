@@ -106,7 +106,6 @@ import MasonryGallery from "../Components/Gallery/MesonryGallery";
 import ImageWithDesc from "../Components/Gallery/ImageWithDesc";
 import ImageHover from "../Components/Gallery/ImageHover";
 
-
 // //Pages
 import SamplePage from "../Components/Pages/Sample";
 // // import SearchPage from '../Components/Application/SearchResult'
@@ -189,11 +188,13 @@ import RolesPermissions from "../Components/RolesPermissions";
 import Settings from "../Components/Settings";
 import Specialities from "../Components/Specialities";
 import Patients from "../Components/Patients";
+import MedicalRecords from "../Components/MedicalRocords";
 
 export const routes = [
   { path: `/dashboard`, Component: <Default /> },
   { path: `/doctors`, Component: <Doctors /> },
-  { path: `/patients`, Component: <Patients /> }, // Assuming Patients is similar to Doctors
+  { path: `/patients`, Component: <Patients /> },
+  { path: `/medical-records`, Component: <MedicalRecords /> },
   { path: `/specialities`, Component: <Specialities /> },
   { path: `/slot-management/add-slots`, Component: <AddSlots /> },
   { path: `/slot-management/manage-slots`, Component: <ManageSlots /> },

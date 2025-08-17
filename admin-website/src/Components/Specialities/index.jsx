@@ -3,7 +3,7 @@ import { Breadcrumbs, Btn } from "../../AbstractElements";
 import { Button, Container, Row } from "reactstrap";
 import SpecialityForm from "./SpecialityForm";
 import TableComponent from "../Common/Component/TableComponent";
-import { FaEdit, FaTrash, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaPencilAlt, FaTrash, FaTrashAlt } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { deleteSpeciality } from "../../api/Services";
 import { SPECIALITIES_API } from "../../api";
@@ -46,7 +46,7 @@ const Specialities = () => {
             <Row className="widget-grid">
               <TableComponent
                 // title="Specialities"
-                headers={["Name", "Icon", "Description", "Action"]}
+                headers={["Icon", "Name", "Description", "Action"]}
                 tableBody={
                   <tbody>
                     {loading ? (
@@ -66,14 +66,27 @@ const Specialities = () => {
                     ) : (
                       specialities?.map((item, index) => (
                         <tr key={index}>
-                          <td>{item.specialityName || "N/A"}</td>
                           <td>{item.icon || "N/A"}</td>
-                          <td>{item.pageDescription}</td>
-                          <td>
-                            <FaEdit
+                          <td>{item.specialityName || "N/A"}</td>
+                          <td
+                            width="40%"
+                            style={{
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              maxWidth: "200px",
+                            }}
+                          >
+                            {item.pageDescription}
+                          </td>
+                          <td width={"10%"}>
+                            <FaPencilAlt
+                              color="#7366ff"
                               onClick={() => setSpecialityForm(true)}
                               className="me-2 text-primary cursor-pointer"
                             />
+                            &nbsp;&nbsp;<span className="text-muted">|</span>
+                            &nbsp;&nbsp;
                             <FaTrashAlt
                               onClick={() => {
                                 Swal.fire({
@@ -92,10 +105,18 @@ const Specialities = () => {
                                   if (result.isConfirmed) {
                                     try {
                                       await deleteSpeciality(1); // or whatever your record's id is
-                                      Swal.fire("Deleted!", "The record has been deleted.", "success");
+                                      Swal.fire(
+                                        "Deleted!",
+                                        "The record has been deleted.",
+                                        "success"
+                                      );
                                       // Optionally refresh your data here
                                     } catch (error) {
-                                      Swal.fire("Error!", "Failed to delete the record.", "error");
+                                      Swal.fire(
+                                        "Error!",
+                                        "Failed to delete the record.",
+                                        "error"
+                                      );
                                     }
                                   }
                                 });
@@ -107,7 +128,6 @@ const Specialities = () => {
                       ))
                     )}
                   </tbody>
-                  
                 }
               />
             </Row>

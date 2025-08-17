@@ -25,15 +25,15 @@ export const MENUITEMS = [
         type: "link",
       },
       {
-        path: `/specialities`,
-        icon: "file",
-        title: "Specialities",
+        title: "Medical Records",
+        icon: "widget",
+        path: `/medical-records`,
         type: "link",
       },
       {
-        path: `/departments`,
-        icon: "project",
-        title: "Departments",
+        path: `/specialities`,
+        icon: "file",
+        title: "Specialities",
         type: "link",
       },
 
@@ -41,6 +41,12 @@ export const MENUITEMS = [
         title: "Appointments",
         icon: "widget",
         path: `/appointments`,
+        type: "link",
+      },
+      {
+        path: `/departments`,
+        icon: "project",
+        title: "Departments",
         type: "link",
       },
       {

@@ -2,11 +2,11 @@ import React, { Fragment } from "react";
 import { Breadcrumbs } from "../../AbstractElements";
 import { Container, Row } from "reactstrap";
 
-const Appointments = () => {
+const MedicalRecords = () => {
   return (
     <Fragment>
       <>
-        <Breadcrumbs mainTitle={"Appointments"} />
+        <Breadcrumbs mainTitle={"Medical Records"} />
 
         <Container fluid={true}>
           <Row className="widget-grid"></Row>
@@ -16,4 +16,4 @@ const Appointments = () => {
   );
 };
 
-export default Appointments;
+export default MedicalRecords;
