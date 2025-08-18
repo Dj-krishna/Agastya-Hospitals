@@ -1,17 +1,94 @@
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Breadcrumbs } from "../../AbstractElements";
-import { Container, Row } from "reactstrap";
+import { Button, Container, Row } from "reactstrap";
+import TableComponent from "../Common/Component/TableComponent";
+import { fetchDataGet } from "../../api/Services";
+import { PATIENTS_API } from "../../api";
+import PatientDetails from "../Patients/PatientDetails";
+import UploadForm from "./UploadForm";
 
 const MedicalRecords = () => {
+  const [patients, setPatients] = useState([]);
+  const [patientData, setPatientData] = useState(null);
+  const [viewPatientDetails, setViewPatientDetails] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [openUploadForm, setOpenUploadForm] = useState(false);
+
+  const handleViewDetails = (data) => {
+    setPatientData(data);
+    setViewPatientDetails(!viewPatientDetails);
+  };
+
+  const fetchPatients = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchDataGet(PATIENTS_API);
+      setPatients(data);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
   return (
     <Fragment>
-      <>
-        <Breadcrumbs mainTitle={"Medical Records"} />
+      {!openUploadForm ? (
+        <>
+          <Breadcrumbs
+            mainTitle={
+              viewPatientDetails ? "Patient Details" : "Medical Records"
+            }
+            buttonTitle={viewPatientDetails ? "Back to list" : "Upload Records"}
+            onClick={
+              viewPatientDetails
+                ? () => setViewPatientDetails(false)
+                : () => setOpenUploadForm(true)
+            }
+            btnColor={viewPatientDetails ? "secondary" : "primary"}
+          />
 
-        <Container fluid={true}>
-          <Row className="widget-grid"></Row>
-        </Container>
-      </>
+          <Container fluid={true}>
+            <Row className="widget-grid">
+              {!viewPatientDetails ? (
+                <TableComponent
+                  headers={["UHID", "Name", "Phone Number", "Email", "Action"]}
+                  tableBody={
+                    <tbody>
+                      {patients.map((data, index) => (
+                        <tr key={index}>
+                          <td>{data.patientID}</td>
+                          <td>{data.fullName}</td>
+                          <td>{data.mobile}</td>
+                          <td>{data.email}</td>
+                          <td>
+                            <Button
+                              color="success"
+                              outline
+                              className=""
+                              size="sm"
+                              onClick={() => handleViewDetails(data)}
+                            >
+                              View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  }
+                />
+              ) : (
+                <PatientDetails patientDetails={patientData} />
+              )}
+            </Row>
+          </Container>
+        </>
+      ) : (
+        <UploadForm onClose={() => setOpenUploadForm(false)} />
+      )}
     </Fragment>
   );
 };

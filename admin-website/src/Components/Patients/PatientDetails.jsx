@@ -13,7 +13,7 @@ const PatientDetails = ({ patientDetails }) => {
               <li className="mb-2 d-flex justify-content-between">
                 <Label className="form-label text-muted">UHID:</Label>
                 <span className="f-w-500">
-                  {patientDetails.uhid ? patientDetails.uhid : "---"}
+                  {patientDetails.patientID ? patientDetails.patientID : "---"}
                 </span>
               </li>
               <li className="mb-2 d-flex justify-content-between">

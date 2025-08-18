@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Breadcrumbs, Btn } from "../../AbstractElements";
 import {
   Card,
@@ -13,6 +13,8 @@ import {
 } from "reactstrap";
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchDoctors } from "../../slices/doctorsSlice";
 
 const initialFormState = {
   name: "",
@@ -47,7 +49,12 @@ const SpecialityForm = ({ onClose }) => {
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  console.log("formState", formState);
+  const dispatch = useDispatch();
+  const { data: doctors } = useSelector((state) => state.doctors);
+
+  useEffect(() => {
+    dispatch(fetchDoctors());
+  }, [dispatch]);
 
   const validateAllFields = (name, value) => {
     const isEmpty = (val) =>
@@ -209,9 +216,9 @@ const SpecialityForm = ({ onClose }) => {
                         invalid={!!formErrors.assignDoctor}
                       >
                         <option value="">Select doctor</option>
-                        {[0, 1, 2, 3, 4, 5].map((doctor, index) => (
-                          <option key={index + doctor} value={doctor}>
-                            {doctor}
+                        {doctors.map((doctor, index) => (
+                          <option key={index} value={doctor.doctorID}>
+                            {doctor.doctorID} - {doctor.fullName}
                           </option>
                         ))}
                       </Input>

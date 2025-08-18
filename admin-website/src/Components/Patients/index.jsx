@@ -1,4 +1,5 @@
 import React, { Fragment, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Breadcrumbs } from "../../AbstractElements";
 import { Button, Container, Row } from "reactstrap";
 import TableComponent from "../Common/Component/TableComponent";
@@ -7,42 +8,32 @@ import { fetchDataGet } from "../../api/Services";
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
 import PatientForm from "./PatientForm";
 import PatientDetails from "./PatientDetails";
+import { fetchPatients } from "../../slices/patientSlice";
 
 const Patients = () => {
   const [showPatientsForm, setShowPatientsForm] = useState(false);
-  const [patients, setPatients] = useState([]);
   const [editingPatient, setEditingPatient] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [viewPatientDetails, setViewPatientDetails] = useState(false);
   const [patientData, setPatientData] = useState(null);
 
+  const dispatch = useDispatch();
+  const {
+    data: patients,
+    error,
+  } = useSelector((state) => {
+    return state.patients;
+  });
+
   const handleViewDetails = (data) => {
     setPatientData(data);
     setViewPatientDetails(!viewPatientDetails);
   };
 
-  const fetchPatients = async () => {
-    try {
-      setLoading(true);
-      const data = await fetchDataGet(PATIENTS_API);
-      setPatients(data);
-    } catch (error) {
-      console.error("Error fetching packages:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPatients();
-  }, []);
-
-  const handleAddPatient = () => {
-    setEditingPatient(null);
-    setIsEditMode(false);
-    setShowPatientsForm(true);
-  };
+    dispatch(fetchPatients());
+  }, [dispatch]);
 
   return (
     <Fragment>
