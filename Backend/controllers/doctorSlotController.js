@@ -1,244 +1,150 @@
 const DoctorSlot = require('../models/DoctorSlots');
 const getNextSequence = require('../utils/getNextSequence');
 
+// ------------------ HELPERS ------------------
 const generateTimeSlots = (start, end, interval) => {
+  if (!start || !end) return [];
   const slots = [];
   let [sh, sm] = start.split(':').map(Number);
   let [eh, em] = end.split(':').map(Number);
-
-  let current = new Date(0, 0, 0, sh, sm);
-  const endTime = new Date(0, 0, 0, eh, em);
-
+  let current = new Date(0,0,0,sh,sm);
+  const endTime = new Date(0,0,0,eh,em);
   while (current < endTime) {
-    const hh = String(current.getHours()).padStart(2, '0');
-    const mm = String(current.getMinutes()).padStart(2, '0');
-    slots.push(`${hh}:${mm}`);
-    current.setMinutes(current.getMinutes() + interval);
+    slots.push(`${String(current.getHours()).padStart(2,'0')}:${String(current.getMinutes()).padStart(2,'0')}`);
+    current.setMinutes(current.getMinutes()+interval);
   }
-
   return slots;
 };
 
-const buildSlotFilter = (query) => {
-  const filter = {};
-  const numericFields = ['doctorID', 'slotID'];
-  for (const key in query) {
-    const value = query[key];
-    if (!value) continue;
-    filter[key] = numericFields.includes(key) ? Number(value) : value;
-  }
-  return filter;
-};
+const normalizeDate = d => { const dt = new Date(d); dt.setUTCHours(0,0,0,0); return dt; };
 
-// Returns array of Dates (normalized to UTC midnight)
-const getDateRange = (start, end) => {
+const getDateRange = (start,end) => {
   const dates = [];
-  let current = new Date(start);
-  current.setUTCHours(0,0,0,0);
-  end = new Date(end);
-  end.setUTCHours(0,0,0,0);
-
-  while (current <= end) {
-    dates.push(new Date(current));
-    current.setUTCDate(current.getUTCDate() + 1);
-  }
+  let current = normalizeDate(start);
+  end = normalizeDate(end);
+  while(current <= end){ dates.push(new Date(current)); current.setUTCDate(current.getUTCDate()+1); }
   return dates;
 };
 
-// ------------------ GET ALL SLOTS ------------------
-exports.getSlots = async (req, res) => {
-  try {
-    const { doctorID, date, fromDate, toDate } = req.query;
-    const filter = buildSlotFilter({ doctorID });
-
-    let slots = await DoctorSlot.find(filter);
-
-    if (date || (fromDate && toDate)) {
-      const start = date ? new Date(date) : new Date(fromDate);
-      const end = date ? new Date(date) : new Date(toDate);
-
-      slots = slots.map(slot => {
-        const filteredSchedule = slot.schedule
-          .map(range => {
-            const rangeStart = new Date(range.fromDate);
-            const rangeEnd = new Date(range.toDate);
-            const overlapStart = start > rangeStart ? start : rangeStart;
-            const overlapEnd = end < rangeEnd ? end : rangeEnd;
-
-            const datesInRange = getDateRange(overlapStart, overlapEnd);
-
-            const eachSchedule = datesInRange.map(d => {
-              const existing = range.eachSchedule.find(
-                es => es.date.toISOString().slice(0,10) === d.toISOString().slice(0,10)
-              );
-              return existing ? existing : { date: d, morningSlot: [], eveningSlot: [] };
-            });
-
-            return { ...range.toObject(), eachSchedule };
-          })
-          .filter(range => range.eachSchedule.length > 0);
-
-        return { ...slot.toObject(), schedule: filteredSchedule };
-      }).filter(slot => slot.schedule.length > 0);
-    }
-
-    res.status(200).json(slots);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+const buildSlotFilter = query => {
+  const filter = {};
+  const numericFields = ['doctorID','slotID'];
+  for(const key in query){ if(query[key]) filter[key] = numericFields.includes(key)? Number(query[key]):query[key]; }
+  return filter;
 };
 
-// ------------------ GET SLOT BY ID ------------------
-exports.getSlotById = async (req, res) => {
+const validateSlotPayload = slot => {
+  if(!slot.doctorID) return 'doctorID is required';
+  if(!slot.schedule?.length && !(slot.fromDate && slot.toDate)) return 'schedule array or fromDate/toDate required';
+  return null;
+};
+
+// ------------------ GET ------------------
+exports.getSlots = async (req,res) => {
+  try {
+    const { doctorID,date,fromDate,toDate } = req.query;
+    let slots = await DoctorSlot.find(buildSlotFilter({ doctorID }));
+    if(date || (fromDate && toDate)){
+      const start = date? normalizeDate(date): normalizeDate(fromDate);
+      const end = date? normalizeDate(date): normalizeDate(toDate);
+      slots = slots.map(slot=>{
+        const filteredSchedule = slot.schedule.map(range=>{
+          const rs = normalizeDate(range.fromDate), re = normalizeDate(range.toDate);
+          const overlapStart = start>rs? start: rs, overlapEnd = end<re? end: re;
+          const eachSchedule = getDateRange(overlapStart,overlapEnd).map(d=>{
+            const existing = range.eachSchedule.find(es=>normalizeDate(es.date).toISOString()===d.toISOString());
+            return existing? existing: {date:d,morningSlot:[],eveningSlot:[]};
+          });
+          return {...range.toObject(),eachSchedule};
+        }).filter(r=>r.eachSchedule.length>0);
+        return {...slot.toObject(),schedule:filteredSchedule};
+      }).filter(s=>s.schedule.length>0);
+    }
+    res.status(200).json(slots);
+  } catch(err){ res.status(500).json({error:err.message}); }
+};
+
+exports.getSlotById = async (req,res) => {
   try {
     const slotID = Number(req.params.id);
-    const slot = await DoctorSlot.findOne({ slotID });
-    if (!slot) return res.status(404).json({ message: 'Slot not found' });
+    if(isNaN(slotID)) return res.status(400).json({error:'Invalid slotID'});
+    const slot = await DoctorSlot.findOne({slotID});
+    if(!slot) return res.status(404).json({message:'Slot not found'});
     res.status(200).json(slot);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
 
-// ------------------ POST ADD SLOTS WITH OVERLAP CHECK ------------------
-exports.addSlots = async (req, res) => {
+// ------------------ POST ------------------
+exports.addSlots = async (req,res) => {
   try {
-    const payload = Array.isArray(req.body) ? req.body : [req.body];
-    const getNextSlotID = async () => await getNextSequence('slotID');
-
+    const payload = Array.isArray(req.body)? req.body: [req.body];
     const processedSlots = [];
+    for(const slot of payload){
+      const validationError = validateSlotPayload(slot);
+      if(validationError) return res.status(400).json({error:validationError});
 
-    for (const slot of payload) {
       const interval = slot.timeSlotInterval || 30;
+      const scheduleArray = slot.schedule?.length? slot.schedule: [{fromDate:slot.fromDate,toDate:slot.toDate,morningSlot:slot.morningSlot,eveningSlot:slot.eveningSlot}];
 
-      const scheduleArray = slot.schedule?.length ? slot.schedule : [{
-        fromDate: slot.fromDate,
-        toDate: slot.toDate,
-        morningSlot: slot.morningSlot,
-        eveningSlot: slot.eveningSlot
-      }];
-
-      let existingSlot = await DoctorSlot.findOne({ doctorID: slot.doctorID });
-      if (!existingSlot) {
-        existingSlot = new DoctorSlot({
-          slotID: await getNextSlotID(),
-          doctorID: slot.doctorID,
-          schedule: [],
-          timeSlotInterval: interval,
-          isActive: slot.isActive ?? true,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
+      let existingSlot = await DoctorSlot.findOne({doctorID:slot.doctorID});
+      if(!existingSlot){
+        existingSlot = new DoctorSlot({slotID:await getNextSequence('slotID'),doctorID:slot.doctorID,schedule:[],timeSlotInterval:interval,isActive:slot.isActive??true,createdAt:new Date(),updatedAt:new Date()});
       }
 
-      for (const range of scheduleArray) {
-        const from = new Date(range.fromDate);
-        const to = new Date(range.toDate);
+      const existingDates = new Set();
+      existingSlot.schedule.forEach(r=> r.eachSchedule.forEach(es=> existingDates.add(normalizeDate(es.date).toISOString())));
 
-        const existingDates = new Set();
-        existingSlot.schedule.forEach(r =>
-          r.eachSchedule.forEach(es =>
-            existingDates.add(es.date.toISOString().slice(0,10))
-          )
-        );
+      for(const range of scheduleArray){
+        const from = normalizeDate(range.fromDate), to = normalizeDate(range.toDate);
+        const overlappingDates = getDateRange(from,to).map(d=>d.toISOString()).filter(d=>existingDates.has(d));
+        if(overlappingDates.length) return res.status(400).json({error:'Some dates exist. Use PUT to update.', overlappingDates});
 
-        const overlappingDates = getDateRange(from, to)
-          .map(d => d.toISOString().slice(0,10))
-          .filter(dateStr => existingDates.has(dateStr));
-
-        if (overlappingDates.length) {
-          return res.status(400).json({
-            error: 'Some dates already exist in the schedule. Please use PUT to update them.',
-            overlappingDates
-          });
-        }
-
-        // Build eachSchedule for all dates in range
-        const eachSchedule = getDateRange(from, to).map(date => ({
-          date,
-          morningSlot: range.morningSlot?.from && range.morningSlot?.to
-            ? generateTimeSlots(range.morningSlot.from, range.morningSlot.to, interval)
-            : [],
-          eveningSlot: range.eveningSlot?.from && range.eveningSlot?.to
-            ? generateTimeSlots(range.eveningSlot.from, range.eveningSlot.to, interval)
-            : [],
+        const eachSchedule = getDateRange(from,to).map(d=>({
+          date:d,
+          morningSlot: range.morningSlot?.from && range.morningSlot?.to? generateTimeSlots(range.morningSlot.from, range.morningSlot.to, interval): [],
+          eveningSlot: range.eveningSlot?.from && range.eveningSlot?.to? generateTimeSlots(range.eveningSlot.from, range.eveningSlot.to, interval): []
         }));
 
-        existingSlot.schedule.push({ fromDate: from, toDate: to, eachSchedule });
+        existingSlot.schedule.push({fromDate:from,toDate:to,eachSchedule});
       }
-
+      existingSlot.timeSlotInterval = interval;
       existingSlot.updatedAt = new Date();
       await existingSlot.save();
       processedSlots.push(existingSlot);
     }
-
-    res.status(201).json(processedSlots.length === 1 ? processedSlots[0] : processedSlots);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    res.status(201).json(processedSlots.length===1? processedSlots[0]:processedSlots);
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
 
-// ------------------ PUT UPDATE SLOTS ------------------
-exports.updateSlot = async (req, res) => {
-  const slotID = req.body.slotID || Number(req.query.slotID);
-  const { fromDate, toDate, morningSlot, eveningSlot, timeSlotInterval } = req.body;
-
-  if (!slotID || !(fromDate && toDate)) {
-    return res.status(400).json({ error: 'slotID and fromDate/toDate are required' });
-  }
-
+// ------------------ PUT ------------------
+exports.updateSlot = async (req,res) => {
   try {
-    const slot = await DoctorSlot.findOne({ slotID });
-    if (!slot) return res.status(404).json({ message: 'Slot not found' });
+    const slotID = req.body.slotID || Number(req.query.slotID);
+    if(!slotID || isNaN(slotID)) return res.status(400).json({error:'Valid slotID required'});
+    const { fromDate,toDate,morningSlot,eveningSlot,timeSlotInterval } = req.body;
+    if(!(fromDate && toDate)) return res.status(400).json({error:'fromDate/toDate required'});
 
-    const start = new Date(fromDate);
-    const end = new Date(toDate);
+    const slot = await DoctorSlot.findOne({slotID});
+    if(!slot) return res.status(404).json({message:'Slot not found'});
+
+    const start = normalizeDate(fromDate), end = normalizeDate(toDate);
     const interval = timeSlotInterval || slot.timeSlotInterval || 30;
 
-    // Build a map of all existing dates for quick lookup
     const dateMap = {};
-    slot.schedule.forEach(range => {
-      range.eachSchedule.forEach(es => {
-        const key = es.date.toISOString().slice(0, 10);
-        dateMap[key] = { range, es };
-      });
-    });
+    slot.schedule.forEach(r=> r.eachSchedule.forEach(es=> dateMap[normalizeDate(es.date).toISOString()] = {range:r,es}));
 
-    // Process each date in the update range
-    getDateRange(start, end).forEach(d => {
-      const key = d.toISOString().slice(0, 10);
-      if (dateMap[key]) {
-        // Date exists → overwrite
-        if (morningSlot) dateMap[key].es.morningSlot = morningSlot;
-        if (eveningSlot) dateMap[key].es.eveningSlot = eveningSlot;
+    getDateRange(start,end).forEach(d=>{
+      const key = d.toISOString();
+      if(dateMap[key]){
+        if(morningSlot) dateMap[key].es.morningSlot = morningSlot;
+        if(eveningSlot) dateMap[key].es.eveningSlot = eveningSlot;
       } else {
-        // Date does not exist → try to insert into an overlapping range
         let inserted = false;
-        for (const range of slot.schedule) {
-          const rangeStart = new Date(range.fromDate);
-          const rangeEnd = new Date(range.toDate);
-          if (d >= rangeStart && d <= rangeEnd) {
-            range.eachSchedule.push({
-              date: d,
-              morningSlot: morningSlot || [],
-              eveningSlot: eveningSlot || []
-            });
-            inserted = true;
-            break;
-          }
+        for(const range of slot.schedule){
+          const rs = normalizeDate(range.fromDate), re = normalizeDate(range.toDate);
+          if(d>=rs && d<=re){ range.eachSchedule.push({date:d,morningSlot: morningSlot||[],eveningSlot: eveningSlot||[]}); inserted=true; break;}
         }
-        // If no overlapping range, create a new schedule object
-        if (!inserted) {
-          slot.schedule.push({
-            fromDate: d,
-            toDate: d,
-            eachSchedule: [{
-              date: d,
-              morningSlot: morningSlot || [],
-              eveningSlot: eveningSlot || []
-            }]
-          });
-        }
+        if(!inserted) slot.schedule.push({fromDate:d,toDate:d,eachSchedule:[{date:d,morningSlot: morningSlot||[],eveningSlot: eveningSlot||[]} ]});
       }
     });
 
@@ -246,58 +152,42 @@ exports.updateSlot = async (req, res) => {
     slot.updatedAt = new Date();
     await slot.save();
 
-    res.json({ message: 'Schedule updated successfully', slot });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    res.json({message:'Schedule updated successfully',slot});
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
 
-
-// ------------------ DELETE FUNCTIONS ------------------
-// Delete slot by slotID
-exports.deleteSlotById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteSlotById = async (req,res) => {
   try {
     const slotID = Number(req.params.id);
-    const deleted = await DoctorSlot.findOneAndDelete({ slotID });
-    if (!deleted) return res.status(404).json({ message: 'Slot not found' });
-    res.json({ message: 'Slot deleted', slot: deleted });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    if(isNaN(slotID)) return res.status(400).json({error:'Invalid slotID'});
+    const deleted = await DoctorSlot.findOneAndDelete({slotID});
+    if(!deleted) return res.status(404).json({message:'Slot not found'});
+    res.json({message:'Slot deleted',slot:deleted});
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
 
-// Bulk delete slots
-exports.deleteSlotsByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
-
+exports.deleteSlotsByFilter = async (req,res) => {
+  try{
+    const {filter} = req.body;
+    if(!filter || typeof filter!=='object') return res.status(400).json({error:'Provide valid filter'});
+    if(!Object.keys(filter).length) return res.status(400).json({error:'Empty filter not allowed'});
     const result = await DoctorSlot.deleteMany(filter);
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No slots matched filter' });
-
-    res.json({ message: 'Slots deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    if(result.deletedCount===0) return res.status(404).json({message:'No slots matched filter'});
+    res.json({message:'Slots deleted',deletedCount:result.deletedCount});
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
 
-// Delete specific date from schedule
-exports.deleteScheduleDate = async (req, res) => {
-  const { slotID, date } = req.body;
-  if (!slotID || !date) return res.status(400).json({ error: 'slotID and date are required' });
-
-  try {
-    const updateDate = new Date(date);
+exports.deleteScheduleDate = async (req,res) => {
+  try{
+    const {slotID,date} = req.body;
+    if(!slotID || !date) return res.status(400).json({error:'slotID and date required'});
+    const updateDate = normalizeDate(date);
     const result = await DoctorSlot.updateOne(
-      { slotID },
-      { $pull: { 'schedule.$[].eachSchedule': { date: updateDate } }, $set: { updatedAt: new Date() } }
+      {slotID},
+      { $pull: {'schedule.$[].eachSchedule': {date: updateDate}}, $set:{updatedAt:new Date()} }
     );
-
-    if (result.modifiedCount === 0)
-      return res.status(404).json({ message: 'Date not found in schedule or slot not found' });
-
-    res.json({ message: 'Schedule date removed successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+    if(result.modifiedCount===0) return res.status(404).json({message:'Date not found in schedule or slot not found'});
+    res.json({message:'Schedule date removed successfully'});
+  } catch(err){ res.status(500).json({error:err.message}); }
 };
