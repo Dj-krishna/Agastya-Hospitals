@@ -10,6 +10,7 @@ export const MODULES_API = `${baseUrl}/${api}/modules`;
 export const USERS_API = `${baseUrl}/${api}/users`;
 export const HEALTH_PACKAGES_API = `${baseUrl}/${api}/health-packages`;
 export const PATIENTS_API = `${baseUrl}/${api}/patients`;
+export const SLOTS_API = `${baseUrl}/${api}/doctor-slots`;
 
 export const TaskApi = `${api}/task.json`;
 export const BookmarkApi = `${api}/bookmark.json`;

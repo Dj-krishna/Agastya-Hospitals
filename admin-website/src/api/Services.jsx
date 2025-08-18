@@ -52,6 +52,16 @@ export const fetchDataPost = async (url, data, options = {}) => {
   }
 };
 
+export const fetchDataPut = async (url, data, options = {}) => {
+  try {
+    const response = await axios.put(url, data, options);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 export const loginUser = async (credentials) => {
   try {
     const response = await axios.post(LOGIN_URL, credentials, {
