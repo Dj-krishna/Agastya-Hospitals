@@ -100,7 +100,7 @@ exports.getSlotById = async (req, res) => {
   }
 };
 
-// ------------------ POST ADD SLOTS ------------------
+// ------------------ POST ADD SLOTS WITH OVERLAP CHECK ------------------
 exports.addSlots = async (req, res) => {
   try {
     const payload = Array.isArray(req.body) ? req.body : [req.body];
@@ -135,12 +135,25 @@ exports.addSlots = async (req, res) => {
         const from = new Date(range.fromDate);
         const to = new Date(range.toDate);
 
-        const overlappingRange = existingSlot.schedule.find(r =>
-          new Date(r.fromDate).getTime() === from.getTime() &&
-          new Date(r.toDate).getTime() === to.getTime()
+        const existingDates = new Set();
+        existingSlot.schedule.forEach(r =>
+          r.eachSchedule.forEach(es =>
+            existingDates.add(es.date.toISOString().slice(0,10))
+          )
         );
 
-        // Build eachSchedule for **all dates in range**
+        const overlappingDates = getDateRange(from, to)
+          .map(d => d.toISOString().slice(0,10))
+          .filter(dateStr => existingDates.has(dateStr));
+
+        if (overlappingDates.length) {
+          return res.status(400).json({
+            error: 'Some dates already exist in the schedule. Please use PUT to update them.',
+            overlappingDates
+          });
+        }
+
+        // Build eachSchedule for all dates in range
         const eachSchedule = getDateRange(from, to).map(date => ({
           date,
           morningSlot: range.morningSlot?.from && range.morningSlot?.to
@@ -151,21 +164,7 @@ exports.addSlots = async (req, res) => {
             : [],
         }));
 
-        if (overlappingRange) {
-          eachSchedule.forEach(newDateSchedule => {
-            const existingDate = overlappingRange.eachSchedule.find(
-              es => es.date.toISOString().slice(0,10) === newDateSchedule.date.toISOString().slice(0,10)
-            );
-            if (existingDate) {
-              existingDate.morningSlot = newDateSchedule.morningSlot.length ? newDateSchedule.morningSlot : existingDate.morningSlot;
-              existingDate.eveningSlot = newDateSchedule.eveningSlot.length ? newDateSchedule.eveningSlot : existingDate.eveningSlot;
-            } else {
-              overlappingRange.eachSchedule.push(newDateSchedule);
-            }
-          });
-        } else {
-          existingSlot.schedule.push({ fromDate: from, toDate: to, eachSchedule });
-        }
+        existingSlot.schedule.push({ fromDate: from, toDate: to, eachSchedule });
       }
 
       existingSlot.updatedAt = new Date();
