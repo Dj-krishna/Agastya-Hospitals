@@ -196,45 +196,52 @@ exports.updateSlot = async (req, res) => {
     const end = new Date(toDate);
     const interval = timeSlotInterval || slot.timeSlotInterval || 30;
 
-    let updated = false;
-
+    // Build a map of all existing dates for quick lookup
+    const dateMap = {};
     slot.schedule.forEach(range => {
-      const rangeStart = new Date(range.fromDate);
-      const rangeEnd = new Date(range.toDate);
+      range.eachSchedule.forEach(es => {
+        const key = es.date.toISOString().slice(0, 10);
+        dateMap[key] = { range, es };
+      });
+    });
 
-      if (end >= rangeStart && start <= rangeEnd) {
-        getDateRange(start, end).forEach(d => {
-          const existingDate = range.eachSchedule.find(
-            es => es.date.toISOString().slice(0,10) === d.toISOString().slice(0,10)
-          );
-
-          if (existingDate) {
-            if (morningSlot) existingDate.morningSlot = morningSlot;
-            if (eveningSlot) existingDate.eveningSlot = eveningSlot;
-          } else {
+    // Process each date in the update range
+    getDateRange(start, end).forEach(d => {
+      const key = d.toISOString().slice(0, 10);
+      if (dateMap[key]) {
+        // Date exists → overwrite
+        if (morningSlot) dateMap[key].es.morningSlot = morningSlot;
+        if (eveningSlot) dateMap[key].es.eveningSlot = eveningSlot;
+      } else {
+        // Date does not exist → try to insert into an overlapping range
+        let inserted = false;
+        for (const range of slot.schedule) {
+          const rangeStart = new Date(range.fromDate);
+          const rangeEnd = new Date(range.toDate);
+          if (d >= rangeStart && d <= rangeEnd) {
             range.eachSchedule.push({
               date: d,
               morningSlot: morningSlot || [],
               eveningSlot: eveningSlot || []
             });
+            inserted = true;
+            break;
           }
-        });
-
-        updated = true;
+        }
+        // If no overlapping range, create a new schedule object
+        if (!inserted) {
+          slot.schedule.push({
+            fromDate: d,
+            toDate: d,
+            eachSchedule: [{
+              date: d,
+              morningSlot: morningSlot || [],
+              eveningSlot: eveningSlot || []
+            }]
+          });
+        }
       }
     });
-
-    if (!updated) {
-      slot.schedule.push({
-        fromDate: start,
-        toDate: end,
-        eachSchedule: getDateRange(start, end).map(d => ({
-          date: d,
-          morningSlot: morningSlot || [],
-          eveningSlot: eveningSlot || []
-        }))
-      });
-    }
 
     slot.timeSlotInterval = interval;
     slot.updatedAt = new Date();
@@ -245,6 +252,7 @@ exports.updateSlot = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // ------------------ DELETE FUNCTIONS ------------------
 // Delete slot by slotID
