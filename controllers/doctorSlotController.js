@@ -97,7 +97,7 @@ exports.addSlots = async (req,res) => {
       for(const range of scheduleArray){
         const from = normalizeDate(range.fromDate), to = normalizeDate(range.toDate);
         const overlappingDates = getDateRange(from,to).map(d=>d.toISOString()).filter(d=>existingDates.has(d));
-        if(overlappingDates.length) return res.status(400).json({error:'Some dates exist. Use PUT to update.', overlappingDates});
+        if(overlappingDates.length) return res.status(400).json({error:'Some dates exist. Please update in Manage Slots.', overlappingDates});
 
         const eachSchedule = getDateRange(from,to).map(d=>({
           date:d,
