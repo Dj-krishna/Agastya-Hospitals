@@ -29,13 +29,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // 2. Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // 3. Get next userID using counter util
-    const userID = await getNextSequence('userID');
-
-    // 4. Validate role and get default modules
+    // 2. Validate role and get default modules
     const role = await Role.findOne({ roleID });
     if (!role) {
       return res.status(400).json({ message: 'Invalid roleID' });
@@ -45,6 +39,12 @@ exports.register = async (req, res) => {
       Array.isArray(modules) && modules.length > 0
         ? modules
         : role.defaultModules || [];
+
+    // 3. Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. Get next userID using counter (after validations)
+    const userID = await getNextSequence('userID');
 
     // 5. Create new user
     const newUser = new User({
@@ -82,6 +82,7 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
 
 // ============================== LOGIN ==============================
 exports.login = async (req, res) => {

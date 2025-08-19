@@ -4,7 +4,6 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
-
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const patientRoutes = require('./routes/patientRoutes');
@@ -16,6 +15,7 @@ const userRoleRoutes = require('./routes/userRoleRoutes');
 const doctorSlotRoutes  = require('./routes/doctorSlotRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
+const appointmentRoutes = require('./routes/appointmentRoutes');
 
 connectDB(); // Connect to MongoDB
 
@@ -34,6 +34,7 @@ app.use('/api/user-roles', userRoleRoutes);
 app.use('/api/doctor-slots', doctorSlotRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

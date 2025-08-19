@@ -59,24 +59,35 @@ exports.addUserRole = async (req, res) => {
     // Check uniqueness for roleName
     const exists = async (roleName) => await UserRole.exists({ roleName });
 
+    // SINGLE INSERT
     if (!Array.isArray(payload)) {
       if (await exists(payload.roleName)) {
         return res.status(409).json({ error: 'A role with this name already exists.' });
       }
-      if (!payload.roleID) payload.roleID = await getNextRoleID();
-      const newRole = new UserRole(payload);
-      const saved = await newRole.save();
+
+      // Save first without roleID
+      let saved = new UserRole(payload);
+      saved = await saved.save();
+
+      // Assign roleID only after successful save
+      if (!saved.roleID) {
+        const nextID = await getNextRoleID();
+        saved.roleID = nextID;
+        await saved.save();
+      }
+
       return res.status(201).json(saved);
     }
 
-    // Bulk insert
+    // BULK INSERT
     const names = payload.map(r => r.roleName);
     const dbRoles = await UserRole.find({ roleName: { $in: names } }, { roleName: 1 });
     const dbNames = new Set(dbRoles.map(r => r.roleName));
     const duplicateNames = names.filter((name, idx) => names.indexOf(name) !== idx);
 
     const errors = [];
-    const rolesToInsert = [];
+    const insertedRoles = [];
+
     for (const role of payload) {
       if (dbNames.has(role.roleName)) {
         errors.push({ roleName: role.roleName, error: 'Duplicate name in DB.' });
@@ -86,22 +97,34 @@ exports.addUserRole = async (req, res) => {
         errors.push({ roleName: role.roleName, error: 'Duplicate name in request payload.' });
         continue;
       }
-      if (!role.roleID) role.roleID = await getNextRoleID();
-      rolesToInsert.push(role);
+
+      // Save first without roleID
+      let saved = new UserRole(role);
+      saved = await saved.save();
+
+      // Assign roleID only after successful save
+      if (!saved.roleID) {
+        const nextID = await getNextRoleID();
+        saved.roleID = nextID;
+        await saved.save();
+      }
+
+      insertedRoles.push(saved);
     }
 
-    if (!rolesToInsert.length) {
+    if (insertedRoles.length === 0) {
       return res.status(409).json({ error: 'No roles inserted due to duplicates.', details: errors });
     }
 
-    const inserted = await UserRole.insertMany(rolesToInsert);
-    const response = { inserted };
+    const response = { inserted: insertedRoles };
     if (errors.length) response.errors = errors;
+
     res.status(errors.length > 0 ? 207 : 201).json(response);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // PUT: bulk update user roles
 exports.bulkUpdateUserRoles = async (req, res) => {

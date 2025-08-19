@@ -1,19 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const appointmentController = require('../controllers/appointmentController');
+const appointmentController = require("../controllers/appointmentController");
 
-// GET routes — general first
-router.get('/', appointmentController.getAppointments);           // ?doctorID=1 etc.
-router.get('/:id', appointmentController.getAppointmentById);     // by appointmentID
+// ------------------ CRUD ------------------
+router.get("/", appointmentController.getAppointments);          // Get all appointments
+router.get("/:id", appointmentController.getAppointmentById);    // Get by ID
 
-// POST routes
-router.post('/', appointmentController.addAppointments);          // single or array
+router.post("/", appointmentController.addAppointment);          // Create appointment
+router.put("/:id", appointmentController.updateAppointment);     // Update appointment
+router.delete("/:id", appointmentController.deleteAppointmentById); // Delete by ID
 
-// PUT routes
-router.put('/', appointmentController.updateAppointment);         // ?doctorID=1
+// ------------------ Bulk ------------------
+router.post("/deleteMany", appointmentController.deleteAppointmentsByFilter);
 
-// DELETE routes
-router.delete('/', appointmentController.deleteAppointmentsByFilter);     // bulk by filter in req.body
-router.delete('/:id', appointmentController.deleteAppointmentById);        // by appointmentID
+// ------------------ Special Actions ------------------
+router.put("/:id/cancel", appointmentController.cancelAppointment);   // Cancel appointment
+router.put("/:id/complete", appointmentController.completeAppointment); // Complete appointment
 
 module.exports = router;
