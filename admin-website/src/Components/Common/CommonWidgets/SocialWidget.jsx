@@ -7,21 +7,12 @@ const SocialWidget = ({ data }) => {
   return (
     <Card className='social-widget widget-hover'>
       <CardBody>
-        {/* <div className='d-flex align-items-center justify-content-between'>
-          <div className='d-flex align-items-center gap-2'>
-            <div className='social-icons'>
-              <Image attrImage={{ src: require(`../../../assets/images/dashboard-5/social/${data.image}`), alt: 'facebook icon' }} />
-            </div>
-            <span>{data.title}</span>
-          </div>
-          <span className='font-success f-12 d-xxl-block d-xl-none'>+{data.gros}%</span>
-        </div> */}
-        <div className='social-content'>
-          <div>
+        <div className='text-center'>
+          <div className={data.subTitle === "Total Appointments" ? 'font-success': "font-danger"}>
             <H5 attrH5={{ className: 'mb-1' }}>{data.total}</H5>
-            <span className='f-light'>{data.subTitle}</span>
+            <span className='f-light f-w-600'>{data.subTitle}</span>
           </div>
-          <div className='social-chart'>
+          <div className='social-chart' style={{display: 'none'}}>
             <RadialChart chartData={data.chart} />
           </div>
         </div>
