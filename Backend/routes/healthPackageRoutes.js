@@ -10,7 +10,6 @@ router.get('/:id', healthPackageController.getHealthPackageById);
 router.post('/', healthPackageController.addHealthPackage);
 
 // PUT
-router.put('/bulk-update', healthPackageController.bulkUpdateHealthPackages);
 router.put('/', healthPackageController.updateHealthPackage);
 
 // DELETE

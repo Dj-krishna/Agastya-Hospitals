@@ -71,7 +71,7 @@ const transformModules = (user) => {
   return user;
 };
 
-// GET /users
+// GET /users (enriched with roleName and moduleNames already in pipeline)
 exports.getUsers = async (req, res) => {
   try {
     const filter = buildUserFilter(req.query);
@@ -85,7 +85,7 @@ exports.getUsers = async (req, res) => {
   }
 };
 
-// GET /users/:id
+// GET /users/:id (enriched with roleName and moduleNames already in pipeline)
 exports.getUserById = async (req, res) => {
   try {
     const userID = Number(req.params.id);
@@ -203,45 +203,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-// PUT /users/bulk
-exports.bulkUpdateUsers = async (req, res) => {
-  try {
-    const { updates } = req.body;
-    if (!Array.isArray(updates) || updates.length === 0) {
-      return res.status(400).json({ error: 'No updates provided' });
-    }
-
-    const allowedFields = Object.keys(User.schema.paths);
-    const results = [];
-    const warnings = [];
-
-    for (const update of updates) {
-      const { filter, updateFields } = update;
-      if (!filter || !updateFields) {
-        warnings.push({ filter, error: 'Invalid update format' });
-        continue;
-      }
-
-      const invalid = Object.keys(updateFields).filter(f => !allowedFields.includes(f));
-      if (invalid.length > 0) {
-        warnings.push({ filter, warning: `Invalid fields: ${invalid.join(', ')}` });
-        continue;
-      }
-
-      const result = await User.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
-      if (result) {
-        const enriched = await User.aggregate(userWithRoleAndModulesLookup({ userID: result.userID }));
-        results.push(transformModules(enriched[0]));
-      } else {
-        warnings.push({ filter, warning: 'User not found' });
-      }
-    }
-
-    res.json({ message: 'Bulk update complete', updated: results.length, results, warnings });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdateUsers: removed per requirement
 
 // DELETE /users/:id
 exports.deleteUserById = async (req, res) => {

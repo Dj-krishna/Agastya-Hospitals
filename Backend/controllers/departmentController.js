@@ -148,3 +148,5 @@ exports.bulkDeleteDepartmentsByIds = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// bulkUpdateDepartments: removed per requirement

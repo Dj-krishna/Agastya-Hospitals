@@ -10,7 +10,6 @@ router.get('/:id', departmentController.getDepartmentById);
 router.post('/', departmentController.addDepartment);
 
 // PUT update Department(s)
-router.put('/bulk-update', departmentController.bulkUpdateDepartments);
 router.put('/', departmentController.updateDepartment);
 
 // DELETE Department(s)

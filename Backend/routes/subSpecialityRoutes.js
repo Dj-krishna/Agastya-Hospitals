@@ -12,8 +12,7 @@ router.post('/', subSpecialityController.addSubSpeciality);
 // PUT update single/many (by query)
 router.put('/', subSpecialityController.updateSubSpeciality);
 
-// PUT bulk update
-router.put('/bulk-update', subSpecialityController.bulkUpdateSubSpecialities);
+// PUT bulk update (removed)
 
 // DELETE by ID, by filter, or in bulk
 router.delete('/bulk/:ids', subSpecialityController.bulkDeleteSubSpecialitiesByIds);

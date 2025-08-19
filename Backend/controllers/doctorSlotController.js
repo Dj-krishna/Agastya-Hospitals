@@ -91,6 +91,17 @@ exports.getSlots = async (req, res) => {
         })
         .filter((s) => s.schedule.length > 0);
     }
+    // Enrich with doctorName
+    if (slots && slots.length) {
+      const doctorIDs = [...new Set(slots.map(s => s.doctorID))];
+      const doctors = await require('../models/Doctors').find(
+        { doctorID: { $in: doctorIDs } },
+        { doctorID: 1, fullName: 1, _id: 0 }
+      );
+      const doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
+      slots = slots.map(s => ({ ...s.toObject(), doctorName: doctorMap.get(s.doctorID) }));
+    }
+
     res.status(200).json(slots);
   } catch (err) {
     res.status(500).json({ error: err.message });

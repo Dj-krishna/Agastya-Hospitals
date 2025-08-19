@@ -23,7 +23,6 @@ router.post('/', doctorController.addDoctor);
 router.post('/upload-profile-image', upload.single('profileImage'), doctorController.uploadDoctorImage);
 
 // PUT routes
-router.put('/bulk-update', doctorController.bulkUpdateDoctors);
 router.put('/', doctorController.updateDoctor);
 
 // DELETE routes

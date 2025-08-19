@@ -29,11 +29,24 @@ const buildPackageFilter = (query) => {
   return filter;
 };
 
-// GET all or filtered
+// GET all or filtered (enriched with usage counts by patients)
 exports.getHealthPackages = async (req, res) => {
   try {
     const filter = buildPackageFilter(req.query);
-    const packages = await HealthPackage.find(filter).sort({ packageID: 1 });
+    const packages = await HealthPackage.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'patients',
+          localField: 'packageID',
+          foreignField: 'packageIDs',
+          as: 'patientsWithPackage'
+        }
+      },
+      { $addFields: { patientsCount: { $size: '$patientsWithPackage' } } },
+      { $project: { patientsWithPackage: 0 } },
+      { $sort: { packageID: 1 } }
+    ]);
     res.json(packages);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -108,43 +121,7 @@ exports.updateHealthPackage = async (req, res) => {
   }
 };
 
-// BULK UPDATE
-exports.bulkUpdateHealthPackages = async (req, res) => {
-  try {
-    const { updates } = req.body;
-    if (!Array.isArray(updates) || updates.length === 0)
-      return res.status(400).json({ error: 'No updates provided' });
-
-    const allowedFields = Object.keys(HealthPackage.schema.paths);
-    const results = [];
-    const warnings = [];
-
-    for (const upd of updates) {
-      const { filter, updateFields } = upd;
-      if (!filter || !updateFields || typeof filter !== 'object' || typeof updateFields !== 'object') {
-        warnings.push({ filter, error: 'Invalid update structure' });
-        continue;
-      }
-      // Validate fields
-      const invalidFields = Object.keys(updateFields).filter(f => !allowedFields.includes(f));
-      if (invalidFields.length) {
-        warnings.push({ filter, warning: `Invalid fields: ${invalidFields.join(', ')}` });
-        continue;
-      }
-      // Recalculate discountPrice if needed
-      if (updateFields.price !== undefined || updateFields.discountType !== undefined || updateFields.discountAmount !== undefined) {
-        calculateDiscountPrice(updateFields);
-      }
-      const result = await HealthPackage.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
-      if (result) results.push(result);
-      else warnings.push({ filter, warning: 'Package not found' });
-    }
-
-    res.json({ message: 'Bulk update completed', updated: results.length, results, warnings });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdateHealthPackages: removed per requirement
 
 // DELETE by ID
 exports.deleteHealthPackageById = async (req, res) => {

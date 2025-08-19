@@ -30,8 +30,7 @@ router.post('/upload-image', upload.single('specialityImage'), specialityControl
 // PUT update single or many (by query)
 router.put('/', specialityController.updateSpeciality);
 
-// PUT bulk update
-router.put('/bulk-update', specialityController.bulkUpdateSpecialities);
+// PUT bulk update (removed)
 
 // DELETE by ID, by filter, or in bulk
 router.delete('/bulk/:ids', specialityController.bulkDeleteSpecialitiesByIds);

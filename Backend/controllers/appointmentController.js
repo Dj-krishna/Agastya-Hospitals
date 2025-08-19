@@ -18,32 +18,86 @@ const buildAppointmentFilter = query => {
 
 // ------------------ GET ------------------
 
-// Get all appointments with optional filters
+// Get all appointments with optional filters (joined with doctor/patient names)
 exports.getAppointments = async (req, res) => {
   try {
     const filter = buildAppointmentFilter(req.query);
-
     if (req.query.date) {
       filter.date = normalizeDate(req.query.date);
     }
 
-    const appointments = await Appointment.find(filter);
+    const appointments = await Appointment.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'doctors',
+          localField: 'doctorID',
+          foreignField: 'doctorID',
+          as: 'doctor'
+        }
+      },
+      { $unwind: { path: '$doctor', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'patients',
+          localField: 'patientID',
+          foreignField: 'patientID',
+          as: 'patient'
+        }
+      },
+      { $unwind: { path: '$patient', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          doctorName: '$doctor.fullName',
+          patientName: '$patient.fullName'
+        }
+      },
+      { $project: { doctor: 0, patient: 0 } }
+    ]);
+
     res.status(200).json(appointments);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// Get single appointment by ID
+// Get single appointment by ID (joined with doctor/patient names)
 exports.getAppointmentById = async (req, res) => {
   try {
     const appointmentID = Number(req.params.id);
     if (isNaN(appointmentID)) return res.status(400).json({ error: 'Invalid appointmentID' });
 
-    const appointment = await Appointment.findOne({ appointmentID });
-    if (!appointment) return res.status(404).json({ message: 'Appointment not found' });
+    const rows = await Appointment.aggregate([
+      { $match: { appointmentID } },
+      {
+        $lookup: {
+          from: 'doctors',
+          localField: 'doctorID',
+          foreignField: 'doctorID',
+          as: 'doctor'
+        }
+      },
+      { $unwind: { path: '$doctor', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'patients',
+          localField: 'patientID',
+          foreignField: 'patientID',
+          as: 'patient'
+        }
+      },
+      { $unwind: { path: '$patient', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          doctorName: '$doctor.fullName',
+          patientName: '$patient.fullName'
+        }
+      },
+      { $project: { doctor: 0, patient: 0 } }
+    ]);
 
-    res.status(200).json(appointment);
+    if (!rows.length) return res.status(404).json({ message: 'Appointment not found' });
+    res.status(200).json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
