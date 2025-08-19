@@ -20,11 +20,23 @@ const buildModuleFilter = (query) => {
   return filter;
 };
 
-// GET: all or filtered modules
+// GET: all or filtered modules (enriched with count of users using the module)
 exports.getModules = async (req, res) => {
   try {
     const filter = buildModuleFilter(req.query);
-    const modules = await Module.find(filter);
+    const modules = await Module.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'moduleID',
+          foreignField: 'modules',
+          as: 'usersUsingModule'
+        }
+      },
+      { $addFields: { usersCount: { $size: '$usersUsingModule' } } },
+      { $project: { usersUsingModule: 0 } }
+    ]);
 
     if (!modules.length) {
       return res.status(404).json({ message: 'No modules found.' });
@@ -36,15 +48,27 @@ exports.getModules = async (req, res) => {
   }
 };
 
-// GET: single by moduleID
+// GET: single by moduleID (enriched with count of users using the module)
 exports.getModuleById = async (req, res) => {
   try {
     const moduleID = Number(req.params.id);
-    const module = await Module.findOne({ moduleID });
-    if (!module) {
+    const rows = await Module.aggregate([
+      { $match: { moduleID } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'moduleID',
+          foreignField: 'modules',
+          as: 'usersUsingModule'
+        }
+      },
+      { $addFields: { usersCount: { $size: '$usersUsingModule' } } },
+      { $project: { usersUsingModule: 0 } }
+    ]);
+    if (!rows.length) {
       return res.status(404).json({ message: 'Module not found.' });
     }
-    res.json(module);
+    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -103,27 +127,7 @@ exports.addModule = async (req, res) => {
   }
 };
 
-// PUT: bulk update modules
-exports.bulkUpdateModules = async (req, res) => {
-  const { filter, updateFields, updates } = req.body;
-
-  try {
-    if (filter && updateFields) {
-      const result = await Module.updateMany(filter, { $set: updateFields });
-      return res.json({ message: 'Modules updated', modifiedCount: result.modifiedCount });
-    } else if (Array.isArray(updates)) {
-      const bulkOps = updates.map(u => ({
-        updateOne: { filter: u.filter, update: { $set: u.updateFields } }
-      }));
-      const result = await Module.bulkWrite(bulkOps);
-      return res.json({ message: 'Modules updated (multi)', modifiedCount: result.modifiedCount });
-    } else {
-      return res.status(400).json({ error: 'Invalid update structure.' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdateModules: removed per requirement
 
 // PUT: update modules by query filter
 exports.updateModule = async (req, res) => {

@@ -107,7 +107,7 @@ exports.addDoctor = async (req, res) => {
     const getNextDoctorID = async () => await getNextSequence('doctorID');
 
     const normalizeFields = (doc) => {
-      ['languagesKnown', 'servicesOffered', 'educationQualifications', 'opTimings'].forEach(field => {
+      ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
         if (!Array.isArray(doc[field]) && doc[field]) {
           doc[field] = doc[field].split(',').map(s => s.trim());
         }
@@ -209,6 +209,8 @@ exports.updateDoctor = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// bulkUpdateDoctors: removed per requirement
 
 // 🟢 DELETE by ID
 exports.deleteDoctorById = async (req, res) => {

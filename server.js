@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const fs = require('fs');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
@@ -22,6 +24,22 @@ connectDB(); // Connect to MongoDB
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
+
+// Ensure required upload directories exist
+const uploadDirs = [
+  path.join(__dirname, 'uploads', 'doctor-profiles'),
+  path.join(__dirname, 'uploads', 'patient-profiles'),
+  path.join(__dirname, 'uploads', 'speciality')
+];
+uploadDirs.forEach((dir) => {
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (_) {}
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);

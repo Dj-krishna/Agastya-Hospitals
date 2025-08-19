@@ -20,11 +20,34 @@ const buildUserRoleFilter = (query) => {
   return filter;
 };
 
-// GET: all or filtered user roles
+// GET: all or filtered user roles (enriched with userNames)
 exports.getUserRoles = async (req, res) => {
   try {
     const filter = buildUserRoleFilter(req.query);
-    const roles = await UserRole.find(filter);
+    const roles = await UserRole.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'roleID',
+          foreignField: 'roleID',
+          as: 'usersForRole'
+        }
+      },
+      {
+        $addFields: {
+          userNames: {
+            $map: {
+              input: '$usersForRole',
+              as: 'u',
+              in: '$$u.userName'
+            }
+          },
+          usersCount: { $size: '$usersForRole' }
+        }
+      },
+      { $project: { usersForRole: 0 } }
+    ]);
 
     if (!roles.length) {
       return res.status(404).json({ message: 'No user roles found.' });
@@ -36,15 +59,34 @@ exports.getUserRoles = async (req, res) => {
   }
 };
 
-// GET: single by roleID
+// GET: single by roleID (enriched with userNames)
 exports.getUserRoleById = async (req, res) => {
   try {
     const roleID = Number(req.params.id);
-    const role = await UserRole.findOne({ roleID });
-    if (!role) {
+    const roles = await UserRole.aggregate([
+      { $match: { roleID } },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'roleID',
+          foreignField: 'roleID',
+          as: 'usersForRole'
+        }
+      },
+      {
+        $addFields: {
+          userNames: {
+            $map: { input: '$usersForRole', as: 'u', in: '$$u.userName' }
+          },
+          usersCount: { $size: '$usersForRole' }
+        }
+      },
+      { $project: { usersForRole: 0 } }
+    ]);
+    if (!roles.length) {
       return res.status(404).json({ message: 'User role not found.' });
     }
-    res.json(role);
+    res.json(roles[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -126,27 +168,7 @@ exports.addUserRole = async (req, res) => {
 };
 
 
-// PUT: bulk update user roles
-exports.bulkUpdateUserRoles = async (req, res) => {
-  const { filter, updateFields, updates } = req.body;
-
-  try {
-    if (filter && updateFields) {
-      const result = await UserRole.updateMany(filter, { $set: updateFields });
-      return res.json({ message: 'User roles updated', modifiedCount: result.modifiedCount });
-    } else if (Array.isArray(updates)) {
-      const bulkOps = updates.map(u => ({
-        updateOne: { filter: u.filter, update: { $set: u.updateFields } }
-      }));
-      const result = await UserRole.bulkWrite(bulkOps);
-      return res.json({ message: 'User roles updated (multi)', modifiedCount: result.modifiedCount });
-    } else {
-      return res.status(400).json({ error: 'Invalid update structure.' });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdateUserRoles: removed per requirement
 
 // PUT: update user roles by query filter
 exports.updateUserRole = async (req, res) => {

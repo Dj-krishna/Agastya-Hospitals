@@ -1,4 +1,6 @@
 const Patient = require('../models/Patients');
+const Doctor = require('../models/Doctors');
+const HealthPackage = require('../models/HealthPackages');
 const getNextSequence = require('../utils/getNextSequence');
 
 // Build filter from req.query
@@ -26,7 +28,33 @@ exports.getPatients = async (req, res) => {
   try {
     const filter = buildPatientFilter(req.query);
     const patients = await Patient.find(filter);
-    res.json(patients);
+
+    if (!patients || patients.length === 0) return res.json([]);
+
+    const doctorIDs = [...new Set(patients.map(p => p.doctorID).filter(Boolean))];
+    const doctors = await Doctor.find(
+      { doctorID: { $in: doctorIDs } },
+      { doctorID: 1, fullName: 1, _id: 0 }
+    );
+    const doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
+
+    const packageIDs = [...new Set(
+      patients.flatMap(p => Array.isArray(p.packageIDs) ? p.packageIDs : []).filter(id => typeof id === 'number')
+    )];
+    const packages = packageIDs.length
+      ? await HealthPackage.find({ packageID: { $in: packageIDs } }, { packageID: 1, packageName: 1, _id: 0 })
+      : [];
+    const packageMap = new Map(packages.map(pk => [pk.packageID, pk.packageName]));
+
+    const enriched = patients.map(p => ({
+      ...p.toObject(),
+      doctorName: doctorMap.get(p.doctorID),
+      packageNames: Array.isArray(p.packageIDs)
+        ? p.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
+        : []
+    }));
+
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -37,7 +65,26 @@ exports.getPatientById = async (req, res) => {
   try {
     const patient = await Patient.findOne({ patientID: Number(req.params.id) });
     if (!patient) return res.status(404).json({ message: 'Patient not found' });
-    res.json(patient);
+
+    const [doctor, packages] = await Promise.all([
+      Doctor.findOne({ doctorID: patient.doctorID }, { fullName: 1, _id: 0 }),
+      Array.isArray(patient.packageIDs) && patient.packageIDs.length
+        ? HealthPackage.find(
+            { packageID: { $in: patient.packageIDs } },
+            { packageID: 1, packageName: 1, _id: 0 }
+          )
+        : Promise.resolve([])
+    ]);
+
+    const packageMap = new Map(packages.map(pk => [pk.packageID, pk.packageName]));
+
+    res.json({
+      ...patient.toObject(),
+      doctorName: doctor?.fullName,
+      packageNames: Array.isArray(patient.packageIDs)
+        ? patient.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
+        : []
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -154,45 +201,7 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-// BULK UPDATE
-exports.bulkUpdatePatients = async (req, res) => {
-  try {
-    const { updates } = req.body;
-    if (!Array.isArray(updates) || updates.length === 0)
-      return res.status(400).json({ error: 'No updates provided' });
-
-    const allowedFields = Object.keys(Patient.schema.paths);
-    const results = [];
-    const warnings = [];
-
-    for (const update of updates) {
-      const { filter, updateFields } = update;
-
-      if (!filter || typeof filter !== 'object' || !updateFields || typeof updateFields !== 'object') {
-        warnings.push({ filter, error: 'Invalid structure for update' });
-        continue;
-      }
-
-      // Check for invalid fields
-      const invalidFields = Object.keys(updateFields).filter(key => !allowedFields.includes(key));
-      if (invalidFields.length > 0) {
-        warnings.push({
-          filter,
-          warning: `Invalid fields: ${invalidFields.join(', ')}. Skipped update.`,
-        });
-        continue;
-      }
-
-      const result = await Patient.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
-      if (result) results.push(result);
-      else warnings.push({ filter, warning: 'Patient not found' });
-    }
-
-    res.json({ message: 'Bulk update completed', updated: results.length, results, warnings });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdatePatients: removed per requirement
 
 // DELETE by ID
 exports.deletePatientById = async (req, res) => {

@@ -19,7 +19,17 @@ exports.getSubSpecialities = async (req, res) => {
   try {
     const filter = buildSubSpecialityFilter(req.query);
     const subSpecialities = await SubSpeciality.find(filter).sort({ subSpecialityName: 1 });
-    res.json(subSpecialities);
+    if (!subSpecialities.length) return res.json([]);
+
+    // Attach specialityName via lookup of specialities
+    const specialityIDs = [...new Set(subSpecialities.map(s => s.specialityID))];
+    const specialities = await require('../models/Specialities').find(
+      { specialityID: { $in: specialityIDs } },
+      { specialityID: 1, specialityName: 1, _id: 0 }
+    );
+    const spMap = new Map(specialities.map(sp => [sp.specialityID, sp.specialityName]));
+    const enriched = subSpecialities.map(s => ({ ...s.toObject(), specialityName: spMap.get(s.specialityID) }));
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -95,38 +105,7 @@ exports.updateSubSpeciality = async (req, res) => {
   }
 };
 
-// BULK UPDATE
-exports.bulkUpdateSubSpecialities = async (req, res) => {
-  try {
-    const { updates } = req.body;
-    if (!Array.isArray(updates) || updates.length === 0)
-      return res.status(400).json({ error: 'No updates provided' });
-
-    const allowedFields = Object.keys(SubSpeciality.schema.paths);
-    const results = [];
-    const warnings = [];
-
-    for (const upd of updates) {
-      const { filter, updateFields } = upd;
-      if (!filter || !updateFields || typeof filter !== 'object' || typeof updateFields !== 'object') {
-        warnings.push({ filter, error: 'Invalid update structure' });
-        continue;
-      }
-      const invalidFields = Object.keys(updateFields).filter(f => !allowedFields.includes(f));
-      if (invalidFields.length) {
-        warnings.push({ filter, warning: `Invalid fields: ${invalidFields.join(', ')}` });
-        continue;
-      }
-      const result = await SubSpeciality.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
-      if (result) results.push(result);
-      else warnings.push({ filter, warning: 'Sub-speciality not found' });
-    }
-
-    res.json({ message: 'Bulk update completed', updated: results.length, results, warnings });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// bulkUpdateSubSpecialities: removed per requirement
 
 // DELETE by ID
 exports.deleteSubSpecialityById = async (req, res) => {

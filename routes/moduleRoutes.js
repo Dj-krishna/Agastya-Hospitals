@@ -10,7 +10,6 @@ router.get('/:id', moduleController.getModuleById);
 router.post('/', moduleController.addModule);
 
 // PUT update Module(s)
-router.put('/bulk-update', moduleController.bulkUpdateModules);
 router.put('/', moduleController.updateModule);
 
 // DELETE user role(s)

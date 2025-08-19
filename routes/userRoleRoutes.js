@@ -10,7 +10,6 @@ router.get('/:id', userRoleController.getUserRoleById);
 router.post('/', userRoleController.addUserRole);
 
 // PUT update user role(s)
-router.put('/bulk-update', userRoleController.bulkUpdateUserRoles);
 router.put('/', userRoleController.updateUserRole);
 
 // DELETE user role(s)
