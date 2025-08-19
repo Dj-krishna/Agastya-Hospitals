@@ -2,11 +2,13 @@ const express = require('express');
 const router = express.Router();
 const doctorSlotController = require('../controllers/doctorSlotController');
 
+// Special API - Get available slots for booking (patients view)
+router.get('/available', doctorSlotController.getAvailableSlots);
+
+// CRUD APIs
 router.get('/', doctorSlotController.getSlots);
-router.get('/:id', doctorSlotController.getSlotById);
 
 router.post('/', doctorSlotController.addSlots);
-
 router.put('/', doctorSlotController.updateSlot);
 
 router.delete('/', doctorSlotController.deleteSlotsByFilter);

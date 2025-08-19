@@ -55,32 +55,40 @@ exports.getSpecialityById = async (req, res) => {
   }
 };
 
-// ADD new (single or bulk)
+// ADD new (single or bulk) - Counter increments only on successful insert
 exports.addSpeciality = async (req, res) => {
   try {
     const payload = req.body;
 
-    // Get next sequence generator
-    const getNextSpecialityID = async () => await getNextSequence('specialityID');
-
     // Single insert
     if (!Array.isArray(payload)) {
-      if (!payload.specialityID)
-        payload.specialityID = await getNextSpecialityID();
+      // Create doc first without specialityID
       const doc = new Speciality(payload);
+      // Save doc
       const saved = await doc.save();
+      // Only after successful save, generate and set specialityID if not provided
+      if (!saved.specialityID) {
+        const nextID = await getNextSequence('specialityID');
+        saved.specialityID = nextID;
+        await saved.save(); // update doc with new ID
+      }
       return res.status(201).json(saved);
     }
 
     // Bulk insert
-    const toInsert = [];
+    const insertedDocs = [];
     for (const sp of payload) {
-      if (!sp.specialityID)
-        sp.specialityID = await getNextSpecialityID();
-      toInsert.push(sp);
+      const doc = new Speciality(sp);
+      const saved = await doc.save();
+      if (!saved.specialityID) {
+        const nextID = await getNextSequence('specialityID');
+        saved.specialityID = nextID;
+        await saved.save();
+      }
+      insertedDocs.push(saved);
     }
-    const inserted = await Speciality.insertMany(toInsert);
-    res.status(201).json(inserted);
+
+    res.status(201).json(insertedDocs);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -37,33 +37,45 @@ exports.getSubSpecialityById = async (req, res) => {
   }
 };
 
-// ADD - single or bulk
+// ADD - single or bulk (counter increments only after successful save)
 exports.addSubSpeciality = async (req, res) => {
   try {
     const payload = req.body;
+
     const getNextID = async () => await getNextSequence('subSpecialityID');
 
     // Single add
     if (!Array.isArray(payload)) {
-      if (!payload.subSpecialityID) payload.subSpecialityID = await getNextID();
       const newDoc = new SubSpeciality(payload);
-      const saved = await newDoc.save();
+      const saved = await newDoc.save(); // save first
+      if (!saved.subSpecialityID) {
+        const nextID = await getNextID(); // increment counter only now
+        saved.subSpecialityID = nextID;
+        await saved.save(); // update with new ID
+      }
       return res.status(201).json(saved);
     }
 
     // Bulk add
-    const toInsert = [];
+    const insertedDocs = [];
     for (const s of payload) {
-      if (!s.subSpecialityID) s.subSpecialityID = await getNextID();
-      toInsert.push(s);
+      const newDoc = new SubSpeciality(s);
+      const saved = await newDoc.save(); // save first
+      if (!saved.subSpecialityID) {
+        const nextID = await getNextID(); // increment counter only now
+        saved.subSpecialityID = nextID;
+        await saved.save();
+      }
+      insertedDocs.push(saved);
     }
-    const inserted = await SubSpeciality.insertMany(toInsert);
-    res.status(201).json(inserted);
+
+    res.status(201).json(insertedDocs);
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // UPDATE (by query e.g. by subSpecialityID or specialityID)
 exports.updateSubSpeciality = async (req, res) => {

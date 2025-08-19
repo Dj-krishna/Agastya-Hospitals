@@ -106,23 +106,33 @@ exports.addUser = async (req, res) => {
     const getNextUserID = async () => await getNextSequence('userID');
     const emailExists = async (email) => await User.exists({ email });
 
+    // SINGLE INSERT
     if (!Array.isArray(payload)) {
       if (await emailExists(payload.email)) {
         return res.status(409).json({ error: 'A user with this email already exists.' });
       }
-      if (!payload.userID) payload.userID = await getNextUserID();
-      const saved = await new User(payload).save();
+
+      let saved = new User(payload);
+      saved = await saved.save(); // save first
+
+      // Only now increment userID if not provided
+      if (!saved.userID) {
+        const nextID = await getNextUserID();
+        saved.userID = nextID;
+        await saved.save(); // update with userID
+      }
 
       const enriched = await User.aggregate(userWithRoleAndModulesLookup({ userID: saved.userID }));
       return res.status(201).json(transformModules(enriched[0]));
     }
 
+    // BULK INSERT
     const emails = payload.map(user => user.email);
     const existingUsers = await User.find({ email: { $in: emails } }, { email: 1 });
     const existingEmails = new Set(existingUsers.map(user => user.email));
     const duplicateEmails = emails.filter((email, idx) => emails.indexOf(email) !== idx);
     const errors = [];
-    const usersToInsert = [];
+    const insertedUsers = [];
 
     for (const user of payload) {
       if (existingEmails.has(user.email)) {
@@ -133,16 +143,26 @@ exports.addUser = async (req, res) => {
         errors.push({ email: user.email, error: 'Duplicate email in request payload.' });
         continue;
       }
-      if (!user.userID) user.userID = await getNextUserID();
-      usersToInsert.push(user);
+
+      // Save first without userID
+      let saved = new User(user);
+      saved = await saved.save();
+
+      // Increment userID only after successful save
+      if (!saved.userID) {
+        const nextID = await getNextUserID();
+        saved.userID = nextID;
+        await saved.save();
+      }
+
+      insertedUsers.push(saved);
     }
 
-    if (usersToInsert.length === 0) {
+    if (insertedUsers.length === 0) {
       return res.status(409).json({ error: 'No users inserted', details: errors });
     }
 
-    const inserted = await User.insertMany(usersToInsert);
-    const ids = inserted.map(u => u.userID);
+    const ids = insertedUsers.map(u => u.userID);
     const enriched = await User.aggregate(userWithRoleAndModulesLookup({ userID: { $in: ids } }));
     const transformed = enriched.map(transformModules);
 
@@ -154,6 +174,7 @@ exports.addUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // PUT /users
 exports.updateUser = async (req, res) => {
