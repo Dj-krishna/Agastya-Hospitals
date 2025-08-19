@@ -9,7 +9,7 @@ import {
   SignIn,
 } from "../Constant";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import man from "../assets/images/dashboard/profile.png";
 
@@ -120,7 +120,7 @@ const Signin = ({ selected }) => {
                     </div>
                   </FormGroup>
                   <div className="position-relative text-right">
-                    <a href="#javascript">{ForgotPassword}</a>
+                    <Link to={"/forget-pwd"}>{ForgotPassword}</Link>
                     <Btn
                       attrBtn={{
                         color: "primary",

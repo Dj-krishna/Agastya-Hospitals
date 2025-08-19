@@ -8,7 +8,7 @@ const OtherWay = () => {
     <>
       <P attrPara={{ className: "text-center mb-0 mt-4" }}>
         Don't have account?
-        <Link className="ms-2" to={`/register-simple`}>
+        <Link className="ms-2" to={`/register-new-user`}>
           Create Account
         </Link>
       </P>

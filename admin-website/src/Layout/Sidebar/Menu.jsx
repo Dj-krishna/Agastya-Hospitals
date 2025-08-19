@@ -2,7 +2,7 @@ export const MENUITEMS = [
   {
     menutitle: "",
     menucontent:
-      "Dashboard,Doctors,Specialities,Departments,Appointments,Slot Management,Technologies,Enquiries,CMS,Blog,Roles & Permissions,Settings",
+      "Dashboard,Doctors,Patients,Medical Records,Specialities,Departments,Appointments,Slot Management,Technologies,Enquiries,CMS,Blog,Roles & Permissions,Settings",
     Items: [
       {
         title: "Dashboard",
