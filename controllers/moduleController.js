@@ -20,7 +20,7 @@ const buildModuleFilter = (query) => {
   return filter;
 };
 
-// GET: all or filtered modules (enriched with count of users using the module)
+// GET: all or filtered modules (enriched with count of users using the module) - handles all cases including by ID
 exports.getModules = async (req, res) => {
   try {
     const filter = buildModuleFilter(req.query);
@@ -42,33 +42,12 @@ exports.getModules = async (req, res) => {
       return res.status(404).json({ message: 'No modules found.' });
     }
 
-    res.json(modules.length === 1 ? modules[0] : modules);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET: single by moduleID (enriched with count of users using the module)
-exports.getModuleById = async (req, res) => {
-  try {
-    const moduleID = Number(req.params.id);
-    const rows = await Module.aggregate([
-      { $match: { moduleID } },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'moduleID',
-          foreignField: 'modules',
-          as: 'usersUsingModule'
-        }
-      },
-      { $addFields: { usersCount: { $size: '$usersUsingModule' } } },
-      { $project: { usersUsingModule: 0 } }
-    ]);
-    if (!rows.length) {
-      return res.status(404).json({ message: 'Module not found.' });
+    // If filtering by moduleID, return single object, otherwise return array
+    if (req.query.moduleID) {
+      res.json(modules[0]);
+    } else {
+      res.json(modules);
     }
-    res.json(rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -157,54 +136,74 @@ exports.updateModule = async (req, res) => {
   }
 };
 
-// DELETE: delete single module by moduleID
-exports.deleteModuleById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteModules = async (req, res) => {
   try {
-    const moduleID = Number(req.params.id);
-    const deleted = await Module.findOneAndDelete({ moduleID });
-    if (!deleted) {
-      return res.status(404).json({ message: 'Module not found.' });
-    }
-    res.json({ message: 'Module deleted', module: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE: delete multiple modules by filter in body
-exports.deleteModulesByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') {
-      return res.status(400).json({ error: 'Provide valid filter.' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { moduleID: { $in: ids } };
     }
+
+    // Single or multiple IDs from query
+    else if (req.query.moduleID) {
+      if (typeof req.query.moduleID === 'string' && req.query.moduleID.includes(',')) {
+        const ids = req.query.moduleID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { moduleID: { $in: ids } };
+      } else {
+        filter = { moduleID: Number(req.query.moduleID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildModuleFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Get docs before delete
+    const toDelete = await Module.find(filter);
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No modules found matching the criteria' });
+
     const result = await Module.deleteMany(filter);
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'No modules matched filter.' });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No modules were deleted' });
+
+    // If single delete → return single doc
+    if (
+      (req.query.moduleID && !String(req.query.moduleID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Module deleted', module: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Modules deleted',
+        deletedCount: result.deletedCount,
+        deletedModules: toDelete
+      });
     }
-    res.json({ message: 'Modules deleted', deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: bulk delete by comma-separated moduleIDs in path
-exports.bulkDeleteModulesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam) {
-      return res.status(400).json({ error: 'No IDs provided.' });
-    }
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0) {
-      return res.status(400).json({ error: 'No valid IDs provided.' });
-    }
-    const result = await Module.deleteMany({ moduleID: { $in: ids } });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'No modules found for provided IDs.' });
-    }
-    res.json({ message: 'Modules deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

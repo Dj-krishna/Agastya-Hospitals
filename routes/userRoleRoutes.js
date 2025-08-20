@@ -2,19 +2,17 @@ const express = require('express');
 const router = express.Router();
 const userRoleController = require('../controllers/userRoleController');
 
-// GET user roles (all or filtered)
+// ------------------ GET ------------------
 router.get('/', userRoleController.getUserRoles);
-router.get('/:id', userRoleController.getUserRoleById);
 
-// POST create user role(s)
+// ------------------ POST ------------------
 router.post('/', userRoleController.addUserRole);
 
-// PUT update user role(s)
+// ------------------ PUT ------------------
 router.put('/', userRoleController.updateUserRole);
 
-// DELETE user role(s)
-router.delete('/bulk/:ids', userRoleController.bulkDeleteUserRolesByIds);
-router.delete('/', userRoleController.deleteUserRolesByFilter);
-router.delete('/:id', userRoleController.deleteUserRoleById);
+// ------------------ DELETE ------------------
+router.delete('/bulk/:ids', userRoleController.deleteUserRoles); // Bulk delete by IDs
+router.delete('/', userRoleController.deleteUserRoles);          // Delete by query or body filter
 
 module.exports = router;

@@ -73,28 +73,24 @@ const transformSpecialities = (doctor) => {
   return doctor;
 };
 
-// 🟢 GET /doctors
+// 🟢 GET /doctors (handles all cases including by ID)
 exports.getDoctors = async (req, res) => {
   try {
     const filter = buildDoctorFilter(req.query);
     const doctors = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
-    if (doctors.length === 0) return res.status(404).json({ message: 'No doctors found.' });
+    
+    if (doctors.length === 0) {
+      return res.status(404).json({ message: 'No doctors found.' });
+    }
 
     const transformed = doctors.map(transformSpecialities);
-    res.json(transformed.length === 1 ? transformed[0] : transformed);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// 🟢 GET /doctors/:id
-exports.getDoctorById = async (req, res) => {
-  try {
-    const doctorID = Number(req.params.id);
-    const data = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID }));
-    if (data.length === 0) return res.status(404).json({ message: 'Doctor not found.' });
-
-    res.json(transformSpecialities(data[0]));
+    
+    // If filtering by doctorID, return single object, otherwise return array
+    if (req.query.doctorID) {
+      res.json(transformed[0]);
+    } else {
+      res.json(transformed);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -212,48 +208,55 @@ exports.updateDoctor = async (req, res) => {
 
 // bulkUpdateDoctors: removed per requirement
 
-// 🟢 DELETE by ID
-exports.deleteDoctorById = async (req, res) => {
+// 🟢 DELETE doctors (handles all cases: by ID, by filter, bulk by IDs)
+exports.deleteDoctors = async (req, res) => {
   try {
-    const doctorID = Number(req.params.id);
-    const doctorToDelete = await Doctor.findOne({ doctorID });
-    if (!doctorToDelete) return res.status(404).json({ message: 'Doctor not found' });
+    let filter = {};
+    let deletedDoctors = [];
 
-    await Doctor.deleteOne({ doctorID });
-    const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID }));
-    res.json({ message: 'Doctor deleted', doctor: transformSpecialities(enriched[0] || doctorToDelete) });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    // Handle different delete scenarios
+    if (req.params.ids) {
+      // Bulk delete by comma-separated IDs
+      const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { doctorID: { $in: ids } };
+    } else if (req.query.doctorID) {
+      // Delete single doctor by ID
+      filter = { doctorID: Number(req.query.doctorID) };
+    } else if (Object.keys(req.query).length > 0) {
+      // Delete by query parameters
+      filter = buildDoctorFilter(req.query);
+    } else if (req.body.filter) {
+      // Delete by filter from request body
+      if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    } else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
 
-// 🟢 DELETE by filter
-exports.deleteDoctorsByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
-
+    // Get doctors to delete (for response)
     const toDelete = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
+    if (!toDelete.length) return res.status(404).json({ message: 'No doctors found matching the criteria' });
+
+    // Perform deletion
     const result = await Doctor.deleteMany(filter);
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No doctors matched filter' });
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'No doctors were deleted' });
 
-    res.json({ message: 'Doctors deleted', deletedCount: result.deletedCount, deletedDoctors: toDelete.map(transformSpecialities) });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    // Transform the deleted doctors for response
+    deletedDoctors = toDelete.map(transformSpecialities);
 
-// 🟢 Bulk delete by IDs
-exports.bulkDeleteDoctorsByIds = async (req, res) => {
-  try {
-    const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
-
-    const toDelete = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } }));
-    const result = await Doctor.deleteMany({ doctorID: { $in: ids } });
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No doctors found for provided IDs' });
-
-    res.json({ message: 'Doctors deleted', deletedCount: result.deletedCount, deletedDoctors: toDelete.map(transformSpecialities) });
+    // Return appropriate response
+    if (req.query.doctorID) {
+      // Single doctor deleted
+      res.json({ message: 'Doctor deleted', doctor: deletedDoctors[0] });
+    } else {
+      // Multiple doctors deleted
+      res.json({ 
+        message: 'Doctors deleted', 
+        deletedCount: result.deletedCount, 
+        deletedDoctors: deletedDoctors 
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

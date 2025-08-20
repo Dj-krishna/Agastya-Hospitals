@@ -71,7 +71,7 @@ const transformModules = (user) => {
   return user;
 };
 
-// GET /users (enriched with roleName and moduleNames already in pipeline)
+// GET /users (enriched with roleName and moduleNames already in pipeline) - handles all cases including by ID
 exports.getUsers = async (req, res) => {
   try {
     const filter = buildUserFilter(req.query);
@@ -79,21 +79,13 @@ exports.getUsers = async (req, res) => {
     if (users.length === 0) return res.status(404).json({ message: 'No users found.' });
 
     const transformed = users.map(transformModules);
-    res.json(transformed.length === 1 ? transformed[0] : transformed);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// GET /users/:id (enriched with roleName and moduleNames already in pipeline)
-exports.getUserById = async (req, res) => {
-  try {
-    const userID = Number(req.params.id);
-    const data = await User.aggregate(userWithRoleAndModulesLookup({ userID }));
-    if (data.length === 0) return res.status(404).json({ message: 'User not found.' });
-
-    const transformed = transformModules(data[0]);
-    res.json(transformed);
+    
+    // If filtering by userID, return single object, otherwise return array
+    if (req.query.userID) {
+      res.json(transformed[0]);
+    } else {
+      res.json(transformed);
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -205,61 +197,74 @@ exports.updateUser = async (req, res) => {
 
 // bulkUpdateUsers: removed per requirement
 
-// DELETE /users/:id
-exports.deleteUserById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteUsers = async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const deleted = await User.findOneAndDelete({ userID: id });
+    let filter = {};
 
-    if (!deleted) return res.status(404).json({ message: 'User not found' });
-
-    const enriched = await User.aggregate(userWithRoleAndModulesLookup({ userID: id }));
-    res.json({ message: 'User deleted', user: transformModules(enriched[0] || deleted) });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// DELETE /users
-exports.deleteUsersByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') {
-      return res.status(400).json({ error: 'Provide valid filter' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { userID: { $in: ids } };
     }
 
+    // Single or multiple IDs from query
+    else if (req.query.userID) {
+      if (typeof req.query.userID === 'string' && req.query.userID.includes(',')) {
+        const ids = req.query.userID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { userID: { $in: ids } };
+      } else {
+        filter = { userID: Number(req.query.userID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildUserFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Find before delete with enrichment
     const toDelete = await User.aggregate(userWithRoleAndModulesLookup(filter));
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No users found matching the criteria' });
+
     const result = await User.deleteMany(filter);
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No users were deleted' });
 
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No users matched filter' });
-
-    res.json({
-      message: 'Users deleted',
-      deletedCount: result.deletedCount,
-      deletedUsers: toDelete.map(transformModules)
-    });
+    // If single deleted, return single enriched + transformed user
+    if (
+      (req.query.userID && !String(req.query.userID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'User deleted', user: transformModules(toDelete[0]) });
+    } else {
+      res.json({
+        message: 'Users deleted',
+        deletedCount: result.deletedCount,
+        deletedUsers: toDelete.map(transformModules)
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE /users/bulk/:ids
-exports.bulkDeleteUsersByIds = async (req, res) => {
-  try {
-    const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0) return res.status(400).json({ error: 'No valid IDs provided' });
-
-    const toDelete = await User.aggregate(userWithRoleAndModulesLookup({ userID: { $in: ids } }));
-    const result = await User.deleteMany({ userID: { $in: ids } });
-
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No users found for provided IDs' });
-
-    res.json({
-      message: 'Users deleted',
-      deletedCount: result.deletedCount,
-      deletedUsers: toDelete.map(transformModules)
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

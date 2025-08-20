@@ -22,19 +22,13 @@ exports.getDepartments = async (req, res) => {
     const filter = buildDepartmentFilter(req.query);
     const departments = await Department.find(filter);
     if (!departments.length) return res.status(404).json({ message: 'No departments found.' });
-    res.json(departments.length === 1 ? departments[0] : departments);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.getDepartmentById = async (req, res) => {
-  try {
-    const departmentID = Number(req.params.id);
-    if (isNaN(departmentID)) return res.status(400).json({ error: 'Invalid departmentID' });
-    const department = await Department.findOne({ departmentID });
-    if (!department) return res.status(404).json({ message: 'Department not found.' });
-    res.json(department);
+    
+    // If filtering by departmentID, return single object, otherwise return array
+    if (req.query.departmentID) {
+      res.json(departments[0]);
+    } else {
+      res.json(departments);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -103,50 +97,69 @@ exports.updateDepartment = async (req, res) => {
 };
 
 // ------------------- DELETE -------------------
-exports.deleteDepartmentById = async (req, res) => {
+exports.deleteDepartments = async (req, res) => {
   try {
-    const departmentID = Number(req.params.id);
-    if (isNaN(departmentID)) return res.status(400).json({ error: 'Invalid departmentID' });
+    let filter = {};
 
-    const deleted = await Department.findOneAndDelete({ departmentID });
-    if (!deleted) return res.status(404).json({ message: 'Department not found.' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { departmentID: { $in: ids } };
+    }
 
-    res.json({ message: 'Department deleted', department: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    // Single or multiple IDs from query
+    else if (req.query.departmentID) {
+      if (typeof req.query.departmentID === 'string' && req.query.departmentID.includes(',')) {
+        const ids = req.query.departmentID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { departmentID: { $in: ids } };
+      } else {
+        filter = { departmentID: Number(req.query.departmentID) };
+      }
+    }
 
-exports.deleteDepartmentsByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') return res.status(400).json({ error: 'Provide valid filter.' });
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildDepartmentFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Fetch documents before deleting
+    const toDelete = await Department.find(filter);
+    if (!toDelete.length) return res.status(404).json({ message: 'No departments found matching the criteria' });
 
     const result = await Department.deleteMany(filter);
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No departments matched filter.' });
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'No departments were deleted' });
 
-    res.json({ message: 'Departments deleted', deletedCount: result.deletedCount });
+    // If only one item deleted, send that item back
+    if (
+      (req.query.departmentID && !String(req.query.departmentID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Department deleted', department: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Departments deleted',
+        deletedCount: result.deletedCount,
+        deletedDepartments: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-exports.bulkDeleteDepartmentsByIds = async (req, res) => {
-  try {
-    const ids = req.params.ids
-      ?.split(',')
-      .map((id) => Number(id.trim()))
-      .filter((id) => !isNaN(id));
-
-    if (!ids || !ids.length) return res.status(400).json({ error: 'No valid IDs provided.' });
-
-    const result = await Department.deleteMany({ departmentID: { $in: ids } });
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No departments found for provided IDs.' });
-
-    res.json({ message: 'Departments deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// bulkUpdateDepartments: removed per requirement

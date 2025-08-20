@@ -3,18 +3,23 @@ const router = express.Router();
 const appointmentController = require("../controllers/appointmentController");
 
 // ------------------ CRUD ------------------
-router.get("/", appointmentController.getAppointments);          // Get all appointments
-router.get("/:id", appointmentController.getAppointmentById);    // Get by ID
+router.get("/", appointmentController.getAppointments);          // Get all appointments with filters (including by ID)
 
 router.post("/", appointmentController.addAppointment);          // Create appointment
 router.put("/:id", appointmentController.updateAppointment);     // Update appointment
-router.delete("/:id", appointmentController.deleteAppointmentById); // Delete by ID
 
-// ------------------ Bulk ------------------
-router.post("/deleteMany", appointmentController.deleteAppointmentsByFilter);
+// ------------------ DELETE ------------------
+router.delete("/bulk/:ids", appointmentController.deleteAppointments); // Bulk delete by IDs (comma separated in param)
+router.delete("/", appointmentController.deleteAppointments);          // Delete by query or body filter
+
+// ------------------ Special GET ------------------
+router.get("/availableSlots", appointmentController.getAvailableSlots); // Get available slots for doctor on date
 
 // ------------------ Special Actions ------------------
-router.put("/:id/cancel", appointmentController.cancelAppointment);   // Cancel appointment
+router.put("/:id/cancel", appointmentController.cancelAppointment);     // Cancel appointment
 router.put("/:id/complete", appointmentController.completeAppointment); // Complete appointment
+
+// ------------------ Status Management ------------------
+router.post("/expired", appointmentController.updateExpiredAppointments); // Mark expired appointments
 
 module.exports = router;
