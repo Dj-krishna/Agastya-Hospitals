@@ -15,10 +15,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// GET only Id and Name, all, GET by ID
+// GET only Id and Name, all
 router.get('/specialityList', specialityController.getSpecialityList);
 router.get('/', specialityController.getSpecialities);
-router.get('/:id', specialityController.getSpecialityById);
 
 // POST add single/bulk
 router.post('/', specialityController.addSpeciality);
@@ -30,11 +29,8 @@ router.post('/upload-image', upload.single('specialityImage'), specialityControl
 // PUT update single or many (by query)
 router.put('/', specialityController.updateSpeciality);
 
-// PUT bulk update (removed)
-
-// DELETE by ID, by filter, or in bulk
-router.delete('/bulk/:ids', specialityController.bulkDeleteSpecialitiesByIds);
-router.delete('/', specialityController.deleteSpecialitiesByFilter);
-router.delete('/:id', specialityController.deleteSpecialityById);
+// DELETE using unified handler
+router.delete('/bulk/:ids', specialityController.deleteSpecialities); // Bulk delete by IDs
+router.delete('/', specialityController.deleteSpecialities);          // Delete by query or body filter
 
 module.exports = router;

@@ -2,19 +2,17 @@ const express = require('express');
 const router = express.Router();
 const moduleController = require('../controllers/moduleController');
 
-// GET Modules (all or filtered)
+// ------------------ GET ------------------
 router.get('/', moduleController.getModules);
-router.get('/:id', moduleController.getModuleById);
 
-// POST create Module(s)
+// ------------------ POST ------------------
 router.post('/', moduleController.addModule);
 
-// PUT update Module(s)
+// ------------------ PUT ------------------
 router.put('/', moduleController.updateModule);
 
-// DELETE user role(s)
-router.delete('/bulk/:ids', moduleController.bulkDeleteModulesByIds);
-router.delete('/', moduleController.deleteModulesByFilter);
-router.delete('/:id', moduleController.deleteModuleById);
+// ------------------ DELETE ------------------
+router.delete('/bulk/:ids', moduleController.deleteModules); // Bulk delete by IDs
+router.delete('/', moduleController.deleteModules);          // Delete by query/body filter
 
 module.exports = router;

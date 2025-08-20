@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const fs = require('fs');
 const path = require('path');
+const { updateExpiredAppointments } = require('./utils/appointmentStatusUpdater');
 
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
@@ -58,3 +59,24 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
 });
+
+// Schedule automatic appointment status updates
+// Run every 5 minutes to check for expired appointments (less frequent to reduce noise)
+// Set AUTO_UPDATE_APPOINTMENTS=false in .env to disable automatic updates
+
+// ------This block should be inserted again
+/*
+if (process.env.AUTO_UPDATE_APPOINTMENTS !== 'false') {
+  setInterval(async () => {
+    try {
+      await updateExpiredAppointments();
+    } catch (error) {
+      console.error('❌ Scheduled appointment status update failed:', error);
+    }
+  }, 300000); // 300000ms = 5 minutes
+
+  console.log('🔄 Automatic appointment status updater started (runs every 5 minutes)');
+} else {
+  console.log('⏸️  Automatic appointment status updates disabled');
+}
+*/

@@ -23,13 +23,15 @@ const buildPatientFilter = (query) => {
   return filter;
 };
 
-// GET all/bulk/filter
+// GET all/bulk/filter (handles all cases including by ID)
 exports.getPatients = async (req, res) => {
   try {
     const filter = buildPatientFilter(req.query);
     const patients = await Patient.find(filter);
 
-    if (!patients || patients.length === 0) return res.json([]);
+    if (!patients || patients.length === 0) {
+      return res.status(404).json({ message: 'No patients found.' });
+    }
 
     const doctorIDs = [...new Set(patients.map(p => p.doctorID).filter(Boolean))];
     const doctors = await Doctor.find(
@@ -54,37 +56,12 @@ exports.getPatients = async (req, res) => {
         : []
     }));
 
-    res.json(enriched);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET by patientID
-exports.getPatientById = async (req, res) => {
-  try {
-    const patient = await Patient.findOne({ patientID: Number(req.params.id) });
-    if (!patient) return res.status(404).json({ message: 'Patient not found' });
-
-    const [doctor, packages] = await Promise.all([
-      Doctor.findOne({ doctorID: patient.doctorID }, { fullName: 1, _id: 0 }),
-      Array.isArray(patient.packageIDs) && patient.packageIDs.length
-        ? HealthPackage.find(
-            { packageID: { $in: patient.packageIDs } },
-            { packageID: 1, packageName: 1, _id: 0 }
-          )
-        : Promise.resolve([])
-    ]);
-
-    const packageMap = new Map(packages.map(pk => [pk.packageID, pk.packageName]));
-
-    res.json({
-      ...patient.toObject(),
-      doctorName: doctor?.fullName,
-      packageNames: Array.isArray(patient.packageIDs)
-        ? patient.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
-        : []
-    });
+    // If filtering by patientID, return single object, otherwise return array
+    if (req.query.patientID) {
+      res.json(enriched[0]);
+    } else {
+      res.json(enriched);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -203,46 +180,51 @@ exports.updatePatient = async (req, res) => {
 
 // bulkUpdatePatients: removed per requirement
 
-// DELETE by ID
-exports.deletePatientById = async (req, res) => {
+// DELETE patients (handles all cases: by ID, by filter, bulk by IDs)
+exports.deletePatients = async (req, res) => {
   try {
-    const deleted = await Patient.findOneAndDelete({ patientID: Number(req.params.id) });
-    if (!deleted)
-      return res.status(404).json({ message: 'Patient not found' });
-    res.json({ message: 'Patient deleted', patient: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE by filter
-exports.deletePatientsByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object')
-      return res.status(400).json({ error: 'Provide valid filter' });
+    // Handle different delete scenarios
+    if (req.params.ids) {
+      // Bulk delete by comma-separated IDs
+      const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { patientID: { $in: ids } };
+    } else if (req.query.patientID) {
+      // Delete single patient by ID
+      filter = { patientID: Number(req.query.patientID) };
+    } else if (Object.keys(req.query).length > 0) {
+      // Delete by query parameters
+      filter = buildPatientFilter(req.query);
+    } else if (req.body.filter) {
+      // Delete by filter from request body
+      if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    } else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Get patients to delete (for response)
+    const toDelete = await Patient.find(filter);
+    if (!toDelete.length) return res.status(404).json({ message: 'No patients found matching the criteria' });
+
+    // Perform deletion
     const result = await Patient.deleteMany(filter);
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No patients matched filter' });
-    res.json({ message: 'Patients deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'No patients were deleted' });
 
-// BULK DELETE by IDs
-exports.bulkDeletePatientsByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam)
-      return res.status(400).json({ error: 'No IDs provided' });
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0)
-      return res.status(400).json({ error: 'No valid IDs provided' });
-    const result = await Patient.deleteMany({ patientID: { $in: ids } });
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No patients found for provided IDs' });
-    res.json({ message: 'Patients deleted', deletedCount: result.deletedCount });
+    // Return appropriate response
+    if (req.query.patientID) {
+      // Single patient deleted
+      res.json({ message: 'Patient deleted', patient: toDelete[0] });
+    } else {
+      // Multiple patients deleted
+      res.json({ 
+        message: 'Patients deleted', 
+        deletedCount: result.deletedCount,
+        deletedPatients: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

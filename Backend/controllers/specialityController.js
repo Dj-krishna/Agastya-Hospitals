@@ -20,12 +20,12 @@ const buildSpecialityFilter = (query) => {
   return filter;
 };
 
-// GET all or filtered specialities
+// GET all or filtered specialities (handles all cases including by ID)
 exports.getSpecialities = async (req, res) => {
   try {
     const filter = buildSpecialityFilter(req.query);
     const specialities = await Speciality.find(filter).sort({ displayOrder: 1 });
-    if (!specialities.length) return res.json([]);
+    if (!specialities.length) return res.status(404).json({ message: 'No specialities found.' });
 
     // Attach doctorName if doctorID present
     const doctorIDs = [...new Set(specialities.map(s => s.doctorID).filter(Boolean))];
@@ -38,7 +38,13 @@ exports.getSpecialities = async (req, res) => {
       doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
     }
     const enriched = specialities.map(s => ({ ...s.toObject(), doctorName: doctorMap.get(s.doctorID) }));
-    res.json(enriched);
+    
+    // If filtering by specialityID, return single object, otherwise return array
+    if (req.query.specialityID) {
+      res.json(enriched[0]);
+    } else {
+      res.json(enriched);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -50,19 +56,6 @@ exports.getSpecialityList = async (req, res) => {
     const specialities = await Speciality.find({}, { specialityID: 1, specialityName: 1, _id: 0 })
       .sort({ specialityName: 1 }); // optional: sort alphabetically
     res.json(specialities);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-
-// GET one by specialityID
-exports.getSpecialityById = async (req, res) => {
-  try {
-    const speciality = await Speciality.findOne({ specialityID: Number(req.params.id) });
-    if (!speciality)
-      return res.status(404).json({ message: 'Speciality not found' });
-    res.json(speciality);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -153,47 +146,74 @@ exports.updateSpeciality = async (req, res) => {
 
 // bulkUpdateSpecialities: removed per requirement
 
-// DELETE by ID
-exports.deleteSpecialityById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteSpecialities = async (req, res) => {
   try {
-    const deleted = await Speciality.findOneAndDelete({ specialityID: Number(req.params.id) });
-    if (!deleted)
-      return res.status(404).json({ message: 'Speciality not found' });
-    res.json({ message: 'Speciality deleted', speciality: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE by filter (from body)
-exports.deleteSpecialitiesByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object')
-      return res.status(400).json({ error: 'Provide valid filter' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { specialityID: { $in: ids } };
+    }
+
+    // Single or multiple IDs from query
+    else if (req.query.specialityID) {
+      if (typeof req.query.specialityID === 'string' && req.query.specialityID.includes(',')) {
+        const ids = req.query.specialityID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { specialityID: { $in: ids } };
+      } else {
+        filter = { specialityID: Number(req.query.specialityID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildSpecialityFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    } else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Find documents before delete
+    const toDelete = await Speciality.find(filter);
+    if (!toDelete.length) {
+      return res.status(404).json({ message: 'No specialities found matching the criteria' });
+    }
+
     const result = await Speciality.deleteMany(filter);
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No specialities matched filter' });
-    res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'No specialities were deleted' });
+    }
+
+    // If only one deleted, return the single doc
+    if (
+      (req.query.specialityID && !String(req.query.specialityID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Speciality deleted', speciality: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Specialities deleted',
+        deletedCount: result.deletedCount,
+        deletedSpecialities: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// BULK delete by comma-separated IDs
-exports.bulkDeleteSpecialitiesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam)
-      return res.status(400).json({ error: 'No IDs provided' });
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0)
-      return res.status(400).json({ error: 'No valid IDs provided' });
-    const result = await Speciality.deleteMany({ specialityID: { $in: ids } });
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No specialities found for provided IDs' });
-    res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

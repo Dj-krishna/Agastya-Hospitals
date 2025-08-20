@@ -16,7 +16,6 @@ const upload = multer({ storage });
 
 // GET
 router.get('/', patientController.getPatients);
-router.get('/:id', patientController.getPatientById);
 
 // POST
 router.post('/', patientController.addPatient);
@@ -26,8 +25,7 @@ router.post('/upload-profile-image', upload.single('profileImage'), patientContr
 router.put('/', patientController.updatePatient);
 
 // DELETE
-router.delete('/bulk/:ids', patientController.bulkDeletePatientsByIds);
-router.delete('/', patientController.deletePatientsByFilter);
-router.delete('/:id', patientController.deletePatientById);
+router.delete('/bulk/:ids', patientController.deletePatients);
+router.delete('/', patientController.deletePatients);
 
 module.exports = router;

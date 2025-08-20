@@ -2,19 +2,17 @@ const express = require('express');
 const router = express.Router();
 const healthPackageController = require('../controllers/healthPackageController');
 
-// GET
+// ------------------ GET ------------------
 router.get('/', healthPackageController.getHealthPackages);
-router.get('/:id', healthPackageController.getHealthPackageById);
 
-// POST
+// ------------------ POST ------------------
 router.post('/', healthPackageController.addHealthPackage);
 
-// PUT
+// ------------------ PUT ------------------
 router.put('/', healthPackageController.updateHealthPackage);
 
-// DELETE
-router.delete('/bulk/:ids', healthPackageController.bulkDeleteHealthPackagesByIds);
-router.delete('/', healthPackageController.deleteHealthPackagesByFilter);
-router.delete('/:id', healthPackageController.deleteHealthPackageById);
+// ------------------ DELETE ------------------
+router.delete('/bulk/:ids', healthPackageController.deleteHealthPackages); // Bulk delete by IDs
+router.delete('/', healthPackageController.deleteHealthPackages);          // Delete by query/body filter
 
 module.exports = router;

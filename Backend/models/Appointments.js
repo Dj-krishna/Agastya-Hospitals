@@ -13,4 +13,35 @@ const appointmentSchema = new mongoose.Schema({
 // Prevent double booking on same doctor, date, and slot
 appointmentSchema.index({ doctorID: 1, date: 1, startTime: 1, endTime: 1 }, { unique: true });
 
+// Middleware to automatically update status when appointments are retrieved
+appointmentSchema.pre('find', function() {
+  // This will run before any find operation
+  // We'll handle the status update in the controller instead
+});
+
+// Static method to update expired appointments
+appointmentSchema.statics.updateExpiredAppointments = async function() {
+  const now = new Date();
+  const currentTime = now.toTimeString().slice(0, 5);
+  const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  return await this.updateMany(
+    {
+      status: 'booked',
+      $or: [
+        {
+          date: currentDate,
+          endTime: { $lt: currentTime }
+        },
+        {
+          date: { $lt: currentDate }
+        }
+      ]
+    },
+    {
+      status: 'completed'
+    }
+  );
+};
+
 module.exports = mongoose.model('Appointment', appointmentSchema, 'appointments');

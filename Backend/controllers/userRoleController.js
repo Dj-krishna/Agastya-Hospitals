@@ -20,7 +20,7 @@ const buildUserRoleFilter = (query) => {
   return filter;
 };
 
-// GET: all or filtered user roles (enriched with userNames)
+// GET: all or filtered user roles (enriched with userNames) - handles all cases including by ID
 exports.getUserRoles = async (req, res) => {
   try {
     const filter = buildUserRoleFilter(req.query);
@@ -53,40 +53,12 @@ exports.getUserRoles = async (req, res) => {
       return res.status(404).json({ message: 'No user roles found.' });
     }
 
-    res.json(roles.length === 1 ? roles[0] : roles);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET: single by roleID (enriched with userNames)
-exports.getUserRoleById = async (req, res) => {
-  try {
-    const roleID = Number(req.params.id);
-    const roles = await UserRole.aggregate([
-      { $match: { roleID } },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'roleID',
-          foreignField: 'roleID',
-          as: 'usersForRole'
-        }
-      },
-      {
-        $addFields: {
-          userNames: {
-            $map: { input: '$usersForRole', as: 'u', in: '$$u.userName' }
-          },
-          usersCount: { $size: '$usersForRole' }
-        }
-      },
-      { $project: { usersForRole: 0 } }
-    ]);
-    if (!roles.length) {
-      return res.status(404).json({ message: 'User role not found.' });
+    // If filtering by roleID, return single object, otherwise return array
+    if (req.query.roleID) {
+      res.json(roles[0]);
+    } else {
+      res.json(roles);
     }
-    res.json(roles[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -198,54 +170,72 @@ exports.updateUserRole = async (req, res) => {
   }
 };
 
-// DELETE: delete single user role by roleID
-exports.deleteUserRoleById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteUserRoles = async (req, res) => {
   try {
-    const roleID = Number(req.params.id);
-    const deleted = await UserRole.findOneAndDelete({ roleID });
-    if (!deleted) {
-      return res.status(404).json({ message: 'User role not found.' });
-    }
-    res.json({ message: 'User role deleted', role: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE: delete multiple user roles by filter in body
-exports.deleteUserRolesByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object') {
-      return res.status(400).json({ error: 'Provide valid filter.' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { roleID: { $in: ids } };
     }
+
+    // Single or multiple IDs from query
+    else if (req.query.roleID) {
+      if (typeof req.query.roleID === 'string' && req.query.roleID.includes(',')) {
+        const ids = req.query.roleID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { roleID: { $in: ids } };
+      } else {
+        filter = { roleID: Number(req.query.roleID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildUserRoleFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    } else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Find documents before deletion
+    const toDelete = await UserRole.find(filter);
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No user roles found matching the criteria' });
+
     const result = await UserRole.deleteMany(filter);
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'No user roles matched filter.' });
+    if (result.deletedCount === 0)
+      return res.status(404).json({ message: 'No user roles were deleted' });
+
+    // Return single deleted object if only one deleted
+    if (
+      (req.query.roleID && !String(req.query.roleID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'User role deleted', role: toDelete[0] });
+    } else {
+      res.json({
+        message: 'User roles deleted',
+        deletedCount: result.deletedCount,
+        deletedUserRoles: toDelete
+      });
     }
-    res.json({ message: 'User roles deleted', deletedCount: result.deletedCount });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// DELETE: bulk delete by comma-separated roleIDs in path
-exports.bulkDeleteUserRolesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam) {
-      return res.status(400).json({ error: 'No IDs provided.' });
-    }
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0) {
-      return res.status(400).json({ error: 'No valid IDs provided.' });
-    }
-    const result = await UserRole.deleteMany({ roleID: { $in: ids } });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'No user roles found for provided IDs.' });
-    }
-    res.json({ message: 'User roles deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

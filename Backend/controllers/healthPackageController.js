@@ -29,7 +29,7 @@ const buildPackageFilter = (query) => {
   return filter;
 };
 
-// GET all or filtered (enriched with usage counts by patients)
+// GET all or filtered (enriched with usage counts by patients) - handles all cases including by ID
 exports.getHealthPackages = async (req, res) => {
   try {
     const filter = buildPackageFilter(req.query);
@@ -47,18 +47,17 @@ exports.getHealthPackages = async (req, res) => {
       { $project: { patientsWithPackage: 0 } },
       { $sort: { packageID: 1 } }
     ]);
-    res.json(packages);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET by ID
-exports.getHealthPackageById = async (req, res) => {
-  try {
-    const pkg = await HealthPackage.findOne({ packageID: Number(req.params.id) });
-    if (!pkg) return res.status(404).json({ message: 'Health package not found' });
-    res.json(pkg);
+    
+    if (!packages.length) {
+      return res.status(404).json({ message: 'No health packages found.' });
+    }
+    
+    // If filtering by packageID, return single object, otherwise return array
+    if (req.query.packageID) {
+      res.json(packages[0]);
+    } else {
+      res.json(packages);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -123,47 +122,74 @@ exports.updateHealthPackage = async (req, res) => {
 
 // bulkUpdateHealthPackages: removed per requirement
 
-// DELETE by ID
-exports.deleteHealthPackageById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteHealthPackages = async (req, res) => {
   try {
-    const deleted = await HealthPackage.findOneAndDelete({ packageID: Number(req.params.id) });
-    if (!deleted)
-      return res.status(404).json({ message: 'Health package not found' });
-    res.json({ message: 'Package deleted', package: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE by filter
-exports.deleteHealthPackagesByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object')
-      return res.status(400).json({ error: 'Provide valid filter' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { packageID: { $in: ids } };
+    }
+
+    // Single or multiple IDs from query
+    else if (req.query.packageID) {
+      if (typeof req.query.packageID === 'string' && req.query.packageID.includes(',')) {
+        const ids = req.query.packageID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { packageID: { $in: ids } };
+      } else {
+        filter = { packageID: Number(req.query.packageID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildPackageFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Get docs before delete
+    const toDelete = await HealthPackage.find(filter);
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No health packages found matching the criteria' });
+
     const result = await HealthPackage.deleteMany(filter);
     if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No packages matched filter' });
-    res.json({ message: 'Packages deleted', deletedCount: result.deletedCount });
+      return res.status(404).json({ message: 'No health packages were deleted' });
+
+    // If single delete → return single object
+    if (
+      (req.query.packageID && !String(req.query.packageID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Package deleted', package: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Packages deleted',
+        deletedCount: result.deletedCount,
+        deletedPackages: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// BULK DELETE by IDs
-exports.bulkDeleteHealthPackagesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam)
-      return res.status(400).json({ error: 'No IDs provided' });
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0)
-      return res.status(400).json({ error: 'No valid IDs provided' });
-    const result = await HealthPackage.deleteMany({ packageID: { $in: ids } });
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No packages found for provided IDs' });
-    res.json({ message: 'Packages deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

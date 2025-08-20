@@ -14,12 +14,12 @@ const buildSubSpecialityFilter = (query) => {
   return filter;
 };
 
-// GET all (or filter)
+// GET all (or filter) - handles all cases including by ID
 exports.getSubSpecialities = async (req, res) => {
   try {
     const filter = buildSubSpecialityFilter(req.query);
     const subSpecialities = await SubSpeciality.find(filter).sort({ subSpecialityName: 1 });
-    if (!subSpecialities.length) return res.json([]);
+    if (!subSpecialities.length) return res.status(404).json({ message: 'No sub-specialities found.' });
 
     // Attach specialityName via lookup of specialities
     const specialityIDs = [...new Set(subSpecialities.map(s => s.specialityID))];
@@ -29,19 +29,13 @@ exports.getSubSpecialities = async (req, res) => {
     );
     const spMap = new Map(specialities.map(sp => [sp.specialityID, sp.specialityName]));
     const enriched = subSpecialities.map(s => ({ ...s.toObject(), specialityName: spMap.get(s.specialityID) }));
-    res.json(enriched);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-// GET by subSpecialityID
-exports.getSubSpecialityById = async (req, res) => {
-  try {
-    const sub = await SubSpeciality.findOne({ subSpecialityID: Number(req.params.id) });
-    if (!sub)
-      return res.status(404).json({ message: 'Sub-speciality not found' });
-    res.json(sub);
+    
+    // If filtering by subSpecialityID, return single object, otherwise return array
+    if (req.query.subSpecialityID) {
+      res.json(enriched[0]);
+    } else {
+      res.json(enriched);
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -107,47 +101,74 @@ exports.updateSubSpeciality = async (req, res) => {
 
 // bulkUpdateSubSpecialities: removed per requirement
 
-// DELETE by ID
-exports.deleteSubSpecialityById = async (req, res) => {
+// ------------------ DELETE ------------------
+exports.deleteSubSpecialities = async (req, res) => {
   try {
-    const deleted = await SubSpeciality.findOneAndDelete({ subSpecialityID: Number(req.params.id) });
-    if (!deleted)
-      return res.status(404).json({ message: 'Sub-speciality not found' });
-    res.json({ message: 'Sub-speciality deleted', subSpeciality: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-// DELETE by filter
-exports.deleteSubSpecialitiesByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object')
-      return res.status(400).json({ error: 'Provide valid filter' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { subSpecialityID: { $in: ids } };
+    }
+
+    // Single or multiple IDs from query
+    else if (req.query.subSpecialityID) {
+      if (typeof req.query.subSpecialityID === 'string' && req.query.subSpecialityID.includes(',')) {
+        const ids = req.query.subSpecialityID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { subSpecialityID: { $in: ids } };
+      } else {
+        filter = { subSpecialityID: Number(req.query.subSpecialityID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildSubSpecialityFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Get docs before delete
+    const toDelete = await SubSpeciality.find(filter);
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No sub-specialities found matching the criteria' });
+
     const result = await SubSpeciality.deleteMany(filter);
     if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No sub-specialities matched filter' });
-    res.json({ message: 'Sub-specialities deleted', deletedCount: result.deletedCount });
+      return res.status(404).json({ message: 'No sub-specialities were deleted' });
+
+    // If only one deleted, return single doc
+    if (
+      (req.query.subSpecialityID && !String(req.query.subSpecialityID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Sub-speciality deleted', subSpeciality: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Sub-specialities deleted',
+        deletedCount: result.deletedCount,
+        deletedSubSpecialities: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// BULK DELETE by IDs
-exports.bulkDeleteSubSpecialitiesByIds = async (req, res) => {
-  try {
-    const idsParam = req.params.ids;
-    if (!idsParam)
-      return res.status(400).json({ error: 'No IDs provided' });
-    const ids = idsParam.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-    if (ids.length === 0)
-      return res.status(400).json({ error: 'No valid IDs provided' });
-    const result = await SubSpeciality.deleteMany({ subSpecialityID: { $in: ids } });
-    if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No sub-specialities found for provided IDs' });
-    res.json({ message: 'Sub-specialities deleted', deletedCount: result.deletedCount });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};

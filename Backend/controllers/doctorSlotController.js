@@ -343,51 +343,98 @@ exports.updateSlot = async (req, res) => {
 };
 
 // ------------------ DELETE ------------------
-exports.deleteSlotById = async (req, res) => {
+exports.deleteSlots = async (req, res) => {
   try {
-    const slotID = Number(req.params.id);
-    if (isNaN(slotID)) return res.status(400).json({ error: 'Invalid slotID' });
-    const deleted = await DoctorSlot.findOneAndDelete({ slotID });
-    if (!deleted) return res.status(404).json({ message: 'Slot not found' });
-    res.json({ message: 'Slot deleted', slot: deleted });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+    let filter = {};
 
-exports.deleteSlotsByFilter = async (req, res) => {
-  try {
-    const { filter } = req.body;
-    if (!filter || typeof filter !== 'object')
-      return res.status(400).json({ error: 'Provide valid filter' });
-    if (!Object.keys(filter).length)
-      return res.status(400).json({ error: 'Empty filter not allowed' });
+    // Bulk IDs from params
+    if (req.params.ids) {
+      const ids = req.params.ids
+        .split(',')
+        .map(id => Number(id.trim()))
+        .filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+      filter = { slotID: { $in: ids } };
+    }
+
+    // Single or multiple IDs from query
+    else if (req.query.slotID) {
+      if (typeof req.query.slotID === 'string' && req.query.slotID.includes(',')) {
+        const ids = req.query.slotID
+          .split(',')
+          .map(id => Number(id.trim()))
+          .filter(id => !isNaN(id));
+        filter = { slotID: { $in: ids } };
+      } else {
+        filter = { slotID: Number(req.query.slotID) };
+      }
+    }
+
+    // Other query filters
+    else if (Object.keys(req.query).length > 0) {
+      filter = buildSlotFilter(req.query);
+    }
+
+    // Body filter
+    else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object')
+        return res.status(400).json({ error: 'Provide valid filter' });
+      filter = req.body.filter;
+    }
+
+    else {
+      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+    }
+
+    // Get docs first
+    const toDelete = await DoctorSlot.find(filter);
+    if (!toDelete.length)
+      return res.status(404).json({ message: 'No slots found matching the criteria' });
+
     const result = await DoctorSlot.deleteMany(filter);
     if (result.deletedCount === 0)
-      return res.status(404).json({ message: 'No slots matched filter' });
-    res.json({ message: 'Slots deleted', deletedCount: result.deletedCount });
+      return res.status(404).json({ message: 'No slots were deleted' });
+
+    // For single delete, send back the deleted slot
+    if (
+      (req.query.slotID && !String(req.query.slotID).includes(',')) ||
+      (req.params.ids && req.params.ids.split(',').length === 1)
+    ) {
+      res.json({ message: 'Slot deleted', slot: toDelete[0] });
+    } else {
+      res.json({
+        message: 'Slots deleted',
+        deletedCount: result.deletedCount,
+        deletedSlots: toDelete
+      });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// ------------------ SPECIAL DELETE ------------------
 exports.deleteScheduleDate = async (req, res) => {
   try {
     const { slotID, date } = req.body;
     if (!slotID || !date)
       return res.status(400).json({ error: 'slotID and date required' });
+
     const updateDate = normalizeDate(date);
     const result = await DoctorSlot.updateOne(
       { slotID },
       { $pull: { 'schedule.$[].eachSchedule': { date: updateDate } }, $set: { updatedAt: new Date() } }
     );
+
     if (result.modifiedCount === 0)
       return res
         .status(404)
         .json({ message: 'Date not found in schedule or slot not found' });
+
     res.json({ message: 'Schedule date removed successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 

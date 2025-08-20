@@ -2,19 +2,17 @@ const express = require('express');
 const router = express.Router();
 const departmentController = require('../controllers/departmentController');
 
-// GET Departments (all or filtered)
-router.get('/', departmentController.getDepartments);
-router.get('/:id', departmentController.getDepartmentById);
+// ------------------ GET ------------------
+router.get('/', departmentController.getDepartments);   // Get all or filtered
 
-// POST create Department(s)
-router.post('/', departmentController.addDepartment);
+// ------------------ POST ------------------
+router.post('/', departmentController.addDepartment);   // Create one or many departments
 
-// PUT update Department(s)
-router.put('/', departmentController.updateDepartment);
+// ------------------ PUT ------------------
+router.put('/', departmentController.updateDepartment); // Update by query filter(s)
 
-// DELETE Department(s)
-router.delete('/bulk/:ids', departmentController.bulkDeleteDepartmentsByIds);
-router.delete('/', departmentController.deleteDepartmentsByFilter);
-router.delete('/:id', departmentController.deleteDepartmentById);
+// ------------------ DELETE ------------------
+router.delete('/bulk/:ids', departmentController.deleteDepartments); // Bulk delete by IDs (comma separated)
+router.delete('/', departmentController.deleteDepartments);          // Delete by query params or request body filter
 
 module.exports = router;
