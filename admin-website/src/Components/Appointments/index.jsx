@@ -53,7 +53,13 @@ const Appointments = () => {
           </Container>
         </>
       ) : (
-        <AppointmentsForm onClose={() => setShowAddAppointment(false)} />
+        <AppointmentsForm 
+          onClose={() => setShowAddAppointment(false)} 
+          onAppointmentAdded={(newAppointment) => {
+            setAppointments(prev => [...prev, newAppointment]);
+            setShowAddAppointment(false);
+          }}
+        />
       )}
     </Fragment>
   );

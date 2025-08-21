@@ -17,8 +17,12 @@ import ValidationAlert from "../Common/Component/ValidationAlert";
 import { countryCodes } from "../../api/countryCode";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDoctors } from "../../slices/doctorsSlice";
+import { fetchPatients } from "../../slices/patientSlice";
 import DatePicker from "react-datepicker";
-import { FaCalendar, FaCalendarAlt, FaClock } from "react-icons/fa";
+import { FaCalendarAlt } from "react-icons/fa";
+import axios from "axios";
+import { APPOINTMENTS_API } from "../../api";
+import { toast } from "react-toastify";
 
 const today = new Date();
 const initialFormState = {
@@ -28,8 +32,10 @@ const initialFormState = {
   email: "",
   appointmentDate: today,
   doctorID: "",
-  termsAndConditions: "",
-  timeSlot: "",
+  patientID: "",
+  startTime: "",
+  endTime: "",
+  termsAndConditions: false,
 };
 const initialFormErrors = {
   fullName: "",
@@ -38,18 +44,24 @@ const initialFormErrors = {
   email: "",
   appointmentDate: "",
   doctorID: "",
+  patientID: "",
+  startTime: "",
+  endTime: "",
   termsAndConditions: "",
-  timeSlot: "",
 };
-const AppointmentsForm = ({ onClose }) => {
+const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
   const [formState, setFormState] = React.useState(initialFormState);
   const [formErrors, setFormErrors] = React.useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const dispatch = useDispatch();
   const { data: doctors } = useSelector((state) => state.doctors);
+  const { data: patients } = useSelector((state) => state.patients);
+
   useEffect(() => {
     dispatch(fetchDoctors());
+    dispatch(fetchPatients());
   }, [dispatch]);
 
   const generateTimeSlots = (startMinutes, endMinutes) => {
@@ -64,6 +76,7 @@ const AppointmentsForm = ({ onClose }) => {
 
   const morningTimeSlots = generateTimeSlots(0, 11 * 60 + 30); // 00:00 to 11:30
   const eveningTimeSlots = generateTimeSlots(12 * 60, 23 * 60 + 30); // 12:00 to 23:30
+  const allTimeSlots = [...morningTimeSlots, ...eveningTimeSlots];
 
   const validateField = (field, value) => {
     switch (field) {
@@ -89,8 +102,17 @@ const AppointmentsForm = ({ onClose }) => {
       case "doctorID":
         if (!value) return "Doctor selection is required";
         return "";
-      case "timeSlot":
-        if (!value) return "Time slot is required";
+      case "patientID":
+        if (!value) return "Patient selection is required";
+        return "";
+      case "startTime":
+        if (!value) return "Start time is required";
+        return "";
+      case "endTime":
+        if (!value) return "End time is required";
+        if (value && formState.startTime && value <= formState.startTime) {
+          return "End time must be after start time";
+        }
         return "";
       case "termsAndConditions":
         if (value === false)
@@ -120,21 +142,87 @@ const AppointmentsForm = ({ onClose }) => {
       setFormErrors((prev) => ({ ...prev, [dateName]: errorMsg }));
     }
   };
-  const onSubmit = (e, formData) => {
+
+  const handleStartTimeChange = (e) => {
+    const startTime = e.target.value;
+    setFormState(prev => ({ ...prev, startTime }));
+    
+    // Auto-calculate end time (30 minutes later)
+    if (startTime) {
+      const [hours, minutes] = startTime.split(':');
+      const startDate = new Date();
+      startDate.setHours(parseInt(hours), parseInt(minutes), 0);
+      
+      const endDate = new Date(startDate.getTime() + 30 * 60000); // Add 30 minutes
+      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+      
+      setFormState(prev => ({ ...prev, endTime }));
+    }
+    
+    if (isSubmitted) {
+      const errorMsg = validateField("startTime", startTime);
+      setFormErrors((prev) => ({ ...prev, startTime: errorMsg }));
+    }
+  };
+
+  const handleEndTimeChange = (e) => {
+    const endTime = e.target.value;
+    setFormState(prev => ({ ...prev, endTime }));
+    
+    if (isSubmitted) {
+      const errorMsg = validateField("endTime", endTime);
+      setFormErrors((prev) => ({ ...prev, endTime: errorMsg }));
+    }
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
     const errors = {};
-    Object.keys(formData).forEach((field) => {
-      const errorMsg = validateField(field, formData[field]);
+    Object.keys(formState).forEach((field) => {
+      const errorMsg = validateField(field, formState[field]);
       if (errorMsg) {
         errors[field] = errorMsg;
       }
     });
     setFormErrors(errors);
     setIsSubmitted(true);
+    
     if (Object.keys(errors).length > 0) {
       return;
     }
+
+    setIsSubmitting(true);
+    try {
+      // Format date to YYYY-MM-DD
+      const formattedDate = formState.appointmentDate.toISOString().split('T')[0];
+      
+      const appointmentData = {
+        doctorID: parseInt(formState.doctorID),
+        patientID: parseInt(formState.patientID),
+        date: formattedDate,
+        startTime: formState.startTime,
+        endTime: formState.endTime,
+        status: "booked"
+      };
+
+      const response = await axios.post(APPOINTMENTS_API, appointmentData);
+      
+      if (response.status === 201 || response.status === 200) {
+        toast.success("Appointment booked successfully!");
+        if (onAppointmentAdded) {
+          onAppointmentAdded(response.data);
+        }
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+      const errorMessage = error.response?.data?.message || "Failed to book appointment. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
   return (
     <>
       <Breadcrumbs
@@ -151,24 +239,32 @@ const AppointmentsForm = ({ onClose }) => {
                 <Form
                   className="needs-validation"
                   noValidate=""
-                  onSubmit={(e) => onSubmit(e, formState)}
+                  onSubmit={onSubmit}
                 >
                   <Row>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="fullName">
-                        Full name
+                      <Label className="form-label" for="patientID">
+                        Select Patient
                       </Label>
                       <Input
-                        type="text"
-                        name="fullName"
-                        id="fullName"
-                        value={formState.fullName}
+                        type="select"
+                        name="patientID"
+                        id="patientID"
+                        className="form-control digits"
+                        value={formState.patientID}
                         onChange={handleChange}
-                        placeholder="Enter full name"
-                        invalid={!!formErrors.fullName}
-                      />
-                      <ValidationAlert error={formErrors.fullName} />
+                        invalid={!!formErrors.patientID}
+                      >
+                        <option value="">Select patient</option>
+                        {patients?.map((patient, index) => (
+                          <option key={index} value={patient.patientID}>
+                            {patient.fullName}
+                          </option>
+                        ))}
+                      </Input>
+                      <ValidationAlert error={formErrors.patientID} />
                     </Col>
+                    
                     <Col md="4 mb-3">
                       <Label className="form-label" for="mobileNumber">
                         Mobile
@@ -234,17 +330,16 @@ const AppointmentsForm = ({ onClose }) => {
                         invalid={!!formErrors.doctorID}
                       >
                         <option value="">Select doctor</option>
-                        {doctors.map((doctor, index) => (
+                        {doctors?.map((doctor, index) => (
                           <option key={index} value={doctor.doctorID}>
-                            {doctor.doctorID} - {doctor.fullName}
+                            {doctor.fullName}
                           </option>
                         ))}
                       </Input>
                       <ValidationAlert error={formErrors.doctorID} />
                     </Col>
-                    <Col md={4} className="">
-                      <Label for="appointmentDate">From Date</Label>
-
+                    <Col md="4 mb-3">
+                      <Label for="appointmentDate">Appointment Date</Label>
                       <InputGroup>
                         <DatePicker
                           className="form-control datetimepicker-input digits"
@@ -263,32 +358,47 @@ const AppointmentsForm = ({ onClose }) => {
                           <FaCalendarAlt />
                         </div>
                       </InputGroup>
-
                       <ValidationAlert error={formErrors.appointmentDate} />
                     </Col>
-                    <Col md={4} className="mt-1">
-                      <Label for="timeSlot">Time Slot</Label>
+                    <Col md="6 mb-3">
+                      <Label for="startTime">Start Time</Label>
                       <Input
                         type="select"
-                        name="timeSlot"
-                        id="timeSlot"
-                        value={formState.timeSlot}
-                        onChange={handleChange}
-                        invalid={!!formErrors.timeSlot}
+                        name="startTime"
+                        id="startTime"
+                        value={formState.startTime}
+                        onChange={handleStartTimeChange}
+                        invalid={!!formErrors.startTime}
                       >
-                        <option value="">Time Slot</option>
-                        {[...morningTimeSlots, ...eveningTimeSlots].map(
-                          (slot) => (
-                            <option key={slot} value={slot}>
-                              {slot}
-                            </option>
-                          )
-                        )}
+                        <option value="">Select start time</option>
+                        {allTimeSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
                       </Input>
-
-                      <ValidationAlert error={formErrors.timeSlot} />
+                      <ValidationAlert error={formErrors.startTime} />
                     </Col>
-                    <Col md={12} className="mt-3 text-center">
+                    <Col md="6 mb-3">
+                      <Label for="endTime">End Time</Label>
+                      <Input
+                        type="select"
+                        name="endTime"
+                        id="endTime"
+                        value={formState.endTime}
+                        onChange={handleEndTimeChange}
+                        invalid={!!formErrors.endTime}
+                      >
+                        <option value="">Select end time</option>
+                        {allTimeSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </Input>
+                      <ValidationAlert error={formErrors.endTime} />
+                    </Col>
+                    <Col md="12" className="mt-3 text-center">
                       <Label className="d-block" for={"termsAndConditions"}>
                         <Input
                           className="checkbox_animated"
@@ -306,9 +416,13 @@ const AppointmentsForm = ({ onClose }) => {
                       </Label>
                       <ValidationAlert error={formErrors.termsAndConditions} />
                     </Col>
-                    <Col md={12} className="mt-3 text-center">
-                      <Button type="submit" color="primary">
-                        Book
+                    <Col md="12" className="mt-3 text-center">
+                      <Button 
+                        type="submit" 
+                        color="primary" 
+                        disabled={isSubmitting}
+                      >
+                        {isSubmitting ? "Booking..." : "Book"}
                       </Button>
                     </Col>
                   </Row>
