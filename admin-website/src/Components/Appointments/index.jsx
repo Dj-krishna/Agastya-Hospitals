@@ -6,6 +6,7 @@ import axios from "axios";
 import { APPOINTMENTS_API } from "../../api";
 import { format } from "date-fns";
 import AppointmentsForm from "./AppointmentsForm";
+import AppointmentsTable from "./AppointmentsTable";
 
 const today = new Date();
 
@@ -33,37 +34,6 @@ const Appointments = () => {
     fetchAppointments();
   }, []);
 
-  const renderTableBody = () => {
-    return (
-      <tbody>
-        {appointments?.map((appointment) => (
-          <tr key={appointment.appointmentID}>
-            <td>{appointment.appointmentID}</td>
-            <td>{appointment.patientName}</td>
-            <td>{appointment.doctorName}</td>
-            <td>{format(new Date(appointment.date), "dd/MM/yyyy")}</td>
-            <td>
-              {appointment.startTime} - {appointment.endTime}
-            </td>
-            <td>
-              <Badges
-                attrBadge={{
-                  className: "badge",
-                  color: appointment.status === "booked" ? "success" : "danger",
-                }}
-              >
-                {appointment.status}
-              </Badges>
-            </td>
-            <td>
-              <button className="btn btn-primary">View</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    );
-  };
-
   return (
     <Fragment>
       {!showAddAppointment ? (
@@ -78,18 +48,7 @@ const Appointments = () => {
 
           <Container fluid={true}>
             <Row className="widget-grid">
-              <TableComponent
-                headers={[
-                  "Appointment ID",
-                  "Patient Name",
-                  "Doctor Name",
-                  "Date",
-                  "Time",
-                  "Status",
-                  "Action",
-                ]}
-                tableBody={renderTableBody()}
-              />
+              <AppointmentsTable appointments={appointments} />
             </Row>
           </Container>
         </>

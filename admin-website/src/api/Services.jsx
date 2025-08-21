@@ -1,10 +1,19 @@
 import axios from "axios";
-import { LOGIN_URL, DOCTORS_API, USER_ROLES_API,USERS_API, MODULES_API, DEPARTMENTS_API, SPECIALITIES_API_DROPDOWN } from "./index";
+import {
+  LOGIN_URL,
+  DOCTORS_API,
+  USER_ROLES_API,
+  USERS_API,
+  MODULES_API,
+  DEPARTMENTS_API,
+  SPECIALITIES_API_DROPDOWN,
+  APPOINTMENTS_API,
+} from "./index";
 
 // Add request interceptor to include auth token
 axios.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -23,10 +32,10 @@ axios.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid, redirect to login
-      localStorage.removeItem('token');
-      localStorage.removeItem('userDetails');
-      localStorage.removeItem('login');
-      window.location.href = '/login';
+      localStorage.removeItem("token");
+      localStorage.removeItem("userDetails");
+      localStorage.removeItem("login");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
@@ -61,12 +70,11 @@ export const fetchDataPut = async (url, data, options = {}) => {
   }
 };
 
-
 export const loginUser = async (credentials) => {
   try {
     const response = await axios.post(LOGIN_URL, credentials, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
     return response.data;
@@ -103,7 +111,7 @@ export const createDoctor = async (doctorData) => {
   try {
     const response = await axios.post(DOCTORS_API, doctorData, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
     return response.data;
@@ -169,7 +177,7 @@ export const createUserRole = async (userRoleData) => {
   try {
     const response = await axios.post(USERS_API, userRoleData, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
     return response.data;
@@ -219,6 +227,17 @@ export const fetchSpecialities = async () => {
     return response.data;
   } catch (error) {
     console.error("Error fetching specialities:", error);
+    throw error;
+  }
+};
+
+export const fetchAppointments = async (date) => {
+  const dateParam = date ? `?date=${date}` : "";
+  try {
+    const response = await axios.get(APPOINTMENTS_API + dateParam);
+    return response.data.appointments;
+  } catch (error) {
+    console.error("Error fetching appointments:", error);
     throw error;
   }
 };
