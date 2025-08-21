@@ -201,7 +201,7 @@ function ManageSlots(params) {
   const renderSlotRow = (session) => (
     <Row className="my-3">
       {(session === "morningSlots" ? MORNING_RANGE : EVENING_RANGE).map((time, index) => (
-        <Col key={index} xs="auto">
+        <Col key={index} xs="2">
           <Label className="d-block" for={`${session}SlotCheck${index}`}>
             <Input
               className="checkbox_animated"

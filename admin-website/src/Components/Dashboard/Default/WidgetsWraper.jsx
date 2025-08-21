@@ -1,15 +1,5 @@
 import React from "react";
 import { Col, Row } from "reactstrap";
-import {
-  Widgets2Data,
-  Widgets2Data2,
-  WidgetsData,
-  WidgetsData2,
-  WidgetsData3,
-  WidgetsData4,
-} from "../../../Data/DefaultDashboard";
-import Widgets1 from "../../Common/CommonWidgets/Widgets1";
-import Widgets2 from "../../Common/CommonWidgets/Widgets2";
 import SocialWidget from "../../Common/CommonWidgets/SocialWidget";
 
 const WidgetsWrapper = () => {
