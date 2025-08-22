@@ -19,6 +19,7 @@ router.get('/', patientController.getPatients);
 
 // POST
 router.post('/', patientController.addPatient);
+router.post('/verify', patientController.verifyPatient);
 router.post('/upload-profile-image', upload.single('profileImage'), patientController.uploadPatientImage);
 
 // PUT
