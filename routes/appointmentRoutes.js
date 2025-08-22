@@ -16,10 +16,14 @@ router.delete("/", appointmentController.deleteAppointments);          // Delete
 router.get("/availableSlots", appointmentController.getAvailableSlots); // Get available slots for doctor on date
 
 // ------------------ Special Actions ------------------
-router.put("/:id/cancel", appointmentController.cancelAppointment);     // Cancel appointment
-router.put("/:id/complete", appointmentController.completeAppointment); // Complete appointment
-
 // ------------------ Status Management ------------------
-router.post("/expired", appointmentController.updateExpiredAppointments); // Mark expired appointments
+// Cancel appointment
+router.put("/:id/status/cancel", appointmentController.cancelAppointment);
+
+// Mark appointment as completed
+router.put("/:id/status/complete", appointmentController.completeAppointment);
+
+// Mark expired appointments as completed (system action)
+router.post("/status/expired", appointmentController.updateExpiredAppointments);
 
 module.exports = router;
