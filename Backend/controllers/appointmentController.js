@@ -191,6 +191,7 @@ exports.getAvailableSlots = async (req, res) => {
 
 // ------------------ POST ------------------
 
+
 exports.addAppointment = async (req, res) => {
   try {
     const {
@@ -214,12 +215,11 @@ exports.addAppointment = async (req, res) => {
 
     const normalizedDate = normalizeDate(date);
 
-    // 1️⃣ Check if patient exists by mobile
+    // 1️⃣ Find patient by mobile
     let patient = await Patient.findOne({ mobile });
 
-    // 2️⃣ If patient doesn't exist → create new patient
+    // 2️⃣ If patient not found, create new one (requires extra fields)
     if (!patient) {
-      // Mandatory patient fields
       if (!fullName || !dob || !gender || !email || !address || !countryCode) {
         return res.status(400).json({
           error: "Patient not found. Provide fullName, dob, gender, email, address, countryCode to create patient."
@@ -236,12 +236,13 @@ exports.addAppointment = async (req, res) => {
         address,
         countryCode,
         mobile,
-        doctorID
+        doctorID, // Optional: can link patient to doctor who registered
+        packageIDs: Array.isArray(packageIDs) ? packageIDs : []
       });
       await patient.save();
     }
 
-    // 3️⃣ Determine endTime if not provided
+    // 3️⃣ Calculate endTime if missing
     let finalEndTime = endTime;
     if (!finalEndTime) {
       const doctorSlots = await DoctorSlot.findOne({ doctorID, isActive: true });
@@ -271,15 +272,15 @@ exports.addAppointment = async (req, res) => {
       endTime: finalEndTime,
       mobile,
       email: email || patient.email,
+      packageIDs: Array.isArray(packageIDs) ? packageIDs : [],
       status: "booked"
     });
-
     await appointment.save();
 
-    // Fetch doctor name
+    // Fetch doctor info (optional)
     const doctor = await Doctor.findOne({ doctorID }, { fullName: 1 });
 
-    // 6️⃣ Return combined response
+    // 6️⃣ Return response with patient and appointment info
     res.status(201).json({
       message: "Appointment booked successfully",
       patient: {
@@ -304,6 +305,7 @@ exports.addAppointment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 

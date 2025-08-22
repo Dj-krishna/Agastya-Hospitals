@@ -67,6 +67,41 @@ exports.getPatients = async (req, res) => {
   }
 };
 
+// ------------------ VERIFY PATIENT ------------------
+exports.verifyPatient = async (req, res) => {
+  try {
+    const { mobile } = req.body;
+
+    if (!mobile) {
+      return res.status(400).json({ error: "mobile is required" });
+    }
+
+    const patient = await Patient.findOne({ mobile });
+
+    if (patient) {
+      // Patient found
+      return res.json({
+        flag: 1,
+        patient: {
+          patientID: patient.patientID,
+          fullName: patient.fullName,
+          mobile: patient.mobile,
+          email: patient.email,
+          dob: patient.dob,
+          gender: patient.gender,
+          address: patient.address,
+          countryCode: patient.countryCode
+        }
+      });
+    } else {
+      // Patient not found
+      return res.json({ flag: 0 });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 // ADD (single or bulk)
 exports.addPatient = async (req, res) => {
   try {
