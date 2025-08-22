@@ -231,13 +231,13 @@ export const fetchSpecialities = async () => {
   }
 };
 
-export const fetchAppointments = async (date) => {
+export const appointmentsCount = async (date) => {
   const dateParam = date ? `?date=${date}` : "";
-  try {
-    const response = await axios.get(APPOINTMENTS_API + dateParam);
-    return response.data.appointments;
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    throw error;
-  }
+  const response = await axios.get(APPOINTMENTS_API);
+  return {
+    totalAppointments: response.data.count,
+    cancelledAppointments: response.data.appointments.filter(
+      (appointment) => appointment.status === "cancelled"
+    ).length,
+  };
 };

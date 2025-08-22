@@ -5,10 +5,13 @@ import WidgetsWrapper from "./WidgetsWraper";
 import axios from "axios";
 import { APPOINTMENTS_API } from "../../../api";
 import AppointmentsTable from "../../Appointments/AppointmentsTable";
+import { appointmentsCount } from "../../../api/Services";
 
 const Dashboard = () => {
   const [appointments, setAppointments] = useState([]);
-  const today = new Date(26/10/2025);
+  const [totalAppointments, setTotalAppointments] = useState(0);
+  const [cancelledAppointments, setCancelledAppointments] = useState(0);
+  const today = new Date();
 
   const fetchAppointments = async () => {
     const dateParam = `?date=${today}`;
@@ -23,6 +26,12 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAppointments();
+    appointmentsCount(today).then((data) => {
+      setTotalAppointments(data.totalAppointments);
+      setCancelledAppointments(data.cancelledAppointments);
+    }).catch((error) => {
+      console.error("Error fetching appointment counts:", error);
+    });
   }, []);
 
   return (
@@ -30,7 +39,10 @@ const Dashboard = () => {
       <Breadcrumbs mainTitle="Dashboard" />
       <Container fluid={true}>
         <Row className="widget-grid">
-          <WidgetsWrapper />
+          <WidgetsWrapper
+            totalAppointments={totalAppointments}
+            cancelledAppointments={cancelledAppointments}
+          />
           <AppointmentsTable
             appointments={appointments}
             flowType={"dashBoard"}

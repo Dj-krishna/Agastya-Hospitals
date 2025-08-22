@@ -1,18 +1,19 @@
 import React from "react";
 import { Col, Row } from "reactstrap";
 import SocialWidget from "../../Common/CommonWidgets/SocialWidget";
+import { ca } from "date-fns/locale";
 
 const WidgetsWrapper = ({ totalAppointments, cancelledAppointments }) => {
   const SocialWidgetDataWidgetPage = [
     {
-      total: 12098,
+      total: totalAppointments,
       subTitle: "Total Appointments",
       chart: {
         color: ["var(--theme-default)"],
       },
     },
     {
-      total: 15080,
+      total: cancelledAppointments,
       subTitle: "Cancelled Appointments",
       chart: {
         color: ["#FFA941"],

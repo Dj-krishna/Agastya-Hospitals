@@ -145,20 +145,22 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
   const handleStartTimeChange = (e) => {
     const startTime = e.target.value;
-    setFormState(prev => ({ ...prev, startTime }));
-    
+    setFormState((prev) => ({ ...prev, startTime }));
+
     // Auto-calculate end time (30 minutes later)
     if (startTime) {
-      const [hours, minutes] = startTime.split(':');
+      const [hours, minutes] = startTime.split(":");
       const startDate = new Date();
       startDate.setHours(parseInt(hours), parseInt(minutes), 0);
-      
+
       const endDate = new Date(startDate.getTime() + 30 * 60000); // Add 30 minutes
-      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-      
-      setFormState(prev => ({ ...prev, endTime }));
+      const endTime = `${String(endDate.getHours()).padStart(2, "0")}:${String(
+        endDate.getMinutes()
+      ).padStart(2, "0")}`;
+
+      setFormState((prev) => ({ ...prev, endTime }));
     }
-    
+
     if (isSubmitted) {
       const errorMsg = validateField("startTime", startTime);
       setFormErrors((prev) => ({ ...prev, startTime: errorMsg }));
@@ -167,8 +169,8 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
   const handleEndTimeChange = (e) => {
     const endTime = e.target.value;
-    setFormState(prev => ({ ...prev, endTime }));
-    
+    setFormState((prev) => ({ ...prev, endTime }));
+
     if (isSubmitted) {
       const errorMsg = validateField("endTime", endTime);
       setFormErrors((prev) => ({ ...prev, endTime: errorMsg }));
@@ -185,40 +187,48 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
       }
     });
     setFormErrors(errors);
-    setIsSubmitted(true);
-    
-    if (Object.keys(errors).length > 0) {
-      return;
-    }
 
     setIsSubmitting(true);
-    try {
-      // Format date to YYYY-MM-DD
-      const formattedDate = formState.appointmentDate.toISOString().split('T')[0];
-      
-      const appointmentData = {
-        doctorID: parseInt(formState.doctorID),
-        patientID: parseInt(formState.patientID),
-        date: formattedDate,
-        startTime: formState.startTime,
-        endTime: formState.endTime,
-        status: "booked"
-      };
+    const isValid = Object.values(errors)
+      .flat()
+      .every((msg) => msg === "");
+    if (isValid) {
+      try {
+        // Format date to YYYY-MM-DD
+        const formattedDate = formState.appointmentDate
+          .toISOString()
+          .split("T")[0];
 
-      const response = await axios.post(APPOINTMENTS_API, appointmentData);
-      
-      if (response.status === 201 || response.status === 200) {
-        toast.success("Appointment booked successfully!");
-        if (onAppointmentAdded) {
-          onAppointmentAdded(response.data);
+        const appointmentData = {
+          patientName: formState.fullName,
+          doctorID: parseInt(formState.doctorID),
+          patientID: parseInt(formState.patientID),
+          date: formattedDate,
+          startTime: formState.startTime,
+          endTime: formState.endTime,
+          status: "booked",
+        };
+
+        const response = await axios.post(APPOINTMENTS_API, appointmentData);
+
+        if (response.status === 201 || response.status === 200) {
+          toast.success("Appointment booked successfully!");
+          if (onAppointmentAdded) {
+            onAppointmentAdded(response.data);
+          }
+          onClose();
         }
-        onClose();
+      } catch (error) {
+        console.error("Error booking appointment:", error);
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to book appointment. Please try again.";
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error("Error booking appointment:", error);
-      const errorMessage = error.response?.data?.message || "Failed to book appointment. Please try again.";
-      toast.error(errorMessage);
-    } finally {
+    } else {
+      toast.error("Please fix the errors before submitting.");
       setIsSubmitting(false);
     }
   };
@@ -264,7 +274,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                       </Input>
                       <ValidationAlert error={formErrors.patientID} />
                     </Col>
-                    
+
                     <Col md="4 mb-3">
                       <Label className="form-label" for="mobileNumber">
                         Mobile
@@ -417,9 +427,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                       <ValidationAlert error={formErrors.termsAndConditions} />
                     </Col>
                     <Col md="12" className="mt-3 text-center">
-                      <Button 
-                        type="submit" 
-                        color="primary" 
+                      <Button
+                        type="submit"
+                        color="primary"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? "Booking..." : "Book"}

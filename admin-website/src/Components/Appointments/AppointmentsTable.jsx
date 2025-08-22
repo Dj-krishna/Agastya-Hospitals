@@ -4,11 +4,15 @@ import { Badges } from "../../AbstractElements";
 import { format } from "date-fns";
 
 const AppointmentsTable = ({ appointments, flowType }) => {
+  console.log("AppointmentsTable appointments:", appointments);
+  const sortedAppointments = [...appointments].sort((a, b) => {
+    return a.appointmentID - b.appointmentID;
+  });
   const renderTableBody = () => {
     return (
       <tbody>
-        {appointments?.length > 0 ? (
-          appointments?.map((appointment) => (
+        {sortedAppointments?.length > 0 ? (
+          sortedAppointments?.map((appointment) => (
             <tr key={appointment.appointmentID}>
               <td>{appointment.appointmentID}</td>
               <td>{appointment.patientName}</td>
@@ -28,16 +32,13 @@ const AppointmentsTable = ({ appointments, flowType }) => {
                   {appointment.status}
                 </Badges>
               </td>
-              {!(flowType === "dashBoard") && (
-                <td>
-                  <button className="btn btn-primary">View</button>
-                </td>
-              )}
             </tr>
           ))
         ) : (
           <tr>
-            <td colSpan={6} className="text-center">No appointments found</td>
+            <td colSpan={6} className="text-center">
+              No appointments found
+            </td>
           </tr>
         )}
       </tbody>
@@ -45,15 +46,7 @@ const AppointmentsTable = ({ appointments, flowType }) => {
   };
   return (
     <TableComponent
-      headers={[
-        "Appointment ID",
-        "Patient Name",
-        "Doctor Name",
-        "Date",
-        "Time",
-        "Status",
-        !(flowType === "dashBoard") && "Action",
-      ]}
+      headers={["#ID", "Patient Name", "Doctor Name", "Date", "Time", "Status"]}
       tableBody={renderTableBody()}
     />
   );
