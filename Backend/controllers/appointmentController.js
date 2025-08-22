@@ -1,7 +1,10 @@
+const Doctor = require("../models/Doctors");
+const Patient = require("../models/Patients");
 const Appointment = require("../models/Appointments");
 const DoctorSlot = require("../models/DoctorSlots");
 const getNextSequence = require("../utils/getNextSequence");
 const { manualUpdateExpiredAppointments } = require("../utils/appointmentStatusUpdater");
+
 
 // Normalize date to start or end of day (UTC-safe)
 const normalizeDate = (d, end = false) => {
@@ -190,26 +193,64 @@ exports.getAvailableSlots = async (req, res) => {
 
 exports.addAppointment = async (req, res) => {
   try {
-    const { doctorID, patientID, date, startTime, endTime } = req.body;
-    if (!doctorID || !patientID || !date || !startTime) {
-      return res
-        .status(400)
-        .json({ error: "doctorID, patientID, date, startTime required" });
+    const {
+      doctorID,
+      date,
+      startTime,
+      endTime,
+      mobile,
+      email,
+      fullName,
+      dob,
+      gender,
+      address,
+      countryCode,
+      packageIDs
+    } = req.body;
+
+    if (!doctorID || !date || !startTime || !mobile) {
+      return res.status(400).json({ error: "doctorID, date, startTime, mobile required" });
     }
 
     const normalizedDate = normalizeDate(date);
 
-    // if endTime not provided → calculate from DoctorSlot interval
-    let finalEndTime = endTime;
-    if (!endTime) {
-      const doctorSlots = await DoctorSlot.findOne({ doctorID, isActive: true });
-      if (!doctorSlots) {
-        return res.status(404).json({ message: "Doctor slots not found" });
+    // 1️⃣ Check if patient exists by mobile
+    let patient = await Patient.findOne({ mobile });
+
+    // 2️⃣ If patient doesn't exist → create new patient
+    if (!patient) {
+      // Mandatory patient fields
+      if (!fullName || !dob || !gender || !email || !address || !countryCode) {
+        return res.status(400).json({
+          error: "Patient not found. Provide fullName, dob, gender, email, address, countryCode to create patient."
+        });
       }
-      const interval = doctorSlots.timeSlotInterval || 30; // default 30 mins
+
+      const patientID = await getNextSequence("patientID");
+      patient = new Patient({
+        patientID,
+        fullName,
+        dob,
+        gender,
+        email,
+        address,
+        countryCode,
+        mobile,
+        doctorID
+      });
+      await patient.save();
+    }
+
+    // 3️⃣ Determine endTime if not provided
+    let finalEndTime = endTime;
+    if (!finalEndTime) {
+      const doctorSlots = await DoctorSlot.findOne({ doctorID, isActive: true });
+      if (!doctorSlots) return res.status(404).json({ message: "Doctor slots not found" });
+      const interval = doctorSlots.timeSlotInterval || 30;
       finalEndTime = addMinutesToTime(startTime, interval);
     }
 
+    // 4️⃣ Prevent double booking
     const existing = await Appointment.findOne({
       doctorID,
       date: normalizedDate,
@@ -217,27 +258,53 @@ exports.addAppointment = async (req, res) => {
       endTime: finalEndTime,
       status: { $in: ["booked", "completed"] }
     });
-    if (existing) {
-      return res.status(400).json({ error: "Slot already booked" });
-    }
+    if (existing) return res.status(400).json({ error: "Slot already booked" });
 
+    // 5️⃣ Create appointment
     const appointmentID = await getNextSequence("appointmentID");
     const appointment = new Appointment({
       appointmentID,
       doctorID,
-      patientID,
+      patientID: patient.patientID,
       date: normalizedDate,
       startTime,
       endTime: finalEndTime,
+      mobile,
+      email: email || patient.email,
       status: "booked"
     });
 
     await appointment.save();
-    res.status(201).json(appointment);
+
+    // Fetch doctor name
+    const doctor = await Doctor.findOne({ doctorID }, { fullName: 1 });
+
+    // 6️⃣ Return combined response
+    res.status(201).json({
+      message: "Appointment booked successfully",
+      patient: {
+        patientID: patient.patientID,
+        fullName: patient.fullName,
+        mobile: patient.mobile,
+        email: patient.email
+      },
+      appointment: {
+        appointmentID: appointment.appointmentID,
+        doctorID,
+        doctorName: doctor ? doctor.fullName : null,
+        patientID: patient.patientID,
+        patientName: patient.fullName,
+        date: appointment.date,
+        startTime: appointment.startTime,
+        endTime: appointment.endTime,
+        status: appointment.status
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 // ------------------ PUT ------------------
