@@ -38,7 +38,7 @@ const ForgetPwd = () => {
                           </Col>
                         </Row>
                       </FormGroup>
-                      <FormGroup className="text-end">
+                      {/* <FormGroup className="text-end">
                         <Btn
                           attrBtn={{
                             className: "btn-block ",
@@ -59,8 +59,8 @@ const ForgetPwd = () => {
                             Resend
                           </a>
                         </span>
-                      </FormGroup>
-                      <FormGroup>
+                      </FormGroup> */}
+                      {/* <FormGroup>
                         <Label>Enter OTP</Label>
                         <Row>
                           <Col>
@@ -88,7 +88,7 @@ const ForgetPwd = () => {
                             />
                           </Col>
                         </Row>
-                      </FormGroup>
+                      </FormGroup> */}
                       <H6 attrH6={{ className: "mt-4" }}>
                         Create Your Password
                       </H6>

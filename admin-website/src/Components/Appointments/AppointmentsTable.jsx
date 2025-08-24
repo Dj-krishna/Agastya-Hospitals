@@ -9,6 +9,18 @@ const AppointmentsTable = ({ appointments, flowType }) => {
     return a.appointmentID - b.appointmentID;
   });
   const renderTableBody = () => {
+    const statusBg = (appStatus) => {
+      switch (appStatus) {
+        case "booked":
+          return "info";
+        case "completed":
+          return "success";
+        case "cancelled":
+          return "danger";
+        default:
+          return "secondary";
+      }
+    };
     return (
       <tbody>
         {sortedAppointments?.length > 0 ? (
@@ -25,8 +37,7 @@ const AppointmentsTable = ({ appointments, flowType }) => {
                 <Badges
                   attrBadge={{
                     className: "badge",
-                    color:
-                      appointment.status === "booked" ? "success" : "danger",
+                    color: statusBg(appointment.status),
                   }}
                 >
                   {appointment.status}

@@ -6,7 +6,14 @@ import man from "../../../assets/images/dashboard/profile.png";
 
 import { LI, UL, Image, P } from "../../../AbstractElements";
 import CustomizerContext from "../../../_helper/Customizer";
-import { Account, Admin, Inbox, LogOut, MyProfile, Taskboard } from "../../../Constant";
+import {
+  Account,
+  Admin,
+  Inbox,
+  LogOut,
+  MyProfile,
+  Taskboard,
+} from "../../../Constant";
 import { logout } from "../../../slices/authSlice";
 
 const UserHeader = () => {
@@ -15,7 +22,7 @@ const UserHeader = () => {
   const [profile, setProfile] = useState("");
   const [name, setName] = useState("");
   const { layoutURL } = useContext(CustomizerContext);
-  
+
   // Get authentication state from Redux
   const { isAuthenticated, userDetails } = useSelector((state) => state.auth);
   const authenticated = JSON.parse(localStorage.getItem("authenticated"));
@@ -23,7 +30,11 @@ const UserHeader = () => {
 
   useEffect(() => {
     setProfile(localStorage.getItem("profileURL") || man);
-    setName(localStorage.getItem("Name") ? localStorage.getItem("Name") : userDetails?.userName);
+    setName(
+      localStorage.getItem("Name")
+        ? localStorage.getItem("Name")
+        : userDetails?.userName
+    );
   }, []);
 
   // Handle logout when Redux state changes
@@ -37,7 +48,7 @@ const UserHeader = () => {
   const Logout = () => {
     // Dispatch Redux logout action
     dispatch(logout());
-    
+
     // Clear all localStorage items
     localStorage.removeItem("profileURL");
     localStorage.removeItem("token");
@@ -46,7 +57,7 @@ const UserHeader = () => {
     localStorage.removeItem("login");
     localStorage.removeItem("userDetails");
     localStorage.removeItem("authenticated");
-    
+
     // Navigate to login page
     history("/login");
   };
@@ -58,29 +69,34 @@ const UserHeader = () => {
   return (
     <li className="profile-nav onhover-dropdown pe-0 py-0">
       <div className="media profile-media">
-        {/* <Image
+        <Image
           attrImage={{
             className: "b-r-10 m-0",
             src: `${authenticated ? auth0_profile.picture : profile}`,
             alt: "",
           }}
-        /> */}
+        />
         <div className="media-body">
-          <span className="capitalize">{authenticated ? userDetails.userName : name}</span>
+          <span className="capitalize">
+            {authenticated ? userDetails.userName : name}
+          </span>
           <P attrPara={{ className: "mb-0 font-roboto" }}>
             {Admin} <i className="middle fa fa-angle-down"></i>
           </P>
         </div>
       </div>
-      <UL attrUL={{ className: "simple-list profile-dropdown onhover-show-div" }}>
+      <UL
+        attrUL={{ className: "simple-list profile-dropdown onhover-show-div" }}
+      >
         <LI
           attrLI={{
-            onClick: () => UserMenuRedirect(`/app/users/profile/${layoutURL}`),
-          }}>
+            onClick: () => UserMenuRedirect(`/my-profile`),
+          }}
+        >
           <User />
           <span>{MyProfile} </span>
         </LI>
-        <LI
+        {/* <LI
           attrLI={{
             onClick: () => UserMenuRedirect(`/app/email-app/${layoutURL}`),
           }}>
@@ -93,7 +109,7 @@ const UserHeader = () => {
           }}>
           <FileText />
           <span>{Taskboard}</span>
-        </LI>
+        </LI> */}
         <LI attrLI={{ onClick: Logout }}>
           <LogIn />
           <span>{LogOut}</span>

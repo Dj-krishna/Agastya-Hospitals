@@ -14,6 +14,7 @@ import Settings from "../Components/Settings";
 import Specialities from "../Components/Specialities";
 import Patients from "../Components/Patients";
 import MedicalRecords from "../Components/MedicalRocords";
+import UserProfileCard from "../Components/UserProfile";
 
 export const routes = [
   { path: `/dashboard`, Component: <Default /> },
@@ -32,4 +33,5 @@ export const routes = [
   { path: `/blog`, Component: <Blog /> },
   { path: `/roles-permissions`, Component: <RolesPermissions /> },
   { path: `/settings`, Component: <Settings /> },
+  { path: `/my-profile`, Component: <UserProfileCard /> },
 ];

@@ -119,7 +119,7 @@ const Header = () => {
           <Form className="form-inline search-full col" action="#" method="get">
             <div className="form-group w-100">
               <div className="Typeahead Typeahead--twitterUsers">
-                <div className="u-posRelative">
+                {/* <div className="u-posRelative">
                   <input
                     className="Typeahead-input form-control-plaintext w-100"
                     id="demo-input"
@@ -142,7 +142,7 @@ const Header = () => {
                         .classList.remove("open")
                     }
                   />
-                </div>
+                </div> */}
                 <div className="Typeahead-menu" id="search-outer">
                   <div className="header-search-suggestion custom-scrollbar">
                     {searchValue
