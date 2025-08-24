@@ -6,6 +6,8 @@ import { fetchDataGet } from "../../api/Services";
 import { PATIENTS_API } from "../../api";
 import PatientDetails from "../Patients/PatientDetails";
 import UploadForm from "./UploadForm";
+import { toast } from "react-toastify";
+import TableSkeleton from "../Common/Component/TableSkeleton";
 
 const MedicalRecords = () => {
   const [patients, setPatients] = useState([]);
@@ -23,9 +25,14 @@ const MedicalRecords = () => {
     try {
       setLoading(true);
       const data = await fetchDataGet(PATIENTS_API);
-      setPatients(data);
+      if (data) {
+        setPatients(data);
+        setLoading(false);
+      }
     } catch (error) {
       console.error("Error fetching packages:", error);
+      toast.error("Error fetching packages");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -52,38 +59,48 @@ const MedicalRecords = () => {
           />
 
           <Container fluid={true}>
-            <Row className="widget-grid">
-              {!viewPatientDetails ? (
-                <TableComponent
-                  headers={["UHID", "Name", "Phone Number", "Email", "Action"]}
-                  tableBody={
-                    <tbody>
-                      {patients.map((data, index) => (
-                        <tr key={index}>
-                          <td>{data.patientID}</td>
-                          <td>{data.fullName}</td>
-                          <td>{data.mobile}</td>
-                          <td>{data.email}</td>
-                          <td>
-                            <Button
-                              color="success"
-                              outline
-                              className=""
-                              size="sm"
-                              onClick={() => handleViewDetails(data)}
-                            >
-                              View
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  }
-                />
-              ) : (
-                <PatientDetails patientDetails={patientData} />
-              )}
-            </Row>
+            {loading ? (
+              <TableSkeleton columns={5} rows={5} />
+            ) : (
+              <Row className="widget-grid">
+                {!viewPatientDetails ? (
+                  <TableComponent
+                    headers={[
+                      "UHID",
+                      "Name",
+                      "Phone Number",
+                      "Email",
+                      "Action",
+                    ]}
+                    tableBody={
+                      <tbody>
+                        {patients.map((data, index) => (
+                          <tr key={index}>
+                            <td>{data.patientID}</td>
+                            <td>{data.fullName}</td>
+                            <td>{data.mobile}</td>
+                            <td>{data.email}</td>
+                            <td>
+                              <Button
+                                color="success"
+                                outline
+                                className=""
+                                size="sm"
+                                onClick={() => handleViewDetails(data)}
+                              >
+                                View
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    }
+                  />
+                ) : (
+                  <PatientDetails patientDetails={patientData} />
+                )}
+              </Row>
+            )}
           </Container>
         </>
       ) : (

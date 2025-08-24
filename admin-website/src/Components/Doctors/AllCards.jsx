@@ -1,14 +1,9 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { Card, CardBody, Col } from "reactstrap";
-import axios from "axios";
 import { H5, Image } from "../../AbstractElements";
-import SvgIcon from "../Common/Component/SvgIcon";
-import SocialLinks from "../Application/Users/UsersCards/SocialLinks";
-import SocialData from "../Application/Users/UsersCards/SocialData";
 import { DOCTORS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
-// import images from '../../assets/images'
+import CardSkeleton from "../Common/Component/CardSkeleton";
 
 const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
   const [cards, setCards] = useState([]);
@@ -39,15 +34,7 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
   };
 
   if (loading) {
-    return (
-      <Col xs="12">
-        <div className="text-center p-4">
-          <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-      </Col>
-    );
+    return <CardSkeleton count={6} />;
   }
 
   return (
@@ -61,9 +48,9 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
             xxl="3"
             className="col-ed-4 box-col-4"
           >
-            <Card 
-              className="social-profile" 
-              style={{ cursor: 'pointer' }}
+            <Card
+              className="social-profile"
+              style={{ cursor: "pointer" }}
               onClick={() => handleCardClick(item)}
             >
               <CardBody>
