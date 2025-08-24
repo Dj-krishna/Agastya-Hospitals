@@ -31,20 +31,20 @@ const initialFormState = {
   mobile: "",
   email: "",
   medicalRegNumber: "",
-  departmentName: "",
+  departmentID: "",
   designation: "",
   about: "",
   speciality: "",
-  languagesKnown: "",
+  languagesKnown: [""],
   expertise: "",
-  servicesOffered: "",
+  servicesOffered: [""],
   consultingLocation: "",
   educationQualification: [""],
   experienceDescription: "",
   awardsAndAchievements: "",
   researchAndPublications: "",
   opTimings: [""],
-  profilePhoto: null,
+  profilePicture: null,
   countryCode: "+91",
   gender: "",
   yearsOfExperience: "",
@@ -55,20 +55,20 @@ const initialFormErrors = {
   mobile: "",
   email: "",
   medicalRegNumber: "",
-  departmentName: "",
+  departmentID: "",
   designation: "",
   about: "",
   speciality: "",
-  languagesKnown: "",
+  languagesKnown: [""],
   expertise: "",
-  servicesOffered: "",
+  servicesOffered: [""],
   consultingLocation: "",
   educationQualification: [""],
   experienceDescription: "",
   awardsAndAchievements: "",
   researchAndPublications: "",
   opTimings: [""],
-  profilePhoto: null,
+  profilePicture: null,
   countryCode: "",
   gender: "",
   yearsOfExperience: "",
@@ -143,7 +143,11 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
         // Handle array fields properly
         educationQualification: initialData.educationQualification || [""],
         opTimings: initialData.opTimings || [""],
+        languagesKnown: initialData.languagesKnown || [""],
+        servicesOffered: initialData.servicesOffered || [""],
         about: initialData.about || "NA",
+        // Map departmentID if it exists
+        departmentID: initialData.departmentID || "",
       });
     }
   }, [initialData, isEditMode, specialities]);
@@ -162,7 +166,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
         return /\S+@\S+\.\S+/.test(value) ? "" : "Valid Email is required";
       case "medicalRegNumber":
         return value === "" ? "Medical Reg. Number is required" : "";
-      case "department":
+      case "departmentID":
         return value === "" ? "Department is required" : "";
       case "speciality":
         return value === "" ? "Speciality is required" : "";
@@ -172,15 +176,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
         return value === "" ? "About doctor is required" : "";
       case "educationQualification":
       case "opTimings":
+      case "languagesKnown":
+      case "servicesOffered":
         return value === "" ? "This field is required" : "";
       case "yearsOfExperience":
         return value === "" ? "Years of Experience is required" : "";
       case "gender":
         return value === "" ? "Gender is required" : "";
-      case "languagesKnown":
-        return value === "" ? "Languages are required" : "";
-      case "servicesOffered":
-        return value === "" ? "Services are required" : "";
       case "consultingLocation":
         return value === "" ? "Location is required" : "";
       default:
@@ -260,7 +262,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
     const newformErrors = {};
     Object.keys(formState).forEach((key) => {
-      if (key === "educationQualification" || key === "opTimings") {
+      if (key === "educationQualification" || key === "opTimings" || key === "languagesKnown" || key === "servicesOffered") {
         newformErrors[key] = formState[key].map((val, _i) =>
           validateField(key, val)
         );
@@ -285,7 +287,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
     if (isValid) {
       try {
-        // Prepare data for API (remove profilePhoto if it's a File object)
+        // Prepare data for API (remove profilePicture if it's a File object)
         const formattedName = formState.fullName.startsWith("Dr. ")
           ? formState.fullName
           : `Dr. ${formState.fullName}`;
@@ -300,44 +302,42 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
             (spec) => spec.specialityName === submitData.speciality
           );
           if (selectedSpeciality) {
-            // For update API, use array of IDs; for create API, use object format
-            if (isEditMode) {
-              submitData.speciality = [selectedSpeciality.specialityID];
-              console.log(
-                "Update mode - speciality formatted as array:",
-                submitData.speciality
-              );
-            } else {
-              submitData.speciality = {
-                [selectedSpeciality.specialityID.toString()]:
-                  selectedSpeciality.specialityName,
-              };
-              console.log(
-                "Create mode - speciality formatted as object:",
-                submitData.speciality
-              );
-            }
+            // Always use array format for both create and update APIs
+            submitData.speciality = [selectedSpeciality.specialityID];
+            console.log(
+              "Speciality formatted as array:",
+              submitData.speciality
+            );
           }
         }
 
-        // Format department data
-        if (submitData.departmentName) {
-          // Find the department object that matches the selected department name
-          const selectedDepartment = departments.find(
-            (dept) => dept.departmentName === submitData.departmentName
-          );
-          if (selectedDepartment) {
-            submitData.departmentID = selectedDepartment.departmentID;
-          }
+        // Format department data - departmentID is already set from the form
+        if (submitData.departmentID) {
+          // Keep the departmentID as is since it's already selected from dropdown
+          delete submitData.departmentName; // Remove the old field
         }
 
-        if (submitData.profilePhoto instanceof File) {
-          delete submitData.profilePhoto; // Remove file object for now
+        if (submitData.profilePicture instanceof File) {
+          delete submitData.profilePicture; // Remove file object for now
+        }
+
+        // Filter out empty array items
+        if (submitData.languagesKnown) {
+          submitData.languagesKnown = submitData.languagesKnown.filter(lang => lang.trim() !== "");
+        }
+        if (submitData.servicesOffered) {
+          submitData.servicesOffered = submitData.servicesOffered.filter(service => service.trim() !== "");
+        }
+        if (submitData.educationQualification) {
+          submitData.educationQualification = submitData.educationQualification.filter(edu => edu.trim() !== "");
+        }
+        if (submitData.opTimings) {
+          submitData.opTimings = submitData.opTimings.filter(timing => timing.trim() !== "");
         }
 
         if (isEditMode && initialData?.doctorID) {
           // Update existing doctor
-          console.log("submitdata", submitData);
+          console.log("Submitting doctor data:", submitData);
           const response = await updateDoctor(initialData.doctorID, submitData);
           console.log("Doctor updated successfully", response);
           toasterConfig("success", "Doctor updated successfully");
@@ -511,11 +511,11 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       </Label>
                       <Input
                         type="select"
-                        name="departmentName"
+                        name="departmentID"
                         id="department"
                         className="form-control digits"
-                        invalid={!!formErrors.departmentName}
-                        value={formState.departmentName}
+                        invalid={!!formErrors.departmentID}
+                        value={formState.departmentID}
                         onChange={handleChange}
                         disabled={isLoadingData}
                       >
@@ -527,13 +527,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         {departments.map((department) => (
                           <option
                             key={department._id}
-                            value={department.departmentName}
+                            value={department.departmentID}
                           >
                             {department.departmentName}
                           </option>
                         ))}
                       </Input>
-                      <ValidationAlert error={formErrors.department} />
+                      <ValidationAlert error={formErrors.departmentID} />
                     </Col>
                     <Col md="4" className="mb-3">
                       <Label>Designation</Label>
@@ -625,15 +625,74 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       <Label className="form-label" for="languagesKnown">
                         Languages Known
                       </Label>
-                      <Input
-                        type="text"
-                        name="languagesKnown"
-                        value={formState.languagesKnown}
-                        onChange={handleChange}
-                        placeholder="Enter languages spoken"
-                        invalid={!!formErrors.languagesKnown}
-                      />
-                      <ValidationAlert error={formErrors.languagesKnown} />
+                      {formState.languagesKnown.map((field, index) => (
+                        <Fragment key={index}>
+                          <div className="d-flex align-items-center mb-2">
+                            <Input
+                              className={`form-control${
+                                formErrors.languagesKnown[index]
+                                  ? " is-invalid"
+                                  : ""
+                              }`}
+                              type="text"
+                              placeholder={
+                                "Enter Language " +
+                                Number(index + 1)
+                              }
+                              name={`languagesKnown${index}`}
+                              value={field}
+                              onChange={(e) =>
+                                handleArrayChange(
+                                  "languagesKnown",
+                                  index,
+                                  e.target.value
+                                )
+                              }
+                              invalid={
+                                !!formErrors.languagesKnown[index]
+                              }
+                            />
+                            &nbsp;&nbsp;
+                            <span
+                              style={{
+                                cursor: "pointer",
+                                color: index === 0 ? "green" : "red",
+                              }}
+                              onClick={
+                                index === 0
+                                  ? () => {
+                                      addArrayField("languagesKnown");
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        languagesKnown: [
+                                          ...(prev.languagesKnown ||
+                                            []),
+                                          "",
+                                        ],
+                                      }));
+                                    }
+                                  : () => {
+                                      removeArrayField(
+                                        "languagesKnown",
+                                        index
+                                      );
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        languagesKnown: (
+                                          prev.languagesKnown || []
+                                        ).filter((_, i) => i !== index),
+                                      }));
+                                    }
+                              }
+                            >
+                              {index === 0 ? <PlusSquare /> : <MinusSquare />}
+                            </span>
+                          </div>
+                          <ValidationAlert
+                            error={formErrors.languagesKnown[index]}
+                          />
+                        </Fragment>
+                      ))}
                     </Col>
                     <Col md="12 mb-3">
                       <Label className="form-label" for="expertise">
@@ -660,15 +719,74 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       <Label className="form-label" for="servicesOffered">
                         Services Offered
                       </Label>
-                      <Input
-                        type="text"
-                        name="servicesOffered"
-                        value={formState.servicesOffered}
-                        onChange={handleChange}
-                        placeholder="Enter services"
-                        invalid={!!formErrors.servicesOffered}
-                      />
-                      <ValidationAlert error={formErrors.servicesOffered} />
+                      {formState.servicesOffered.map((field, index) => (
+                        <Fragment key={index}>
+                          <div className="d-flex align-items-center mb-2">
+                            <Input
+                              className={`form-control${
+                                formErrors.servicesOffered[index]
+                                  ? " is-invalid"
+                                  : ""
+                              }`}
+                              type="text"
+                              placeholder={
+                                "Enter Service " +
+                                Number(index + 1)
+                              }
+                              name={`servicesOffered${index}`}
+                              value={field}
+                              onChange={(e) =>
+                                handleArrayChange(
+                                  "servicesOffered",
+                                  index,
+                                  e.target.value
+                                )
+                              }
+                              invalid={
+                                !!formErrors.servicesOffered[index]
+                              }
+                            />
+                            &nbsp;&nbsp;
+                            <span
+                              style={{
+                                cursor: "pointer",
+                                color: index === 0 ? "green" : "red",
+                              }}
+                              onClick={
+                                index === 0
+                                  ? () => {
+                                      addArrayField("servicesOffered");
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        servicesOffered: [
+                                          ...(prev.servicesOffered ||
+                                            []),
+                                          "",
+                                        ],
+                                      }));
+                                    }
+                                  : () => {
+                                      removeArrayField(
+                                        "servicesOffered",
+                                        index
+                                      );
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        servicesOffered: (
+                                          prev.servicesOffered || []
+                                        ).filter((_, i) => i !== index),
+                                      }));
+                                    }
+                              }
+                            >
+                              {index === 0 ? <PlusSquare /> : <MinusSquare />}
+                            </span>
+                          </div>
+                          <ValidationAlert
+                            error={formErrors.servicesOffered[index]}
+                          />
+                        </Fragment>
+                      ))}
                     </Col>
                     <Col md="6 mb-3">
                       <Label className="form-label" for="consultingLocation">
@@ -894,28 +1012,28 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       ))}
                     </Col>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="profilePhoto">
+                      <Label className="form-label" for="profilePicture">
                         Profile Photo
                       </Label>
                       <Input
                         type="file"
-                        name="profilePhoto"
-                        id="profilePhoto"
+                        name="profilePicture"
+                        id="profilePicture"
                         onChange={handleChange}
                         placeholder="Enter profile photo"
-                        invalid={!!formErrors.profilePhoto}
+                        invalid={!!formErrors.profilePicture}
                       />
-                      <ValidationAlert error={formErrors.profilePhoto} />
+                      <ValidationAlert error={formErrors.profilePicture} />
                     </Col>
-                    {formState.profilePhoto && (
+                    {formState.profilePicture && (
                       <Col md="4 mb-3">
                         <Card className="shadow-lg p-4">
-                          <Label className="form-label" for="profilePhoto">
+                          <Label className="form-label" for="profilePicture">
                             <h6>Preview</h6>
                           </Label>
                           <div className="text-center">
                             <img
-                              src={URL.createObjectURL(formState.profilePhoto)}
+                              src={URL.createObjectURL(formState.profilePicture)}
                               alt="Profile Preview"
                               style={{ width: "50%", height: "auto" }}
                               className="rounded-3"
