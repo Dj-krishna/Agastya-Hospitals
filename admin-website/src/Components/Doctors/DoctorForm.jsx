@@ -267,8 +267,8 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
       } else if (
         key === "expertise" ||
         key === "awardsAndAchievements" ||
-        key === "researchAndPublications"
-        //key === "experienceDescription"
+        key === "researchAndPublications" ||
+        key === "experienceDescription"
       ) {
         newformErrors[key] = validateQuillField(key, formState[key]);
       } else {
@@ -766,7 +766,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                       <HTMLTextEditor
                         name="experienceDescription"
                         state={formState.experienceDescription}
-                        onChange={(value) =>
+                        handleChange={(value) =>
                           handleQuillChange("experienceDescription", value)
                         }
                         placeholder="Enter experience description"

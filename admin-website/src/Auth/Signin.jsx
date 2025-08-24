@@ -31,36 +31,44 @@ const Signin = ({ selected }) => {
     (state) => state.auth
   );
 
-  const [value, setValue] = useState(localStorage.getItem("profileURL" || man));
-  const [name, setName] = useState(localStorage.getItem("Name"));
+  const toasterConfig = (type, message) => {
+    toast[type](message, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: false,
+      progress: undefined,
+      theme: "light",
+    });
+  };
 
-  // useEffect(() => {
-  //   localStorage.setItem("profileURL", man);
-  //   localStorage.setItem("Name", "Emay Walter");
-  // }, [value, name]);
-
-  // Handle authentication success
   useEffect(() => {
     if (isAuthenticated) {
+      toasterConfig("success", "Successfully logged in!..");
       localStorage.setItem("login", JSON.stringify(true));
       history(`/dashboard`);
-      toast.success("Successfully logged in!..");
     }
   }, [isAuthenticated, history]);
 
   // Handle authentication error with SweetAlert
   useEffect(() => {
     if (error) {
-      Swal.fire({
-        title: "Login Failed!",
-        text: "Please check the email address or password and try again!",
-        icon: "error",
-        confirmButtonColor: "#3085d6",
-        confirmButtonText: "OK",
-        customClass: {
-          confirmButton: "btn btn-primary",
-        },
-      });
+      // Swal.fire({
+      //   title: "Login Failed!",
+      //   text: "Please check the email address or password and try again!",
+      //   icon: "error",
+      //   confirmButtonColor: "#3085d6",
+      //   confirmButtonText: "OK",
+      //   customClass: {
+      //     confirmButton: "btn btn-primary",
+      //   },
+      // });
+      // toasterConfig(
+      //   "error",
+      //   "Please check the email address or password and try again!"
+      // );
       dispatch(clearError());
     }
   }, [error, dispatch]);
@@ -77,6 +85,10 @@ const Signin = ({ selected }) => {
     // If login failed, the error will be handled by the useEffect above
     if (loginAsync.rejected.match(result)) {
       // Error is already handled in useEffect with SweetAlert
+      toasterConfig(
+        "error",
+        "Please check the email address or password and try again!"
+      );
       return;
     }
   };
