@@ -59,7 +59,7 @@ const Dashboard = () => {
               cancelledAppointments={cancelledAppointments}
             />
             {isLoading ? (
-              <TableSkeleton columns={6} rows={appointments.length} />
+              <TableSkeleton columns={6} rows={5} />
             ) : (
               <AppointmentsTable
                 appointments={appointments}

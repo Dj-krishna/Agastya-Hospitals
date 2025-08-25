@@ -7,14 +7,15 @@ import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
 import PatientForm from "./PatientForm";
 import PatientDetails from "./PatientDetails";
 import { fetchPatients } from "../../slices/patientSlice";
-import Loader from "../Common/Component/Loader";
 import TableSkeleton from "../Common/Component/TableSkeleton";
+import axios from "axios";
+import { UPDATE_PATIENT } from "../../api";
+import { toasterConfig } from "../../utils";
+import Swal from "sweetalert2";
 
 const Patients = () => {
   const [showPatientsForm, setShowPatientsForm] = useState(false);
-  const [editingPatient, setEditingPatient] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [formType, setFormType] = useState("Create");
   const [viewPatientDetails, setViewPatientDetails] = useState(false);
   const [patientData, setPatientData] = useState(null);
 
@@ -32,9 +33,48 @@ const Patients = () => {
     setViewPatientDetails(!viewPatientDetails);
   };
 
+  const openPatientForm = (formType, data) => {
+    setFormType(formType);
+    if (formType === "Edit") {
+      setPatientData(data);
+    }
+    setShowPatientsForm(!showPatientsForm);
+  };
+
   useEffect(() => {
     dispatch(fetchPatients());
   }, [dispatch]);
+
+  const deletePatient = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this patient?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#fc4438",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(
+            `${UPDATE_PATIENT}?patientID=${id}`
+          );
+          if (response) {
+            toasterConfig(
+              "success",
+              response.data?.message || "Deleted successfully"
+            );
+            dispatch(fetchPatients()); // Refresh the list
+          } else {
+            toasterConfig("error", "Something went wrong");
+          }
+        } catch (error) {
+          toasterConfig("error", "Something went wrong");
+        }
+      }
+    });
+  };
 
   return (
     <>
@@ -47,7 +87,7 @@ const Patients = () => {
               onClick={
                 viewPatientDetails
                   ? () => setViewPatientDetails(false)
-                  : () => setShowPatientsForm(true)
+                  : () => openPatientForm("Create")
               }
               btnColor={viewPatientDetails ? "secondary" : "primary"}
             />
@@ -75,7 +115,10 @@ const Patients = () => {
                               <td>{data.mobile}</td>
                               <td>{data.email}</td>
                               <td>
-                                <FaPencilAlt color="#7366ff" />
+                                <FaPencilAlt
+                                  color="#7366ff"
+                                  onClick={() => openPatientForm("Edit", data)}
+                                />
                                 &nbsp;&nbsp;
                                 <span className="text-muted">|</span>
                                 &nbsp;&nbsp;
@@ -91,7 +134,10 @@ const Patients = () => {
                                 &nbsp;&nbsp;
                                 <span className="text-muted">|</span>
                                 &nbsp;&nbsp;
-                                <FaTrashAlt color="#fc4438" />
+                                <FaTrashAlt
+                                  color="#fc4438"
+                                  onClick={() => deletePatient(data.patientID)}
+                                />
                               </td>
                             </tr>
                           ))}
@@ -108,8 +154,8 @@ const Patients = () => {
         ) : (
           <PatientForm
             onClose={() => setShowPatientsForm(false)}
-            initialData={editingPatient}
-            isEditMode={isEditMode}
+            patientData={patientData}
+            formType={formType}
           />
         )}
       </Fragment>

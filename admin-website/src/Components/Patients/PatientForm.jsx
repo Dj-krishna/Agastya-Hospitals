@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Breadcrumbs } from "../../AbstractElements";
 import {
   Button,
@@ -15,13 +15,17 @@ import {
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import { FaCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
+import axios from "axios";
+import { format } from "date-fns";
+import { toasterConfig } from "../../utils";
+import { PATIENT_API, UPDATE_PATIENT } from "../../api";
 
 const initialFormData = {
   fullName: "",
-  emailId: "",
-  phoneNumber: "",
+  email: "",
+  mobile: "",
   address: "",
-  dateOfBirth: new Date(),
+  dob: new Date(),
   bloodGroup: "",
   altPhoneNumber: "",
   uhid: "",
@@ -31,10 +35,10 @@ const initialFormData = {
 };
 const initialFormErrors = {
   fullName: "",
-  emailId: "",
-  phoneNumber: "",
+  email: "",
+  mobile: "",
   address: "",
-  dateOfBirth: "",
+  dob: "",
   bloodGroup: "",
   altPhoneNumber: "",
   uhid: "",
@@ -42,10 +46,19 @@ const initialFormErrors = {
   pastHistory: "",
   gender: "",
 };
-const PatientForm = ({ onClose, isEditMode }) => {
+const PatientForm = ({ onClose, formType, patientData }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    setFormData({
+      ...formData,
+      ...patientData,
+      uhid: patientData.patientID,
+      dob: new Date(patientData.dob),
+    });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -53,46 +66,15 @@ const PatientForm = ({ onClose, isEditMode }) => {
     setFormErrors({ ...formErrors, [name]: "" }); // Clear error on change
   };
 
-  const handleSubmit = (e, data) => {
-    e.preventDefault();
-    setIsSubmitted(true);
-    let isValid = true;
-    const errors = {};
-    Object.keys(formData).forEach((field) => {
-      const errorMsg = validateField(field, formData[field]);
-      if (errorMsg) {
-        errors[field] = errorMsg;
-        isValid = false;
-      }
-    });
-    if (formData.dateOfBirth) {
-      const dobError = validateField("dateOfBirth", formData.dateOfBirth);
-      if (dobError) {
-        errors.dateOfBirth = dobError;
-        isValid = false;
-      }
-    }
-    setIsSubmitted(false);
-    // Set form errors state
-    setFormErrors(errors);
-    if (isValid) {
-      console.log("Form submitted successfully with data:", data);
-      setIsSubmitted(false);
-      // Here you can handle the form submission, e.g., send data to an API
-    } else {
-      console.error("Form validation failed:", errors);
-    }
-  };
-
   const validateField = (fieldName, value) => {
     switch (fieldName) {
       case "fullName":
         return value ? "" : "Full Name is required";
-      case "phoneNumber":
+      case "mobile":
         return value ? "" : "Phone Number is required";
       case "address":
         return value ? "" : "Address is required";
-      case "dateOfBirth":
+      case "dob":
         return value ? "" : "Date of Birth is required";
       case "bloodGroup":
         return value ? "" : "Blood Group is required";
@@ -117,17 +99,98 @@ const PatientForm = ({ onClose, isEditMode }) => {
     }
   };
 
-  const onSubmit = (e, formState) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form submitted with data:", formState);
-    onClose(); // Close the form after submission
+    setIsSubmitted(true);
+    let isValid = true;
+    const errors = {};
+    Object.keys(formData).forEach((field) => {
+      const errorMsg = validateField(field, formData[field]);
+      if (errorMsg) {
+        errors[field] = errorMsg;
+        isValid = false;
+      }
+    });
+    if (formData.dob) {
+      const dobError = validateField("dob", formData.dob);
+      if (dobError) {
+        errors.dob = dobError;
+        isValid = false;
+      }
+    }
+    setFormErrors(errors);
+    if (!isValid) {
+      return;
+    }
+    var response = {};
+    var message = "";
+    try {
+      if (formType === "Edit") {
+        response = await axios.post(UPDATE_PATIENT, formData);
+        message = "Updated the patient details";
+      } else {
+        response = await axios.put(
+          `${UPDATE_PATIENT}?patientID=${formData.patientID}`,
+          formData
+        );
+        message = "Created the patient successfully";
+      }
+      if (response) {
+        toasterConfig("success", message);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toasterConfig("error", "Something went wrong!");
+    }
   };
+
+  // const onSubmit = async (e, formState) => {
+  //   e.preventDefault();
+  //   setIsSubmitted(true);
+  //   let isValid = true;
+  //   const errors = {};
+  //   Object.keys(formData).forEach((field) => {
+  //     const errorMsg = validateField(field, formData[field]);
+  //     if (errorMsg) {
+  //       errors[field] = errorMsg;
+  //       isValid = false;
+  //     }
+  //   });
+  //   if (formData.dob) {
+  //     const dobError = validateField("dob", formData.dob);
+  //     if (dobError) {
+  //       errors.dob = dobError;
+  //       isValid = false;
+  //     }
+  //   }
+  //   setFormErrors(errors);
+  //   if (!isValid) {
+  //     return;
+  //   }
+
+  //   try {
+  //     if (formType === "Edit") {
+  //       await axios.post(
+  //         "https://agastya-hospitals-0bfo.onrender.com/api/patients",
+  //         formData
+  //       );
+  //     } else {
+  //       await axios.put(
+  //         `https://agastya-hospitals-0bfo.onrender.com/api/patients?patientID=${formData.patientID}`,
+  //         formData
+  //       );
+  //     }
+  //     onClose();
+  //   } catch (error) {
+  //     console.error("Error submitting form:", error);
+  //   }
+  // };
 
   return (
     <>
       <Breadcrumbs
-        mainTitle={isEditMode ? "Edit Patient" : "Add Patient"}
+        mainTitle={formType === "Edit" ? "Edit Patient" : "Add Patient"}
         buttonTitle={"Cancel"}
         btnColor={"secondary"}
         onClick={onClose}
@@ -140,7 +203,7 @@ const PatientForm = ({ onClose, isEditMode }) => {
                 <Form
                   className="needs-validation"
                   noValidate=""
-                  onSubmit={(e) => handleSubmit(e, formData)}
+                  onSubmit={handleSubmit}
                 >
                   <Row>
                     <Col md="4 mb-3">
@@ -198,15 +261,13 @@ const PatientForm = ({ onClose, isEditMode }) => {
                       <ValidationAlert error={formErrors.gender} />
                     </Col>
                     <Col md={4} className="">
-                      <Label for="dateOfBirth">Date of Birth</Label>
+                      <Label for="dob">Date of Birth</Label>
 
                       <InputGroup>
                         <DatePicker
                           className="form-control datetimepicker-input digits"
-                          selected={formData.dateOfBirth}
-                          onChange={(date) =>
-                            handleDateChange("dateOfBirth", date)
-                          }
+                          selected={formData.dob}
+                          onChange={(date) => handleDateChange("dob", date)}
                           dateFormat="dd/MM/yyyy"
                         />
                         <div
@@ -218,7 +279,7 @@ const PatientForm = ({ onClose, isEditMode }) => {
                         </div>
                       </InputGroup>
 
-                      <ValidationAlert error={formErrors.dateOfBirth} />
+                      <ValidationAlert error={formErrors.dob} />
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" htmlFor="bloodGroup">
@@ -236,19 +297,19 @@ const PatientForm = ({ onClose, isEditMode }) => {
                       <ValidationAlert error={formErrors.bloodGroup} />
                     </Col>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="phoneNumber">
+                      <Label className="form-label" for="mobile">
                         Phone Number
                       </Label>
                       <Input
                         type="text"
-                        name="phoneNumber"
-                        id="phoneNumber"
-                        value={formData.phoneNumber}
+                        name="mobile"
+                        id="mobile"
+                        value={formData.mobile}
                         onChange={handleChange}
                         placeholder="Enter phone number"
-                        invalid={!!formErrors.phoneNumber}
+                        invalid={!!formErrors.mobile}
                       />
-                      <ValidationAlert error={formErrors.phoneNumber} />
+                      <ValidationAlert error={formErrors.mobile} />
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="altPhoneNumber">
@@ -264,14 +325,14 @@ const PatientForm = ({ onClose, isEditMode }) => {
                       />
                     </Col>
                     <Col md="4 mb-3">
-                      <Label className="form-label" for="emailId">
+                      <Label className="form-label" for="email">
                         Email Address (Optional)
                       </Label>
                       <Input
                         type="email"
-                        name="emailId"
-                        id="emailId"
-                        value={formData.emailId}
+                        name="email"
+                        id="email"
+                        value={formData.email}
                         onChange={handleChange}
                         placeholder="Enter email address"
                       />
