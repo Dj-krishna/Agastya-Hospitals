@@ -371,14 +371,12 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
         // If new patient, include patient details
         if (!patientExists) {
-          appointmentData.patient = {
-            fullName: formState.fullName,
-            email: formState.email,
-            dob: formState.dob,
-            gender: formState.gender,
-            address: formState.address,
-            countryCode: formState.countryCode
-          };
+          appointmentData.fullName= formState.fullName;
+          appointmentData.email= formState.email;
+          appointmentData.dob= formState.dob;
+          appointmentData.gender= formState.gender;
+          appointmentData.address= formState.address;
+          appointmentData.countryCode= formState.countryCode
         }
 
         const response = await axios.post(APPOINTMENTS_API, appointmentData);
