@@ -5,7 +5,6 @@ const DoctorSlot = require("../models/DoctorSlots");
 const getNextSequence = require("../utils/getNextSequence");
 const { manualUpdateExpiredAppointments } = require("../utils/appointmentStatusUpdater");
 
-
 // Normalize date to start or end of day (UTC-safe)
 const normalizeDate = (d, end = false) => {
   const dt = new Date(d);
@@ -20,32 +19,22 @@ const buildAppointmentFilter = (query) => {
   if (query.doctorID) filter.doctorID = Number(query.doctorID);
   if (query.patientID) filter.patientID = Number(query.patientID);
 
-  // --- Date range (fromDate / toDate) ---
   if (query.fromDate || query.toDate) {
     const from = query.fromDate ? normalizeDate(query.fromDate) : null;
     const to = query.toDate ? normalizeDate(query.toDate, true) : null;
-
     if (from || to) {
       filter.date = {};
       if (from) filter.date.$gte = from;
       if (to) filter.date.$lte = to;
     }
-  }
-
-  // --- Single date (full day) ---
-  else if (query.date) {
+  } else if (query.date) {
     const start = normalizeDate(query.date);
     const end = normalizeDate(query.date, true);
-
-    if (start && end) {
-      filter.date = { $gte: start, $lte: end };
-    }
+    if (start && end) filter.date = { $gte: start, $lte: end };
   }
 
   return filter;
 };
-
-
 
 // utils/timeUtils.js
 function addMinutesToTime(timeStr, minutes) {
@@ -53,17 +42,12 @@ function addMinutesToTime(timeStr, minutes) {
   const date = new Date();
   date.setHours(h, m, 0, 0);
   date.setMinutes(date.getMinutes() + minutes);
-  return date.toISOString().substring(11, 16); // HH:mm
+  return date.toISOString().substring(11, 16);
 }
 
-
-
 // ------------------ GET ------------------
-
-// Get all appointments with optional filters (joined with doctor/patient names)
 exports.getAppointments = async (req, res) => {
   try {
-    // Auto-update expired appointments when fetching active/booked ones
     if (!req.query.status || req.query.status === "booked") {
       await Appointment.updateExpiredAppointments();
     }
@@ -92,20 +76,25 @@ exports.getAppointments = async (req, res) => {
       { $unwind: { path: "$patient", preserveNullAndEmptyArrays: true } },
       {
         $addFields: {
-          doctorName: "$doctor.fullName",
-          patientName: "$patient.fullName",
+          doctorName: { $ifNull: ["$doctor.fullName", null] },
+          patientName: { $ifNull: ["$patient.fullName", null] },
           patientContact: {
-            email: "$patient.email",
-            mobile: "$patient.mobile",
-            countryCode: "$patient.countryCode",
-            fullMobile: { $concat: ["$patient.countryCode", "$patient.mobile"] }
+            email: { $ifNull: ["$patient.email", null] },
+            mobile: { $ifNull: ["$patient.mobile", null] },
+            countryCode: { $ifNull: ["$patient.countryCode", null] },
+            fullMobile: {
+              $cond: [
+                { $and: ["$patient.countryCode", "$patient.mobile"] },
+                { $concat: ["$patient.countryCode", "$patient.mobile"] },
+                "$patient.mobile"
+              ]
+            }
           }
         }
       },
       { $project: { doctor: 0, patient: 0 } }
     ];
 
-    // Sorting
     if (req.query.sortBy) {
       const sortOrder = req.query.sortOrder === "desc" ? -1 : 1;
       pipeline.push({ $sort: { [req.query.sortBy]: sortOrder } });
@@ -115,7 +104,6 @@ exports.getAppointments = async (req, res) => {
 
     const appointments = await Appointment.aggregate(pipeline);
 
-    // If appointmentID passed, return single
     if (req.query.appointmentID) {
       return appointments.length
         ? res.status(200).json(appointments[0])
@@ -132,8 +120,6 @@ exports.getAppointments = async (req, res) => {
 };
 
 // ------------------ SPECIAL GET ------------------
-
-// Get available slots for a doctor on a specific date
 exports.getAvailableSlots = async (req, res) => {
   try {
     const doctorID = Number(req.query.doctorID);
@@ -144,23 +130,17 @@ exports.getAvailableSlots = async (req, res) => {
     }
 
     const doctorSlots = await DoctorSlot.findOne({ doctorID, isActive: true });
-    if (!doctorSlots) {
-      return res.status(404).json({ message: "No slots found for doctor" });
-    }
+    if (!doctorSlots) return res.status(404).json({ message: "No slots found for doctor" });
 
     const scheduleRange = doctorSlots.schedule.find(
       r => date >= normalizeDate(r.fromDate) && date <= normalizeDate(r.toDate, true)
     );
-    if (!scheduleRange) {
-      return res.status(404).json({ message: "No schedule for this date" });
-    }
+    if (!scheduleRange) return res.status(404).json({ message: "No schedule for this date" });
 
     const daySchedule = scheduleRange.eachSchedule.find(
       d => normalizeDate(d.date).getTime() === date.getTime()
     );
-    if (!daySchedule) {
-      return res.status(404).json({ message: "No slots for this day" });
-    }
+    if (!daySchedule) return res.status(404).json({ message: "No slots for this day" });
 
     const allSlots = [...daySchedule.morningSlot, ...daySchedule.eveningSlot];
 
@@ -190,23 +170,11 @@ exports.getAvailableSlots = async (req, res) => {
 };
 
 // ------------------ POST ------------------
-
-
 exports.addAppointment = async (req, res) => {
   try {
     const {
-      doctorID,
-      date,
-      startTime,
-      endTime,
-      mobile,
-      email,
-      fullName,
-      dob,
-      gender,
-      address,
-      countryCode,
-      packageIDs
+      doctorID, date, startTime, endTime,
+      mobile, email, fullName, dob, gender, address, countryCode, packageIDs
     } = req.body;
 
     if (!doctorID || !date || !startTime || !mobile) {
@@ -214,11 +182,8 @@ exports.addAppointment = async (req, res) => {
     }
 
     const normalizedDate = normalizeDate(date);
-
-    // 1️⃣ Find patient by mobile
     let patient = await Patient.findOne({ mobile });
 
-    // 2️⃣ If patient not found, create new one (requires extra fields)
     if (!patient) {
       if (!fullName || !dob || !gender || !email || !address || !countryCode) {
         return res.status(400).json({
@@ -228,21 +193,13 @@ exports.addAppointment = async (req, res) => {
 
       const patientID = await getNextSequence("patientID");
       patient = new Patient({
-        patientID,
-        fullName,
-        dob,
-        gender,
-        email,
-        address,
-        countryCode,
-        mobile,
-        doctorID, // Optional: can link patient to doctor who registered
+        patientID, fullName, dob, gender, email, address,
+        countryCode, mobile, doctorID,
         packageIDs: Array.isArray(packageIDs) ? packageIDs : []
       });
       await patient.save();
     }
 
-    // 3️⃣ Calculate endTime if missing
     let finalEndTime = endTime;
     if (!finalEndTime) {
       const doctorSlots = await DoctorSlot.findOne({ doctorID, isActive: true });
@@ -251,7 +208,6 @@ exports.addAppointment = async (req, res) => {
       finalEndTime = addMinutesToTime(startTime, interval);
     }
 
-    // 4️⃣ Prevent double booking
     const existing = await Appointment.findOne({
       doctorID,
       date: normalizedDate,
@@ -261,7 +217,6 @@ exports.addAppointment = async (req, res) => {
     });
     if (existing) return res.status(400).json({ error: "Slot already booked" });
 
-    // 5️⃣ Create appointment
     const appointmentID = await getNextSequence("appointmentID");
     const appointment = new Appointment({
       appointmentID,
@@ -277,10 +232,8 @@ exports.addAppointment = async (req, res) => {
     });
     await appointment.save();
 
-    // Fetch doctor info (optional)
     const doctor = await Doctor.findOne({ doctorID }, { fullName: 1 });
 
-    // 6️⃣ Return response with patient and appointment info
     res.status(201).json({
       message: "Appointment booked successfully",
       patient: {
@@ -306,17 +259,11 @@ exports.addAppointment = async (req, res) => {
   }
 };
 
-
-
-
 // ------------------ PUT ------------------
-
 exports.updateAppointment = async (req, res) => {
   try {
     const appointmentID = Number(req.params.id);
-    if (isNaN(appointmentID)) {
-      return res.status(400).json({ error: "Invalid appointmentID" });
-    }
+    if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
     const updated = await Appointment.findOneAndUpdate(
       { appointmentID },
@@ -324,9 +271,7 @@ exports.updateAppointment = async (req, res) => {
       { new: true }
     );
 
-    if (!updated) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+    if (!updated) return res.status(404).json({ message: "Appointment not found" });
 
     res.json({
       message: "Appointment updated successfully",
@@ -338,89 +283,56 @@ exports.updateAppointment = async (req, res) => {
 };
 
 // ------------------ DELETE ------------------
-
 exports.deleteAppointments = async (req, res) => {
   try {
     let filter = {};
 
-    // Bulk by :ids param
     if (req.params.ids) {
-      const ids = req.params.ids
-        .split(",")
-        .map(id => Number(id.trim()))
-        .filter(id => !isNaN(id));
-      if (!ids.length) {
-        return res.status(400).json({ error: "No valid IDs provided" });
-      }
+      const ids = req.params.ids.split(",").map(id => Number(id.trim())).filter(id => !isNaN(id));
+      if (!ids.length) return res.status(400).json({ error: "No valid IDs provided" });
       filter = { appointmentID: { $in: ids } };
-    }
-    // By query param(s)
-    else if (req.query.appointmentID) {
+    } else if (req.query.appointmentID) {
       const ids = req.query.appointmentID.split(",").map(id => Number(id.trim()));
       filter = ids.length > 1 ? { appointmentID: { $in: ids } } : { appointmentID: ids[0] };
-    }
-    // By other query filters
-    else if (Object.keys(req.query).length > 0) {
+    } else if (Object.keys(req.query).length > 0) {
       filter = buildAppointmentFilter(req.query);
-    }
-    // By body filter
-    else if (req.body.filter) {
-      if (typeof req.body.filter !== "object") {
-        return res.status(400).json({ error: "Provide valid filter" });
-      }
+    } else if (req.body.filter) {
+      if (typeof req.body.filter !== "object") return res.status(400).json({ error: "Provide valid filter" });
       filter = req.body.filter;
     } else {
-      return res
-        .status(400)
-        .json({ error: "No filter provided. Use query params, body filter, or /bulk/:ids" });
+      return res.status(400).json({ error: "No filter provided" });
     }
 
     const toDelete = await Appointment.find(filter);
-    if (!toDelete.length) {
-      return res.status(404).json({ message: "No appointments found matching the criteria" });
-    }
+    if (!toDelete.length) return res.status(404).json({ message: "No appointments found matching criteria" });
 
     const result = await Appointment.deleteMany(filter);
 
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "No appointments were deleted" });
-    }
+    if (result.deletedCount === 0) return res.status(404).json({ message: "No appointments were deleted" });
 
-    // Single delete response
-    if (
-      (req.query.appointmentID && !String(req.query.appointmentID).includes(",")) ||
-      (req.params.ids && req.params.ids.split(",").length === 1)
-    ) {
-      res.json({ message: "Appointment deleted", appointment: toDelete[0] });
-    } else {
-      res.json({
-        message: "Appointments deleted",
-        deletedCount: result.deletedCount,
-        deletedAppointments: toDelete
-      });
-    }
+    res.json({
+      message: toDelete.length === 1 ? "Appointment deleted" : "Appointments deleted",
+      deletedCount: result.deletedCount,
+      deletedAppointments: toDelete
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ------------------ SPECIAL ------------------
-
 exports.cancelAppointment = async (req, res) => {
   try {
     const appointmentID = Number(req.params.id);
-    if (isNaN(appointmentID)) {
-      return res.status(400).json({ error: "Invalid appointmentID" });
-    }
+    if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
     const cancelled = await Appointment.findOneAndUpdate(
       { appointmentID },
       { status: "cancelled" },
       { new: true }
     );
-    if (!cancelled) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+
+    if (!cancelled) return res.status(404).json({ message: "Appointment not found" });
 
     res.json({ message: "Appointment cancelled", appointment: cancelled });
   } catch (err) {
@@ -431,18 +343,15 @@ exports.cancelAppointment = async (req, res) => {
 exports.completeAppointment = async (req, res) => {
   try {
     const appointmentID = Number(req.params.id);
-    if (isNaN(appointmentID)) {
-      return res.status(400).json({ error: "Invalid appointmentID" });
-    }
+    if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
     const completed = await Appointment.findOneAndUpdate(
       { appointmentID },
       { status: "completed" },
       { new: true }
     );
-    if (!completed) {
-      return res.status(404).json({ message: "Appointment not found" });
-    }
+
+    if (!completed) return res.status(404).json({ message: "Appointment not found" });
 
     res.json({ message: "Appointment marked completed", appointment: completed });
   } catch (err) {
