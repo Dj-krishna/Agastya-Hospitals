@@ -61,45 +61,62 @@ const validateSlotPayload = (slot) => {
 exports.getSlots = async (req, res) => {
   try {
     const { doctorID, date, fromDate, toDate } = req.query;
-    let slots = await DoctorSlot.find(buildSlotFilter({ doctorID }));
+
+    // Always fetch as plain objects
+    let slots = await DoctorSlot.find(buildSlotFilter({ doctorID })).lean();
+
     if (date || (fromDate && toDate)) {
       const start = date ? normalizeDate(date) : normalizeDate(fromDate);
       const end = date ? normalizeDate(date) : normalizeDate(toDate);
+
       slots = slots
         .map((slot) => {
           const filteredSchedule = slot.schedule
             .map((range) => {
               const rs = normalizeDate(range.fromDate),
                 re = normalizeDate(range.toDate);
-              const overlapStart = start > rs ? start : rs,
-                overlapEnd = end < re ? end : re;
+
+              const overlapStart = start > rs ? start : rs;
+              const overlapEnd = end < re ? end : re;
+
               const eachSchedule = getDateRange(overlapStart, overlapEnd).map(
                 (d) => {
                   const existing = range.eachSchedule.find(
                     (es) =>
-                      normalizeDate(es.date).toISOString() === d.toISOString()
+                      normalizeDate(es.date).toISOString() ===
+                      d.toISOString()
                   );
                   return existing
                     ? existing
                     : { date: d, morningSlot: [], eveningSlot: [] };
                 }
               );
-              return { ...range.toObject(), eachSchedule };
+
+              return { ...range, eachSchedule };
             })
             .filter((r) => r.eachSchedule.length > 0);
-          return { ...slot.toObject(), schedule: filteredSchedule };
+
+          return { ...slot, schedule: filteredSchedule };
         })
         .filter((s) => s.schedule.length > 0);
     }
+
     // Enrich with doctorName
     if (slots && slots.length) {
-      const doctorIDs = [...new Set(slots.map(s => s.doctorID))];
+      const doctorIDs = [...new Set(slots.map((s) => s.doctorID))];
       const doctors = await require('../models/Doctors').find(
         { doctorID: { $in: doctorIDs } },
         { doctorID: 1, fullName: 1, _id: 0 }
+      ).lean();
+
+      const doctorMap = new Map(
+        doctors.map((d) => [d.doctorID, d.fullName])
       );
-      const doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
-      slots = slots.map(s => ({ ...s.toObject(), doctorName: doctorMap.get(s.doctorID) }));
+
+      slots = slots.map((s) => ({
+        ...s,
+        doctorName: doctorMap.get(s.doctorID) || null,
+      }));
     }
 
     res.status(200).json(slots);
@@ -107,6 +124,7 @@ exports.getSlots = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // ------------------ GET AVAILABLE SLOTS ------------------
 exports.getAvailableSlots = async (req, res) => {
