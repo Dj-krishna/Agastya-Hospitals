@@ -48,14 +48,18 @@ exports.getPatients = async (req, res) => {
       : [];
     const packageMap = new Map(packages.map(pk => [pk.packageID, pk.packageName]));
 
-    const enriched = patients.map(p => ({
-      ...p.toObject(),
-      doctorName: doctorMap.get(p.doctorID),
-      packageNames: Array.isArray(p.packageIDs)
-        ? p.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
-        : []
-    }));
-
+    const enriched = patients.map(p => {
+      const obj = p.toObject();
+      return {
+        ...obj,
+        doctorName: doctorMap.get(p.doctorID),
+        packageNames: Array.isArray(p.packageIDs)
+          ? p.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
+          : [],
+        UHID: `AHA${p.patientID}`  // append AHA
+      };
+    });
+    
     // If filtering by patientID, return single object, otherwise return array
     if (req.query.patientID) {
       res.json(enriched[0]);
@@ -102,13 +106,11 @@ exports.verifyPatient = async (req, res) => {
   }
 };
 
-// ADD (single or bulk)
+// ADD (single or bulk) with UHID auto-generation
 exports.addPatient = async (req, res) => {
   try {
     const payload = req.body;
-
     const getNextPatientID = async () => await getNextSequence('patientID');
-
     const emailExists = async (email) => await Patient.exists({ email });
 
     // Single insert
@@ -116,9 +118,13 @@ exports.addPatient = async (req, res) => {
       if (await emailExists(payload.email)) {
         return res.status(409).json({ error: 'A patient with this email already exists.' });
       }
-      if (!payload.patientID) {
-        payload.patientID = await getNextPatientID();
-      }
+
+      // Generate patientID
+      if (!payload.patientID) payload.patientID = await getNextPatientID();
+
+      // Generate UHID based on patientID
+      payload.UHID = `AHA${payload.patientID}`;
+
       const newPatient = new Patient(payload);
       const saved = await newPatient.save();
       return res.status(201).json(saved);
@@ -141,9 +147,13 @@ exports.addPatient = async (req, res) => {
         errors.push({ email: doc.email, error: 'Duplicate email in request payload.' });
         continue;
       }
-      if (!doc.patientID) {
-        doc.patientID = await getNextPatientID();
-      }
+
+      // Generate patientID if missing
+      if (!doc.patientID) doc.patientID = await getNextPatientID();
+
+      // Generate UHID
+      doc.UHID = `AHA${doc.patientID}`;
+
       patientsToInsert.push(doc);
     }
 
@@ -163,6 +173,7 @@ exports.addPatient = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // PROFILE PICTURE UPLOAD
 exports.uploadPatientImage = async (req, res) => {
