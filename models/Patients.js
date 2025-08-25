@@ -1,15 +1,23 @@
 const mongoose = require('mongoose');
 
 const patientSchema = new mongoose.Schema({
+  UHID: { type: String, unique: true },
   patientID: { type: Number, required: true, unique: true },
   fullName: { type: String, required: true },
   dob: { type: Date, required: true },
   gender: { type: String, required: true },
   email: { type: String, required: true },
   countryCode: { type: String, required: true }, 
+  bloodGroup: { 
+    type: String,
+    enum: ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'], // only allow these values
+    required: false
+  },
   mobile: { type: String, required: true, unique: true},
+  altMobile: { type: String }, 
   address: { type: String, required: true },
   profilePicture: { type: String },
+  pastHistory: { type: String }, 
   transactions: [
     {
       date: { type: Date, required: true },
