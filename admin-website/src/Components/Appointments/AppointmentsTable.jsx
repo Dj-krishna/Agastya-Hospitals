@@ -1,11 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import TableComponent from "../Common/Component/TableComponent";
 import { Badges } from "../../AbstractElements";
 import { format } from "date-fns";
 
-const AppointmentsTable = ({ appointments, flowType }) => {
+const AppointmentsTable = ({ appointments, flowType, title }) => {
+  const [searchText, setSearchText] = useState("");
   console.log("AppointmentsTable appointments:", appointments);
-  const sortedAppointments = [...appointments].sort((a, b) => {
+  const filteredAppointments = appointments.filter((appointment) => {
+    const search = searchText.toLowerCase();
+    return (
+      appointment.patientName?.toLowerCase().includes(search) ||
+      appointment.doctorName?.toLowerCase().includes(search) ||
+      String(appointment.appointmentID).includes(search)
+    );
+  });
+
+  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
     return a.appointmentID - b.appointmentID;
   });
   const renderTableBody = () => {
@@ -57,8 +67,12 @@ const AppointmentsTable = ({ appointments, flowType }) => {
   };
   return (
     <TableComponent
+      title={title}
       headers={["#ID", "Patient Name", "Doctor Name", "Date", "Time", "Status"]}
       tableBody={renderTableBody()}
+      isSearch={true}
+      searchText={searchText}
+      onSearch={(e) => setSearchText(e.target.value)}
     />
   );
 };

@@ -11,7 +11,7 @@ import { fetchDataGet } from "../../api/Services";
 import TableSkeleton from "../Common/Component/TableSkeleton";
 import PaginationComponent from "../Common/Component/PaginationComponent";
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 7;
 const Specialities = () => {
   const [showSpecialityForm, setSpecialityForm] = useState(false);
   const [specialities, setSpecialities] = useState([]);
@@ -141,11 +141,13 @@ const Specialities = () => {
                     </tbody>
                   }
                 />
-                <PaginationComponent
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  handlePageChange={handlePageChange}
-                />
+                {currentData.length > 6 && (
+                  <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    handlePageChange={handlePageChange}
+                  />
+                )}
               </Row>
             )}
           </Container>

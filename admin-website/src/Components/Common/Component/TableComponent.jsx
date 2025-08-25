@@ -1,23 +1,45 @@
 import React, { Fragment } from "react";
-import { Col, Card, CardHeader, Table } from "reactstrap";
+import { Col, Card, CardHeader, Table, Input, Row } from "reactstrap";
 import { H3, H4, H5 } from "../../../AbstractElements";
 
-const TableComponent = ({ title, headers, tableBody }) => {
+const TableComponent = ({
+  title,
+  headers,
+  tableBody,
+  isSearch,
+  searchText,
+  onSearch,
+}) => {
   return (
     <Fragment>
       <Col sm="12">
         <Card className="p-1">
-          {title && (
-            <CardHeader>
-              <H5>{title}</H5>
-            </CardHeader>
-          )}
+          <CardHeader>
+            <Row>
+              <Col md={4}>{title && <H5>{title}</H5>}</Col>
+              <Col md={4}></Col>
+              <Col md={4}>
+                {isSearch && (
+                  <Input
+                    name="search"
+                    type="text"
+                    value={searchText}
+                    onChange={onSearch}
+                    placeholder="Search here..."
+                  />
+                )}
+              </Col>
+            </Row>
+          </CardHeader>
+
           <div className="table-responsive">
             <Table hover={true} className="table-border-horizontal">
               <thead className="">
                 <tr>
                   {headers.map((header) => (
-                    <th scope="col" key={header}>{header}</th>
+                    <th scope="col" key={header}>
+                      {header}
+                    </th>
                   ))}
                 </tr>
               </thead>

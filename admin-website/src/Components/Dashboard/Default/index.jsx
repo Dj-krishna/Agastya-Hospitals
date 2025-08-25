@@ -64,6 +64,7 @@ const Dashboard = () => {
               <AppointmentsTable
                 appointments={appointments}
                 flowType={"dashBoard"}
+                title="Today Appointments"
               />
             )}
           </Row>
