@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
 
+const fileRefSchema = new mongoose.Schema({
+  fileId: { type: mongoose.Schema.Types.ObjectId, index: true },
+  filename: String,
+  contentType: String,
+  length: Number,
+  uploadDate: Date,
+  bucket: { type: String, enum: ['images', 'videos'] }
+}, { _id: false });
+
 const patientSchema = new mongoose.Schema({
   UHID: { type: String, unique: true },
   patientID: { type: Number, required: true, unique: true },
@@ -17,6 +26,7 @@ const patientSchema = new mongoose.Schema({
   altMobile: { type: String }, 
   address: { type: String, required: true },
   profilePicture: { type: String },
+  profileImageGfs: fileRefSchema,
   pastHistory: { type: String }, 
   transactions: [
     {

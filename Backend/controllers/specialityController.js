@@ -1,5 +1,6 @@
-const Speciality = require('../models/Specialities');  // This is your specialities.js model
+const Speciality = require('../models/Specialities');  // Specialities model
 const getNextSequence = require('../utils/getNextSequence'); // used for specialityID
+const Doctor = require('../models/Doctors'); // needed to get doctorName
 
 // Utility: Build filter object from query params
 const buildSpecialityFilter = (query) => {
@@ -9,7 +10,7 @@ const buildSpecialityFilter = (query) => {
     let value = query[key];
 
     // Handle booleans and numbers
-    if (key === 'specialityID' || key === 'doctorID' || key === 'displayOrder') {
+    if (key === 'specialityID' || key === 'doctor' || key === 'displayOrder') {
       filter[key] = Number(value);
     } else if (key === 'isActive' || key === 'isNavigationDisplay') {
       filter[key] = value === 'true';
@@ -20,26 +21,29 @@ const buildSpecialityFilter = (query) => {
   return filter;
 };
 
-// GET all or filtered specialities (handles all cases including by ID)
+// GET all or filtered specialities
 exports.getSpecialities = async (req, res) => {
   try {
     const filter = buildSpecialityFilter(req.query);
     const specialities = await Speciality.find(filter).sort({ displayOrder: 1 });
     if (!specialities.length) return res.status(404).json({ message: 'No specialities found.' });
 
-    // Attach doctorName if doctorID present
-    const doctorIDs = [...new Set(specialities.map(s => s.doctorID).filter(Boolean))];
+    // Attach doctorName if doctor present
+    const doctorIDs = [...new Set(specialities.map(s => s.doctor).filter(Boolean))];
     let doctorMap = new Map();
     if (doctorIDs.length) {
-      const doctors = await require('../models/Doctors').find(
+      const doctors = await Doctor.find(
         { doctorID: { $in: doctorIDs } },
         { doctorID: 1, fullName: 1, _id: 0 }
       );
       doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
     }
-    const enriched = specialities.map(s => ({ ...s.toObject(), doctorName: doctorMap.get(s.doctorID) }));
-    
-    // If filtering by specialityID, return single object, otherwise return array
+
+    const enriched = specialities.map(s => ({
+      ...s.toObject(),
+      doctorName: doctorMap.get(s.doctor)
+    }));
+
     if (req.query.specialityID) {
       res.json(enriched[0]);
     } else {
@@ -54,43 +58,47 @@ exports.getSpecialities = async (req, res) => {
 exports.getSpecialityList = async (req, res) => {
   try {
     const specialities = await Speciality.find({}, { specialityID: 1, specialityName: 1, _id: 0 })
-      .sort({ specialityName: 1 }); // optional: sort alphabetically
+      .sort({ specialityName: 1 });
     res.json(specialities);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// ADD new (single or bulk) - Counter increments only on successful insert
+// ADD new speciality
 exports.addSpeciality = async (req, res) => {
   try {
     const payload = req.body;
 
+    // Validate doctor
+    if (!payload.doctor) return res.status(400).json({ error: 'doctor is required' });
+
+    const generateSlug = (name) => {
+      return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+    };
+
     // Single insert
     if (!Array.isArray(payload)) {
-      // Create doc first without specialityID
+      if (!payload.specialityID) payload.specialityID = await getNextSequence('specialityID');
+      if (!payload.urlSlug && payload.specialityName) payload.urlSlug = generateSlug(payload.specialityName);
+
       const doc = new Speciality(payload);
-      // Save doc
       const saved = await doc.save();
-      // Only after successful save, generate and set specialityID if not provided
-      if (!saved.specialityID) {
-        const nextID = await getNextSequence('specialityID');
-        saved.specialityID = nextID;
-        await saved.save(); // update doc with new ID
-      }
       return res.status(201).json(saved);
     }
 
-    // Bulk insert
+    // Bulk insert (if ever needed)
     const insertedDocs = [];
     for (const sp of payload) {
+      if (!sp.doctor) continue; // skip invalid
+      if (!sp.specialityID) sp.specialityID = await getNextSequence('specialityID');
+      if (!sp.urlSlug && sp.specialityName) sp.urlSlug = generateSlug(sp.specialityName);
+
       const doc = new Speciality(sp);
       const saved = await doc.save();
-      if (!saved.specialityID) {
-        const nextID = await getNextSequence('specialityID');
-        saved.specialityID = nextID;
-        await saved.save();
-      }
       insertedDocs.push(saved);
     }
 
@@ -116,27 +124,23 @@ exports.uploadSpecialityImage = async (req, res) => {
       { $set: updateField },
       { new: true }
     );
-    if (!updated)
-      return res.status(404).json({ error: 'Speciality not found' });
+    if (!updated) return res.status(404).json({ error: 'Speciality not found' });
     res.json({ message: 'Image uploaded', speciality: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// UPDATE (single or by filter)
+// UPDATE specialities
 exports.updateSpeciality = async (req, res) => {
   const filter = req.query;
   const updateData = req.body;
-  if (!Object.keys(filter).length)
-    return res.status(400).json({ error: 'No filter provided' });
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ error: 'No update data provided' });
+  if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
+  if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
 
   try {
     const result = await Speciality.updateMany(filter, { $set: updateData });
-    if (result.modifiedCount === 0)
-      return res.status(404).json({ message: 'No matching specialities found to update' });
+    if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching specialities found to update' });
     const updated = await Speciality.find(filter);
     res.json({ message: 'Speciality(s) updated', updatedCount: result.modifiedCount, updated });
   } catch (err) {
@@ -144,76 +148,39 @@ exports.updateSpeciality = async (req, res) => {
   }
 };
 
-// bulkUpdateSpecialities: removed per requirement
-
-// ------------------ DELETE ------------------
+// DELETE specialities
 exports.deleteSpecialities = async (req, res) => {
   try {
     let filter = {};
 
     // Bulk IDs from params
     if (req.params.ids) {
-      const ids = req.params.ids
-        .split(',')
-        .map(id => Number(id.trim()))
-        .filter(id => !isNaN(id));
+      const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
       if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
       filter = { specialityID: { $in: ids } };
-    }
-
-    // Single or multiple IDs from query
-    else if (req.query.specialityID) {
-      if (typeof req.query.specialityID === 'string' && req.query.specialityID.includes(',')) {
-        const ids = req.query.specialityID
-          .split(',')
-          .map(id => Number(id.trim()))
-          .filter(id => !isNaN(id));
-        filter = { specialityID: { $in: ids } };
-      } else {
-        filter = { specialityID: Number(req.query.specialityID) };
-      }
-    }
-
-    // Other query filters
-    else if (Object.keys(req.query).length > 0) {
+    } else if (req.query.specialityID) {
+      filter = { specialityID: Number(req.query.specialityID) };
+    } else if (Object.keys(req.query).length > 0) {
       filter = buildSpecialityFilter(req.query);
-    }
-
-    // Body filter
-    else if (req.body.filter) {
-      if (typeof req.body.filter !== 'object')
-        return res.status(400).json({ error: 'Provide valid filter' });
+    } else if (req.body.filter) {
+      if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
       filter = req.body.filter;
     } else {
       return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
     }
 
-    // Find documents before delete
     const toDelete = await Speciality.find(filter);
-    if (!toDelete.length) {
-      return res.status(404).json({ message: 'No specialities found matching the criteria' });
-    }
+    if (!toDelete.length) return res.status(404).json({ message: 'No specialities found matching the criteria' });
 
     const result = await Speciality.deleteMany(filter);
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'No specialities were deleted' });
-    }
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'No specialities were deleted' });
 
-    // If only one deleted, return the single doc
-    if (
-      (req.query.specialityID && !String(req.query.specialityID).includes(',')) ||
-      (req.params.ids && req.params.ids.split(',').length === 1)
-    ) {
+    if ((req.query.specialityID) || (req.params.ids && req.params.ids.split(',').length === 1)) {
       res.json({ message: 'Speciality deleted', speciality: toDelete[0] });
     } else {
-      res.json({
-        message: 'Specialities deleted',
-        deletedCount: result.deletedCount,
-        deletedSpecialities: toDelete
-      });
+      res.json({ message: 'Specialities deleted', deletedCount: result.deletedCount, deletedSpecialities: toDelete });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-

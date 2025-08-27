@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { connectGridFS } = require('./db/gridfs');
 const fs = require('fs');
 const path = require('path');
 const { updateExpiredAppointments } = require('./utils/appointmentStatusUpdater');
@@ -20,7 +21,13 @@ const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 
-connectDB(); // Connect to MongoDB
+connectDB(); // Connect to MongoDB (Mongoose)
+// Initialize GridFS using native driver
+(async () => {
+	const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/Agastya';
+	const dbName = process.env.MONGO_DB_NAME || undefined; // if undefined, inferred from URI
+	await connectGridFS(uri, dbName);
+})();
 
 const app = express();
 app.use(cors());
@@ -44,6 +51,8 @@ uploadDirs.forEach((dir) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/doctor-media', require('./routes/doctorUploadRoutes'));
+app.use('/api/files', require('./routes/fileStreamRoutes'));
 app.use('/api/patients', patientRoutes);
 app.use('/api/specialities', specialityRoutes);
 app.use('/api/health-packages', healthPackageRoutes);
