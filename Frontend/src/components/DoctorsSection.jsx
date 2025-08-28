@@ -36,19 +36,21 @@ const DoctorsSection = () => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-gray-900 text-center mb-12">
-          Our Expert Doctors For The Patients
-        </h2>
+        <div className="row">
+          <div className="col-lg-12 text-center mb-12">
+            <h2 className="main-title-center">Our Expert Doctors For The Patients</h2>
+          </div>
+        </div>
 
         {/* Specialty Filters */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           {specialties.map((specialty, index) => (
             <button
               key={specialty}
-              className={`px-6 py-3 rounded-full border-2 transition-all duration-200 ${
+              className={`specialty-tabpill ${
                 index === 0
-                  ? 'bg-hospital-blue text-white border-hospital-blue'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-hospital-blue'
+                  ? 'active'
+                  : 'specialty-tabpill'
               }`}
             >
               {specialty}
@@ -57,7 +59,7 @@ const DoctorsSection = () => {
         </div>
 
         {/* Doctors Carousel */}
-        <div className="relative">
+        <div className="relative mt-12">
           {/* Navigation Arrows */}
           <button className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow z-10">
             <span className="text-2xl">←</span>

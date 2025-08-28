@@ -38,10 +38,12 @@ const FAQSection = () => {
   return (
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-gray-900 text-center mb-12">
-          FAQs
-        </h2>
-
+        <div class="text-center mb-12">
+          <h2 className="main-title-center mb-12">FAQs</h2>
+        </div>
+      </div>
+      <div className="container mx-auto px-4">
+       
         <div className="max-w-4xl mx-auto">
           {faqs.map((faq) => (
             <div
@@ -71,14 +73,14 @@ const FAQSection = () => {
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        {/* <div className="text-center mt-12">
           <p className="text-gray-600 mb-4">
             Still have questions? We're here to help!
           </p>
           <button className="btn-primary">
             Contact Us
           </button>
-        </div>
+        </div> */}
       </div>
     </section>
   )

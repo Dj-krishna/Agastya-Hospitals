@@ -9,6 +9,8 @@ import Patient from './pages/Patient'
 import Blog from './pages/Blog'
 import HealthPackages from './pages/HealthPackages'
 import Careers from './pages/Careers'
+import './App.css'
+
 
 function App() {
   return (

@@ -5,8 +5,8 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Content */}
           <div>
-            <h1 className="text-5xl font-bold text-gray-900 mb-8 leading-tight">
-              Transforming lives, Restoring your health
+            <h1 className="hero-title">
+              Transforming lives, <span className="thin">Restoring</span> <span className="regular">your</span> health
             </h1>
             <div className="flex flex-wrap gap-4">
               <button className="btn-primary">Book a Doctor</button>

@@ -45,25 +45,25 @@ const SpecialtiesSection = () => {
   ]
 
   return (
-    <section className="py-16 bg-white">
+    <section className="container specialties-bg mx-auto">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center">
-            <span className="text-2xl mr-2">→</span>
-            <h2 className="text-3xl font-bold text-gray-900">Our Specialties</h2>
+            {/* <span className="text-2xl mr-2">→</span> */}
+            <h2 className="main-title">Our Specialties</h2>
           </div>
           <a href="/specialties" className="text-hospital-blue hover:text-hospital-dark-blue font-medium">
             View All Specialties
           </a>
         </div>
 
-        <div className="flex gap-6 overflow-x-auto pb-4">
+        <div className="flex gap-6 overflow-x-auto pb-4 specialties-bg-scroller">
           {specialties.map((specialty) => (
             <div
               key={specialty.id}
-              className={`flex-shrink-0 w-64 p-6 rounded-lg border-2 transition-all duration-200 ${
+              className={`flex-shrink-0 specialty-card-home ${
                 specialty.active
-                  ? 'bg-hospital-blue text-white border-hospital-blue'
+                  ? 'specialty-card-home-active text-white border-hospital-blue'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-hospital-blue'
               }`}
             >
