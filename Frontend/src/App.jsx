@@ -9,6 +9,7 @@ import Patient from './pages/Patient'
 import Blog from './pages/Blog'
 import HealthPackages from './pages/HealthPackages'
 import Careers from './pages/Careers'
+import BookAppointment from './components/pages/BookAppointment'
 import './App.css'
 
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/blog" element={<Blog />} />
           <Route path="/health-packages" element={<HealthPackages />} />
           <Route path="/careers" element={<Careers />} />
+          <Route path="/book-appointment" element={<BookAppointment />} />
         </Routes>
       </main>
       <Footer />

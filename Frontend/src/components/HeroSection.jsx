@@ -6,7 +6,8 @@ const HeroSection = () => {
           {/* Left Content */}
           <div>
             <h1 className="hero-title">
-              Transforming lives, <span className="thin">Restoring</span> <span className="regular">your</span> health
+              Transforming lives, <span className="thin">Restoring</span>{" "}
+              <span className="regular">your</span> health
             </h1>
             <div className="flex flex-wrap gap-4">
               <button className="btn-primary">Book a Doctor</button>
@@ -25,7 +26,9 @@ const HeroSection = () => {
                     <span className="text-4xl">👨‍⚕️</span>
                   </div>
                   <p className="text-gray-600">Doctor with stethoscope</p>
-                  <p className="text-sm text-gray-500 mt-2">Professional healthcare provider</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Professional healthcare provider
+                  </p>
                 </div>
               </div>
             </div>
@@ -33,7 +36,7 @@ const HeroSection = () => {
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default HeroSection 
+export default HeroSection;
