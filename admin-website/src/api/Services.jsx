@@ -7,6 +7,8 @@ import {
   MODULES_API,
   DEPARTMENTS_API,
   SPECIALITIES_API_DROPDOWN,
+  SPECIALITIES_API,
+  SPECIALITY_BY_ID_API,
   APPOINTMENTS_API,
 } from "./index";
 
@@ -83,18 +85,52 @@ export const loginUser = async (credentials) => {
   }
 };
 
-export const deleteSpeciality = async (id) => {
-  const response = await fetch(`/api/specialities/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-      // Add auth headers if needed
-    },
-  });
-  if (!response.ok) {
-    throw new Error("Failed to delete");
+// Speciality CRUD API functions
+export const fetchSpecialityById = async (id) => {
+  try {
+    const response = await axios.get(`${SPECIALITY_BY_ID_API}?specialityID=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching speciality by ID:", error);
+    throw error;
   }
-  return response.json();
+};
+
+export const createSpeciality = async (specialityData) => {
+  try {
+    const response = await axios.post(SPECIALITIES_API, specialityData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating speciality:", error);
+    throw error;
+  }
+};
+
+export const updateSpeciality = async (id, specialityData) => {
+  try {
+    const response = await axios.put(
+      `${SPECIALITY_BY_ID_API}?specialityID=${id}`,
+      specialityData
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating speciality:", error);
+    throw error;
+  }
+};
+
+export const deleteSpeciality = async (id) => {
+  try {
+    const response = await axios.delete(`${SPECIALITY_BY_ID_API}?specialityID=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting speciality:", error);
+    throw error;
+  }
 };
 
 // Doctor-specific API functions

@@ -10,6 +10,7 @@ import { SPECIALITIES_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import TableSkeleton from "../Common/Component/TableSkeleton";
 import PaginationComponent from "../Common/Component/PaginationComponent";
+import { toast } from "react-toastify";
 
 const ITEMS_PER_PAGE = 7;
 const Specialities = () => {
@@ -17,6 +18,8 @@ const Specialities = () => {
   const [specialities, setSpecialities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingSpeciality, setEditingSpeciality] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const fetchSpecialities = async () => {
     try {
@@ -49,6 +52,52 @@ const Specialities = () => {
     }
   };
 
+  const handleEditSpeciality = (speciality) => {
+    // Map the data to match the form structure
+    const mappedSpeciality = {
+      ...speciality,
+      // Handle both doctor and doctorID fields for backward compatibility
+      doctor: speciality.doctor || speciality.doctorID,
+      doctorID: speciality.doctor || speciality.doctorID,
+    };
+    setEditingSpeciality(mappedSpeciality);
+    setIsEditMode(true);
+    setSpecialityForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setSpecialityForm(false);
+    setEditingSpeciality(null);
+    setIsEditMode(false);
+    // Refresh the list after form closes
+    fetchSpecialities();
+  };
+
+  const handleDeleteSpeciality = async (speciality) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: `You want to delete "${speciality.specialityName}"? This action cannot be undone.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        await deleteSpeciality(speciality.specialityID);
+        toast.success("Speciality deleted successfully!");
+        fetchSpecialities(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error deleting speciality:", error);
+      const errorMessage = error.response?.data?.message || "Failed to delete speciality. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
   return (
     <Fragment>
       {!showSpecialityForm ? (
@@ -56,7 +105,11 @@ const Specialities = () => {
           <Breadcrumbs
             mainTitle="Specialities"
             buttonTitle={"Add Speciality"}
-            onClick={() => setSpecialityForm(true)}
+            onClick={() => {
+              setEditingSpeciality(null);
+              setIsEditMode(false);
+              setSpecialityForm(true);
+            }}
           />
 
           <Container fluid={true}>
@@ -64,75 +117,46 @@ const Specialities = () => {
               <TableSkeleton columns={4} rows={10} />
             ) : (
               <Row className="">
-                <TableComponent
-                  headers={["Icon", "Name", "Description", "Action"]}
-                  tableBody={
+                                 <TableComponent
+                   headers={["Icon", "Name", "Doctor", "Description", "Action"]}
+                   tableBody={
                     <tbody>
-                      {currentData?.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="text-center">
-                            No Specialities found
-                          </td>
-                        </tr>
-                      ) : (
-                        currentData?.map((item, index) => (
-                          <tr key={index}>
-                            <td>{item.icon || "N/A"}</td>
-                            <td>{item.specialityName || "N/A"}</td>
-                            <td
-                              width="40%"
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                maxWidth: "200px",
-                              }}
-                            >
-                              {item.pageDescription}
-                            </td>
+                                             {currentData?.length === 0 ? (
+                         <tr>
+                           <td colSpan="5" className="text-center">
+                             No Specialities found
+                           </td>
+                         </tr>
+                       ) : (
+                         currentData?.map((item, index) => (
+                           <tr key={index}>
+                             <td>{item.icon || "N/A"}</td>
+                             <td>{item.specialityName || "N/A"}</td>
+                             <td>{item.doctor || item.doctorID || "N/A"}</td>
+                             <td
+                               width="30%"
+                               style={{
+                                 whiteSpace: "nowrap",
+                                 overflow: "hidden",
+                                 textOverflow: "ellipsis",
+                                 maxWidth: "150px",
+                               }}
+                             >
+                               {item.pageDescription}
+                             </td>
                             <td width={"10%"}>
                               <FaPencilAlt
                                 color="#7366ff"
-                                onClick={() => setSpecialityForm(true)}
+                                onClick={() => handleEditSpeciality(item)}
                                 className="me-2 text-primary cursor-pointer"
+                                title="Edit Speciality"
                               />
                               &nbsp;&nbsp;<span className="text-muted">|</span>
                               &nbsp;&nbsp;
                               <FaTrashAlt
-                                onClick={() => {
-                                  Swal.fire({
-                                    title: "Are you sure?",
-                                    text: "You won't be able to revert this!",
-                                    icon: "warning",
-                                    showCancelButton: true,
-                                    confirmButtonColor: "#3085d6",
-                                    confirmButtonText: "Yes, delete it!",
-                                    cancelButtonText: "Cancel",
-                                    reverseButtons: true,
-                                    customClass: {
-                                      confirmButton: "danger",
-                                    },
-                                  }).then(async (result) => {
-                                    if (result.isConfirmed) {
-                                      try {
-                                        await deleteSpeciality(1); // or whatever your record's id is
-                                        Swal.fire(
-                                          "Deleted!",
-                                          "The record has been deleted.",
-                                          "success"
-                                        );
-                                        // Optionally refresh your data here
-                                      } catch (error) {
-                                        Swal.fire(
-                                          "Error!",
-                                          "Failed to delete the record.",
-                                          "error"
-                                        );
-                                      }
-                                    }
-                                  });
-                                }}
+                                onClick={() => handleDeleteSpeciality(item)}
                                 className="text-danger cursor-pointer"
+                                title="Delete Speciality"
                               />
                             </td>
                           </tr>
@@ -153,7 +177,11 @@ const Specialities = () => {
           </Container>
         </>
       ) : (
-        <SpecialityForm onClose={() => setSpecialityForm(false)} />
+        <SpecialityForm 
+          onClose={handleCloseForm}
+          initialData={editingSpeciality}
+          isEditMode={isEditMode}
+        />
       )}
     </Fragment>
   );

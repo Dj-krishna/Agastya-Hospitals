@@ -10,44 +10,50 @@ import {
   Input,
   Label,
   Row,
+  Button,
 } from "reactstrap";
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDoctors } from "../../slices/doctorsSlice";
+import { createSpeciality, updateSpeciality } from "../../api/Services";
+import { toast } from "react-toastify";
 
 const initialFormState = {
-  name: "",
+  specialityName: "",
   icon: "",
   displayOrder: "",
-  assignDoctor: "",
+  doctor: "",
   shortDescription: "",
   pageDescription: "",
-  pageBanner: "",
-  seoKeyWords: "",
+  banner: "",
+  seoMetaData: "",
   urlSlug: "",
-  displayInNavMenu: "Yes",
-  temporaryDeactive: false,
+  isNavigationDisplay: true,
+  isActive: true,
+  createdBy: "admin",
+  updatedBy: "admin",
 };
 
 const initialFormErrors = {
-  name: "",
+  specialityName: "",
   icon: "",
   displayOrder: "",
-  assignDoctor: "",
+  doctor: "",
   shortDescription: "",
   pageDescription: "",
-  pageBanner: "",
-  seoKeyWords: "",
-  //urlSlug: "",
-  displayInNavMenu: "",
-  temporaryDeactive: "",
+  banner: "",
+  seoMetaData: "",
+  urlSlug: "",
+  isNavigationDisplay: "",
+  isActive: "",
 };
 
-const SpecialityForm = ({ onClose }) => {
+const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dispatch = useDispatch();
   const { data: doctors } = useSelector((state) => state.doctors);
@@ -56,22 +62,50 @@ const SpecialityForm = ({ onClose }) => {
     dispatch(fetchDoctors());
   }, [dispatch]);
 
+  // Load initial data when editing
+  useEffect(() => {
+    if (initialData && isEditMode) {
+      setFormState({
+        ...initialFormState,
+        ...initialData,
+        // Map the fields to match our form state
+        specialityName: initialData.specialityName || "",
+        icon: initialData.icon || "",
+        displayOrder: initialData.displayOrder || "",
+        doctor: initialData.doctor || initialData.doctorID || "",
+        shortDescription: initialData.shortDescription || "",
+        pageDescription: initialData.pageDescription || "",
+        banner: initialData.banner || "",
+        seoMetaData: initialData.seoMetaData || "",
+        urlSlug: initialData.urlSlug || "",
+        isNavigationDisplay: initialData.isNavigationDisplay !== undefined ? initialData.isNavigationDisplay : true,
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
+        createdBy: initialData.createdBy || "admin",
+        updatedBy: initialData.updatedBy || "admin",
+      });
+    }
+  }, [initialData, isEditMode]);
+
   const validateAllFields = (name, value) => {
-    const isEmpty = (val) =>
-      typeof val === "string" ? val.trim() === "" : !val;
+    const isEmpty = (val) => {
+      if (val instanceof File) {
+        return false; // File is not empty
+      }
+      return typeof val === "string" ? val.trim() === "" : !val;
+    };
 
     const requiredFields = {
-      name: "Name is required",
+      specialityName: "Speciality name is required",
       icon: "Icon is required",
-      displayOrder: "Display Order(in Home page) is required",
-      assignDoctor: "Assign Doctor is required",
+      // displayOrder: "Display Order is required", // Made optional
+      doctor: "Assign Doctor is required",
       shortDescription: "Short description is required",
       pageDescription: "Page description is required",
-      pageBanner: "Page banner is required",
-      seoKeyWords: "SEO Keywords are required",
-      //urlSlug: "Languages are required",
-      displayInNavMenu: "This is required",
-      temporaryDeactive: "Temporary deactive is required",
+      banner: "Page banner is required",
+      // seoMetaData: "SEO metadata is required", // Made optional
+      urlSlug: "URL slug is required",
+      isNavigationDisplay: "Navigation display setting is required",
+      isActive: "Active status is required",
     };
 
     if (requiredFields[name]) {
@@ -83,12 +117,21 @@ const SpecialityForm = ({ onClose }) => {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
+    
+    let fieldValue;
+    if (type === "file") {
+      fieldValue = files[0] || null;
+    } else {
+      fieldValue = value;
+    }
+    
     setFormState((prevState) => ({
       ...prevState,
-      [name]: type === "file" ? files[0] : value,
+      [name]: fieldValue,
     }));
+    
     if (isSubmitted) {
-      const error = validateAllFields(name, type === "file" ? files[0] : value);
+      const error = validateAllFields(name, fieldValue);
       setFormErrors((prevErrors) => ({
         ...prevErrors,
         [name]: error,
@@ -99,7 +142,7 @@ const SpecialityForm = ({ onClose }) => {
   const handleRadioChange = (e) => {
     setFormState((prev) => ({
       ...prev,
-      displayInNavMenu: e.target.value, // convert string to boolean
+      isNavigationDisplay: e.target.value === "Yes", // convert string to boolean
     }));
   };
 
@@ -121,9 +164,11 @@ const SpecialityForm = ({ onClose }) => {
     setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
   };
 
-  const onSubmit = (e, data) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitted(true);
+    setIsSubmitting(true);
+
     const newErrors = {};
     Object.keys(formState).forEach((key) => {
       const error = validateAllFields(key, formState[key]);
@@ -132,18 +177,49 @@ const SpecialityForm = ({ onClose }) => {
       }
     });
     setFormErrors(newErrors);
+
     if (Object.keys(newErrors).length === 0) {
-      console.log("Form submitted successfully with data:", formState);
-      // Here you can handle the form submission, e.g., send data to an API
-      onClose(); // Close the form after submission
+      try {
+        // Prepare data for API
+        const submitData = {
+          ...formState,
+          doctor: parseInt(formState.doctor),
+          // Only include displayOrder if it has a value
+          ...(formState.displayOrder && { displayOrder: parseInt(formState.displayOrder) }),
+          // Handle file fields - convert File objects to strings or use existing values
+          icon: formState.icon instanceof File ? formState.icon.name : formState.icon,
+          banner: formState.banner instanceof File ? formState.banner.name : formState.banner,
+        };
+
+        let response;
+        if (isEditMode && initialData?.specialityID) {
+          // Update existing speciality
+          response = await updateSpeciality(initialData.specialityID, submitData);
+          toast.success("Speciality updated successfully!");
+        } else {
+          // Create new speciality
+          response = await createSpeciality(submitData);
+          toast.success("Speciality created successfully!");
+        }
+
+        console.log("API Response:", response);
+        onClose(); // Close the form after successful submission
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        const errorMessage = error.response?.data?.message || "Failed to save speciality. Please try again.";
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
     } else {
       console.log("Form has errors:", newErrors);
+      setIsSubmitting(false);
     }
   };
   return (
     <>
       <Breadcrumbs
-        mainTitle="Add Speciality"
+        mainTitle={isEditMode ? "Edit Speciality" : "Add Speciality"}
         buttonTitle={"Cancel"}
         btnColor={"secondary"}
         onClick={onClose}
@@ -160,34 +236,38 @@ const SpecialityForm = ({ onClose }) => {
                 >
                   <Row>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="name">
-                        Name
+                      <Label className="form-label" for="specialityName">
+                        Speciality Name
                       </Label>
                       <Input
                         type="text"
-                        name="name"
-                        id="name"
-                        value={formState.name}
+                        name="specialityName"
+                        id="specialityName"
+                        value={formState.specialityName}
                         onChange={handleChange}
-                        placeholder="Enter name"
-                        invalid={!!formErrors.name}
+                        placeholder="Enter speciality name"
+                        invalid={!!formErrors.specialityName}
                       />
-                      <ValidationAlert error={formErrors.name} />
+                      <ValidationAlert error={formErrors.specialityName} />
                     </Col>
-                    <Col md="6 mb-3">
-                      <Label className="form-label" for="icon">
-                        Icon
-                      </Label>
-                      <Input
-                        type="file"
-                        name="icon"
-                        id="icon"
-                        onChange={handleChange}
-                        placeholder="Enter icon"
-                        invalid={!!formErrors.icon}
-                      />
-                      <ValidationAlert error={formErrors.icon} />
-                    </Col>
+                                         <Col md="6 mb-3">
+                       <Label className="form-label" for="icon">
+                         Icon
+                       </Label>
+                       <Input
+                         type="file"
+                         name="icon"
+                         id="icon"
+                         onChange={handleChange}
+                         placeholder="Enter icon"
+                         invalid={!!formErrors.icon}
+                       />
+                       {formState.icon && !(formState.icon instanceof File) && (
+                         <small className="text-muted">Current: {formState.icon}</small>
+                       )}
+                       <small className="text-info">Note: Only file names are stored. For actual file uploads, implement file upload service.</small>
+                       <ValidationAlert error={formErrors.icon} />
+                     </Col>
                     <Col md="6 mb-3">
                       <Label className="form-label" for="displayOrder">
                         Display Order (in Home page)
@@ -203,26 +283,26 @@ const SpecialityForm = ({ onClose }) => {
                       <ValidationAlert error={formErrors.displayOrder} />
                     </Col>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="assignDoctor">
+                      <Label className="form-label" for="doctor">
                         Assign Doctor
                       </Label>
                       <Input
                         type="select"
-                        name="assignDoctor"
-                        id="assignDoctor"
+                        name="doctor"
+                        id="doctor"
                         className="form-control digits"
-                        value={formState.assignDoctor}
+                        value={formState.doctor}
                         onChange={handleChange}
-                        invalid={!!formErrors.assignDoctor}
+                        invalid={!!formErrors.doctor}
                       >
                         <option value="">Select doctor</option>
                         {doctors.map((doctor, index) => (
                           <option key={index} value={doctor.doctorID}>
-                            {doctor.doctorID} - {doctor.fullName}
+                            {doctor.fullName}
                           </option>
                         ))}
                       </Input>
-                      <ValidationAlert error={formErrors.assignDoctor} />
+                      <ValidationAlert error={formErrors.doctor} />
                     </Col>
                     <Col md="12 mb-3">
                       <Label className="form-label" for="shortDescription">
@@ -262,20 +342,24 @@ const SpecialityForm = ({ onClose }) => {
                   </Row>
 
                   <Row>
-                    <Col md="6 mb-3">
-                      <Label className="form-label" for="pageBanner">
-                        Page Banner
-                      </Label>
-                      <Input
-                        type="file"
-                        name="pageBanner"
-                        id="pageBanner"
-                        onChange={handleChange}
-                        placeholder="Enter Page Banner"
-                        invalid={!!formErrors.pageBanner}
-                      />
-                      <ValidationAlert error={formErrors.pageBanner} />
-                    </Col>
+                                         <Col md="6 mb-3">
+                       <Label className="form-label" for="banner">
+                         Page Banner
+                       </Label>
+                       <Input
+                         type="file"
+                         name="banner"
+                         id="banner"
+                         onChange={handleChange}
+                         placeholder="Enter Page Banner"
+                         invalid={!!formErrors.banner}
+                       />
+                       {formState.banner && !(formState.banner instanceof File) && (
+                         <small className="text-muted">Current: {formState.banner}</small>
+                       )}
+                       <small className="text-info">Note: Only file names are stored. For actual file uploads, implement file upload service.</small>
+                       <ValidationAlert error={formErrors.banner} />
+                     </Col>
                     {/* {formState.pageBanner && (
                       <Col md="4 mb-3">
                         <Card className="shadow-lg p-4">
@@ -294,6 +378,21 @@ const SpecialityForm = ({ onClose }) => {
                       </Col>
                     )} */}
                     <Col md="6 mb-3">
+                      <Label className="form-label" for="seoMetaData">
+                        SEO Metadata
+                      </Label>
+                      <Input
+                        type="text"
+                        name="seoMetaData"
+                        id="seoMetaData"
+                        value={formState.seoMetaData}
+                        onChange={handleChange}
+                        placeholder="Enter SEO metadata (comma separated)"
+                        invalid={!!formErrors.seoMetaData}
+                      />
+                      <ValidationAlert error={formErrors.seoMetaData} />
+                    </Col>
+                    <Col md="6 mb-3">
                       <Label className="form-label" for="urlSlug">
                         URL Slug
                       </Label>
@@ -308,65 +407,49 @@ const SpecialityForm = ({ onClose }) => {
                       />
                       <ValidationAlert error={formErrors.urlSlug} />
                     </Col>
-                    <Col md="12 my-3">
-                      <FormGroup tag="fieldset">
-                        <Row className="align-items-center">
-                          <Col sm="auto">
-                            <Label className="form-label">
-                              Display in Navigation menu (Alphabetical order)
-                            </Label>
-                          </Col>
-                          <Col sm="auto" className="mt-1">
-                            <FormGroup check inline>
-                              <Input
-                                type="radio"
-                                name="displayInNavMenu"
-                                id="displayInNavMenuYes"
-                                value="Yes"
-                                checked={formState.displayInNavMenu === "Yes"}
-                                onChange={handleRadioChange}
-                              />{" "}
-                              <Label check>Yes</Label>
-                            </FormGroup>
-                            <FormGroup check inline>
-                              <Input
-                                type="radio"
-                                name="displayInNavMenu"
-                                id="displayInNavMenuNo"
-                                value="No"
-                                checked={formState.displayInNavMenu === "No"}
-                                onChange={handleRadioChange}
-                              />{" "}
-                              <Label check>No</Label>
-                            </FormGroup>
-                          </Col>
-                        </Row>
-                      </FormGroup>
-                    </Col>
                     <Col md="6 mb-3">
-                      <Label className="form-label" for="temporaryDeactive">
-                        Temporary deactivate (Hide in the website)
+                      <Label className="form-label">
+                        Display in Navigation Menu
                       </Label>
                       <Input
                         type="select"
-                        name="temporaryDeactive"
-                        id="temporaryDeactive"
-                        className="form-control digits"
-                        value={formState.temporaryDeactive}
-                        onChange={handleChange}
-                        invalid={!!formErrors.temporaryDeactive}
+                        name="isNavigationDisplay"
+                        value={formState.isNavigationDisplay ? "Yes" : "No"}
+                        onChange={handleRadioChange}
+                        invalid={!!formErrors.isNavigationDisplay}
                       >
-                        <option value="">Select doctor</option>
-                        {["Active", "Inactive"].map((status, index) => (
-                          <option key={index + status} value={status}>
-                            {status}
-                          </option>
-                        ))}
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
                       </Input>
-                      <ValidationAlert error={formErrors.temporaryDeactive} />
+                      <ValidationAlert error={formErrors.isNavigationDisplay} />
+                    </Col>
+                    <Col md="6 mb-3">
+                      <Label className="form-label" for="isActive">
+                        Active Status
+                      </Label>
+                      <Input
+                        type="select"
+                        name="isActive"
+                        id="isActive"
+                        className="form-control digits"
+                        value={formState.isActive ? "Active" : "Inactive"}
+                        onChange={(e) => setFormState(prev => ({ ...prev, isActive: e.target.value === "Active" }))}
+                        invalid={!!formErrors.isActive}
+                      >
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </Input>
+                      <ValidationAlert error={formErrors.isActive} />
                     </Col>
                   </Row>
-                  <Btn attrBtn={{ color: "primary" }}>{"Submit form"}</Btn>
+                  <Button
+                    type="submit"
+                    color="primary"
+                    disabled={isSubmitting}
+                    className="w-100"
+                  >
+                    {isSubmitting ? "Saving..." : isEditMode ? "Update Speciality" : "Create Speciality"}
+                  </Button>
                 </Form>
               </CardBody>
             </Card>
