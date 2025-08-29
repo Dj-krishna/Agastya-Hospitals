@@ -10,8 +10,7 @@ import {
 
 const PaginationComponent = ({ currentPage, totalPages, handlePageChange }) => {
   return (
-    <Col xl="12" md={12} className="pt-0">
-      <Pagination className="pagination-primary" style={{ float: "right" }}>
+      <Pagination className="pagination-primary" style={{ float: "right", marginTop:"-30px" }}>
         <PaginationItem disabled={currentPage === 1}>
           <PaginationLink
             href="#"
@@ -50,7 +49,6 @@ const PaginationComponent = ({ currentPage, totalPages, handlePageChange }) => {
           </PaginationLink>
         </PaginationItem>
       </Pagination>
-    </Col>
   );
 };
 

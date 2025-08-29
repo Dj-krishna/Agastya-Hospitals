@@ -77,13 +77,11 @@ const Appointments = () => {
               ) : (
                 <AppointmentsTable appointments={currentData} />
               )}
-              {currentData.length > 6 && (
                 <PaginationComponent
                   currentPage={currentPage}
                   totalPages={totalPages}
                   handlePageChange={handlePageChange}
                 />
-              )}
             </Row>
           </Container>
         </>

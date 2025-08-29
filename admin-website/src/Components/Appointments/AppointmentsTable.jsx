@@ -3,21 +3,73 @@ import TableComponent from "../Common/Component/TableComponent";
 import { Badges } from "../../AbstractElements";
 import { format } from "date-fns";
 
+const dropdownStyle = {
+  position: "relative",
+  display: "inline-block",
+  marginLeft: "1rem",
+};
+const dropdownContentStyle = {
+  display: "block",
+  position: "absolute",
+  backgroundColor: "#fff",
+  minWidth: "160px",
+  boxShadow: "0px 8px 16px 0px rgba(0,0,0,0.2)",
+  zIndex: 1,
+  padding: "10px",
+  border: "1px solid #eee",
+};
+
+const STATUS_OPTIONS = [
+  { label: "Booked", value: "booked" },
+  { label: "Completed", value: "completed" },
+  { label: "Cancelled", value: "cancelled" },
+];
+
 const AppointmentsTable = ({ appointments, flowType, title }) => {
   const [searchText, setSearchText] = useState("");
-  console.log("AppointmentsTable appointments:", appointments);
-  const filteredAppointments = appointments.filter((appointment) => {
-    const search = searchText.toLowerCase();
-    return (
-      appointment.patientName?.toLowerCase().includes(search) ||
-      appointment.doctorName?.toLowerCase().includes(search) ||
-      String(appointment.appointmentID).includes(search)
-    );
-  });
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
 
-  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+  console.log("AppointmentsTable appointments:", appointments);
+
+  const handleStatusChange = (status) => {
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  const sortedAppointments = [...appointments].sort((a, b) => {
     return a.appointmentID - b.appointmentID;
   });
+
+  // Filter appointments based on searchText and selectedStatuses
+  const filteredAppointments = sortedAppointments.filter((appointment) => {
+    const search = searchText.toLowerCase();
+    const matchesSearch =
+      appointment.patientName?.toLowerCase().includes(search) ||
+      appointment.doctorName?.toLowerCase().includes(search) ||
+      String(appointment.appointmentID).includes(search) ||
+      appointment.status?.toLowerCase().includes(search);
+
+    const matchesStatus =
+      selectedStatuses.length === 0 ||
+      selectedStatuses.includes(appointment.status?.toLowerCase());
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // const filteredAppointments = appointments.filter((appointment) => {
+  //   const search = searchText.toLowerCase();
+  //   return (
+  //     appointment.patientName?.toLowerCase().includes(search) ||
+  //     appointment.doctorName?.toLowerCase().includes(search) ||
+  //     String(appointment.appointmentID).includes(search) ||
+  //     appointment.status?.toLowerCase().includes(search)
+  //   );
+  // });
+
   const renderTableBody = () => {
     const statusBg = (appStatus) => {
       switch (appStatus) {
@@ -33,8 +85,8 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
     };
     return (
       <tbody>
-        {sortedAppointments?.length > 0 ? (
-          sortedAppointments?.map((appointment) => (
+        {filteredAppointments?.length > 0 ? (
+          filteredAppointments?.map((appointment) => (
             <tr key={appointment.appointmentID}>
               <td>{appointment.appointmentID}</td>
               <td>{appointment.patientName}</td>
@@ -65,6 +117,43 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
       </tbody>
     );
   };
+
+  const StatusFilterDropdown = () => (
+    <div style={dropdownStyle}>
+      <button
+        className="btn btn-outline-secondary btn-sm"
+        type="button"
+        onClick={() => setShowStatusDropdown((prev) => !prev)}
+      >
+        Filter Status
+      </button>
+      {showStatusDropdown && (
+        <div style={dropdownContentStyle}>
+          {STATUS_OPTIONS.map((option) => (
+            <div key={option.value}>
+              <label style={{ cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={selectedStatuses.includes(option.value)}
+                  onChange={() => handleStatusChange(option.value)}
+                  style={{ marginRight: "8px" }}
+                />
+                {option.label}
+              </label>
+            </div>
+          ))}
+          <button
+            className="btn btn-link btn-sm"
+            style={{ padding: 0, marginTop: 8 }}
+            onClick={() => setSelectedStatuses([])}
+          >
+            Clear
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <TableComponent
       title={title}
@@ -73,6 +162,8 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
       isSearch={true}
       searchText={searchText}
       onSearch={(e) => setSearchText(e.target.value)}
+      showStatusFilter={true}
+      statusFilterComponent={<StatusFilterDropdown />}
     />
   );
 };

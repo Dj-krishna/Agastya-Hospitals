@@ -8,13 +8,16 @@ import PatientDetails from "../Patients/PatientDetails";
 import UploadForm from "./UploadForm";
 import { toast } from "react-toastify";
 import TableSkeleton from "../Common/Component/TableSkeleton";
+import PaginationComponent from "../Common/Component/PaginationComponent";
 
+const ITEMS_PER_PAGE = 7;
 const MedicalRecords = () => {
   const [patients, setPatients] = useState([]);
   const [patientData, setPatientData] = useState(null);
   const [viewPatientDetails, setViewPatientDetails] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openUploadForm, setOpenUploadForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleViewDetails = (data) => {
     setPatientData(data);
@@ -41,6 +44,17 @@ const MedicalRecords = () => {
   useEffect(() => {
     fetchPatients();
   }, []);
+
+  const totalPages = Math.ceil(patients.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentData = patients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <Fragment>
       {!openUploadForm ? (
@@ -64,38 +78,45 @@ const MedicalRecords = () => {
             ) : (
               <Row className="widget-grid">
                 {!viewPatientDetails ? (
-                  <TableComponent
-                    headers={[
-                      "UHID",
-                      "Name",
-                      "Phone Number",
-                      "Email",
-                      "Action",
-                    ]}
-                    tableBody={
-                      <tbody>
-                        {patients.map((data, index) => (
-                          <tr key={index}>
-                            <td>{data.patientID}</td>
-                            <td>{data.fullName}</td>
-                            <td>{data.mobile}</td>
-                            <td>{data.email}</td>
-                            <td>
-                              <Button
-                                color="success"
-                                outline
-                                className=""
-                                size="sm"
-                                onClick={() => handleViewDetails(data)}
-                              >
-                                View
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    }
-                  />
+                  <>
+                    <TableComponent
+                      headers={[
+                        "UHID",
+                        "Name",
+                        "Phone Number",
+                        "Email",
+                        "Action",
+                      ]}
+                      tableBody={
+                        <tbody>
+                          {currentData.map((data, index) => (
+                            <tr key={index}>
+                              <td>{data.patientID}</td>
+                              <td>{data.fullName}</td>
+                              <td>{data.mobile}</td>
+                              <td>{data.email}</td>
+                              <td>
+                                <Button
+                                  color="success"
+                                  outline
+                                  className=""
+                                  size="sm"
+                                  onClick={() => handleViewDetails(data)}
+                                >
+                                  View
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      }
+                    />
+                    <PaginationComponent
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      handlePageChange={handlePageChange}
+                    />
+                  </>
                 ) : (
                   <PatientDetails patientDetails={patientData} />
                 )}

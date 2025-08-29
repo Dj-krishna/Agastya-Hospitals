@@ -6,11 +6,15 @@ import TableComponent from "../Common/Component/TableComponent";
 import { FaPencilAlt, FaPencilRuler, FaTrashAlt } from "react-icons/fa";
 import { fetchDataGet } from "../../api/Services";
 import { HEALTH_PACKAGES_API } from "../../api";
+import PaginationComponent from "../Common/Component/PaginationComponent";
+import TableSkeleton from "../Common/Component/TableSkeleton";
+const ITEMS_PER_PAGE = 7;
 
 const HealthPackages = () => {
   const [showHealthPackageForm, setShowHealthPackageForm] = useState(false);
   const [healthPackageData, setHealthPackageData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchHealthPackages = async () => {
     try {
@@ -31,17 +35,19 @@ const HealthPackages = () => {
     setShowHealthPackageForm(!showHealthPackageForm);
   };
 
-  if (loading) {
-    return (
-      <Col xs="12">
-        <div className="text-center p-4">
-          <div className="spinner-border" role="status">
-            <span className="sr-only">Loading...</span>
-          </div>
-        </div>
-      </Col>
-    );
-  }
+  const totalPages = Math.ceil(healthPackageData.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentData = healthPackageData.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <Fragment>
       {!showHealthPackageForm ? (
@@ -53,38 +59,47 @@ const HealthPackages = () => {
           />
           <Container fluid={true}>
             <Row className="widget-grid">
-              <TableComponent
-                headers={[
-                  "Package Name",
-                  "Price",
-                  "Discount Type",
-                  "Discount Amount",
-                  "Discount Price",
-                  "Actions",
-                ]}
-                tableBody={
-                  <tbody>
-                    {healthPackageData.map((data, index) => (
-                      <tr key={index}>
-                        <td>{data.packageName}</td>
-                        <td>Rs. {data.price}/-</td>
-                        <td>{data.discountType}</td>
-                        <td>
-                          {data.discountType === "Percentage" ? "" : "Rs. "}
-                          {data.discountAmount}
-                          {data.discountType === "Percentage" ? "%" : "/-"}
-                        </td>
-                        <td>Rs. {data.discountPrice}/-</td>
-                        <td>
-                          <FaPencilAlt color="#7366ff" />
-                          &nbsp;&nbsp;<span className="text-muted">|</span>
-                          &nbsp;&nbsp;
-                          <FaTrashAlt color="#fc4438" />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                }
+              {loading ? (
+                <TableSkeleton />
+              ) : (
+                <TableComponent
+                  headers={[
+                    "Package Name",
+                    "Price",
+                    "Discount Type",
+                    "Discount Amount",
+                    "Discount Price",
+                    "Actions",
+                  ]}
+                  tableBody={
+                    <tbody>
+                      {currentData.map((data, index) => (
+                        <tr key={index}>
+                          <td>{data.packageName}</td>
+                          <td>Rs. {data.price}/-</td>
+                          <td>{data.discountType}</td>
+                          <td>
+                            {data.discountType === "Percentage" ? "" : "Rs. "}
+                            {data.discountAmount}
+                            {data.discountType === "Percentage" ? "%" : "/-"}
+                          </td>
+                          <td>Rs. {data.discountPrice}/-</td>
+                          <td>
+                            <FaPencilAlt color="#7366ff" />
+                            &nbsp;&nbsp;<span className="text-muted">|</span>
+                            &nbsp;&nbsp;
+                            <FaTrashAlt color="#fc4438" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  }
+                />
+              )}
+              <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
               />
             </Row>
           </Container>

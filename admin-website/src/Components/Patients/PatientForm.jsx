@@ -9,6 +9,7 @@ import {
   Form,
   Input,
   InputGroup,
+  InputGroupText,
   Label,
   Row,
 } from "reactstrap";
@@ -16,9 +17,9 @@ import ValidationAlert from "../Common/Component/ValidationAlert";
 import { FaCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import axios from "axios";
-import { format } from "date-fns";
 import { toasterConfig } from "../../utils";
 import { PATIENT_API, UPDATE_PATIENT } from "../../api";
+import { countryCodes } from "../../api/countryCode";
 
 const initialFormData = {
   fullName: "",
@@ -32,6 +33,8 @@ const initialFormData = {
   address: "",
   pastHistory: "",
   gender: "",
+  profilePicture: "",
+  countryCode: "+91",
 };
 const initialFormErrors = {
   fullName: "",
@@ -45,6 +48,8 @@ const initialFormErrors = {
   address: "",
   pastHistory: "",
   gender: "",
+  profilePicture: "",
+  countryCode: "+91",
 };
 const PatientForm = ({ onClose, formType, patientData }) => {
   const [formData, setFormData] = useState(initialFormData);
@@ -53,12 +58,12 @@ const PatientForm = ({ onClose, formType, patientData }) => {
 
   useEffect(() => {
     setFormData({
-      ...formData,
+      formData,
       ...patientData,
-      uhid: patientData.patientID,
-      dob: new Date(patientData.dob),
+      uhid: formType === "Edit" ? patientData?.UHID : formData.uhid,
+      dob: formType === "Edit" ? patientData?.dob : formData.dob,
     });
-  }, []);
+  }, [patientData, formType === "Edit"]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -122,17 +127,38 @@ const PatientForm = ({ onClose, formType, patientData }) => {
     if (!isValid) {
       return;
     }
+
+    const createRequest = {
+      fullName: formData.fullName,
+      dob: formData.dob,
+      gender: formData.gender,
+      email: formData.email,
+      phone: formData.mobile,
+      address: formData.address,
+      profilePicture: "",
+      transactions: [],
+      labRecords: [],
+      visits: [],
+      doctorID: "",
+      packageIDs: [],
+      mobile: formData.mobile,
+      countryCode: formData.countryCode,
+    };
+
+    const updateRequest = {};
+
     var response = {};
     var message = "";
+
     try {
       if (formType === "Edit") {
-        response = await axios.post(UPDATE_PATIENT, formData);
-        message = "Updated the patient details";
-      } else {
         response = await axios.put(
-          `${UPDATE_PATIENT}?patientID=${formData.patientID}`,
+          `${UPDATE_PATIENT}?patientID=${formData?.patientID}`,
           formData
         );
+        message = "Updated the patient details";
+      } else {
+        response = await axios.post(UPDATE_PATIENT, createRequest);
         message = "Created the patient successfully";
       }
       if (response) {
@@ -206,21 +232,24 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                   onSubmit={handleSubmit}
                 >
                   <Row>
-                    <Col md="4 mb-3">
-                      <Label className="form-label" htmlFor="uhid">
-                        UHID (Auto generated)
-                      </Label>
-                      <Input
-                        type="text"
-                        name="uhid"
-                        id="uhid"
-                        value={formData.uhid}
-                        onChange={handleChange}
-                        placeholder="Enter UHID"
-                        invalid={!!formErrors.uhid}
-                      />
-                      <ValidationAlert error={formErrors.uhid} />
-                    </Col>
+                    {formType === "Edit" && (
+                      <Col md="4 mb-3">
+                        <Label className="form-label" htmlFor="uhid">
+                          UHID (Auto generated)
+                        </Label>
+                        <Input
+                          type="text"
+                          name="uhid"
+                          id="uhid"
+                          value={formData.uhid}
+                          onChange={handleChange}
+                          placeholder="Enter UHID"
+                          // invalid={!!formErrors.uhid}
+                          disabled={true}
+                        />
+                        <ValidationAlert error={formErrors.uhid} />
+                      </Col>
+                    )}
                     <Col md="4 mb-3">
                       <Label className="form-label" htmlFor="fullName">
                         Full Name
@@ -266,7 +295,7 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                       <InputGroup>
                         <DatePicker
                           className="form-control datetimepicker-input digits"
-                          selected={formData.dob}
+                          selected={new Date(formData.dob)}
                           onChange={(date) => handleDateChange("dob", date)}
                           dateFormat="dd/MM/yyyy"
                         />
@@ -300,15 +329,33 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                       <Label className="form-label" for="mobile">
                         Phone Number
                       </Label>
-                      <Input
-                        type="text"
-                        name="mobile"
-                        id="mobile"
-                        value={formData.mobile}
-                        onChange={handleChange}
-                        placeholder="Enter phone number"
-                        invalid={!!formErrors.mobile}
-                      />
+                      <InputGroup
+                        className={formErrors.mobile ? " is-invalid" : ""}
+                      >
+                        <Input
+                          type="select"
+                          name="countryCode"
+                          value={formData.countryCode}
+                          onChange={handleChange}
+                          style={{ maxWidth: "100px" }}
+                        >
+                          <option value="">Code</option>
+                          {countryCodes.map((code) => (
+                            <option value={code.dial_code} key={code.code}>
+                              {code.dial_code}
+                            </option>
+                          ))}
+                        </Input>
+                        <Input
+                          type="text"
+                          name="mobile"
+                          id="mobile"
+                          value={formData.mobile}
+                          onChange={handleChange}
+                          placeholder="Enter phone number"
+                          invalid={!!formErrors.mobile}
+                        />
+                      </InputGroup>
                       <ValidationAlert error={formErrors.mobile} />
                     </Col>
                     <Col md="4 mb-3">
@@ -328,14 +375,17 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                       <Label className="form-label" for="email">
                         Email Address (Optional)
                       </Label>
-                      <Input
-                        type="email"
-                        name="email"
-                        id="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        placeholder="Enter email address"
-                      />
+                      <InputGroup>
+                        <InputGroupText>{"@"}</InputGroupText>
+                        <Input
+                          type="email"
+                          name="email"
+                          id="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="Enter email address"
+                        />
+                      </InputGroup>
                     </Col>
                     <Col md="6 mb-3">
                       <Label className="form-label" for="address">
@@ -365,7 +415,7 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                         placeholder="Enter any past medical history"
                       />
                     </Col>
-                    <Col className="md-12 text-center mt-2">
+                    <Col className="col-md-12 text-center mt-2">
                       <Button type="submit" color="primary">
                         Save
                       </Button>

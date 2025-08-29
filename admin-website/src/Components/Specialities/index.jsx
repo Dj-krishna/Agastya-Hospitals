@@ -165,13 +165,11 @@ const Specialities = () => {
                     </tbody>
                   }
                 />
-                {currentData.length > 6 && (
-                  <PaginationComponent
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    handlePageChange={handlePageChange}
-                  />
-                )}
+                <PaginationComponent
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  handlePageChange={handlePageChange}
+                />
               </Row>
             )}
           </Container>

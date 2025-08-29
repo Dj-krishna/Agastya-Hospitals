@@ -40,6 +40,8 @@ const Patients = () => {
     setFormType(formType);
     if (formType === "Edit") {
       setPatientData(data);
+    } else {
+      setPatientData({});
     }
     setShowPatientsForm(!showPatientsForm);
   };
@@ -123,7 +125,7 @@ const Patients = () => {
                         <tbody>
                           {patients.map((data, index) => (
                             <tr key={index}>
-                              <td>{data.patientID}</td>
+                              <td>{data.UHID}</td>
                               <td>{data.fullName}</td>
                               <td>{data.mobile}</td>
                               <td>{data.email}</td>
@@ -158,13 +160,11 @@ const Patients = () => {
                       }
                     />
                   )}
-                  {currentData.length > 6 && (
-                    <PaginationComponent
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      handlePageChange={handlePageChange}
-                    />
-                  )}
+                  <PaginationComponent
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    handlePageChange={handlePageChange}
+                  />
                 </Row>
               ) : (
                 <PatientDetails patientDetails={patientData} />

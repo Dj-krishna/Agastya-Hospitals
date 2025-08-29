@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [totalAppointments, setTotalAppointments] = useState(0);
   const [cancelledAppointments, setCancelledAppointments] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const today = new Date();
 
   const fetchAppointments = async () => {
@@ -65,6 +66,8 @@ const Dashboard = () => {
                 appointments={appointments}
                 flowType={"dashBoard"}
                 title="Today Appointments"
+                searchText={searchText}
+                setSearchText={setSearchText}
               />
             )}
           </Row>

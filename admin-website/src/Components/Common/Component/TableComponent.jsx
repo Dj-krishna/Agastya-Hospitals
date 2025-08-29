@@ -9,28 +9,44 @@ const TableComponent = ({
   isSearch,
   searchText,
   onSearch,
+  showStatusFilter,
+  statusFilterComponent,
 }) => {
   return (
     <Fragment>
       <Col sm="12">
         <Card className="p-1">
-          <CardHeader>
-            <Row>
-              <Col md={4}>{title && <H5>{title}</H5>}</Col>
-              <Col md={4}></Col>
-              <Col md={4}>
-                {isSearch && (
-                  <Input
-                    name="search"
-                    type="text"
-                    value={searchText}
-                    onChange={onSearch}
-                    placeholder="Search here..."
-                  />
+          {(title || isSearch || showStatusFilter) && (
+            <CardHeader className="py-2">
+              <Row>
+                {title ? (
+                  <Col md={4}>
+                    <H5>{title}</H5>
+                  </Col>
+                ) : (
+                  <Col md={4}></Col>
                 )}
-              </Col>
-            </Row>
-          </CardHeader>
+                {showStatusFilter ? (
+                  <Col md={4}> {statusFilterComponent}</Col>
+                ) : (
+                  <Col md={4}></Col>
+                )}
+                {isSearch ? (
+                  <Col md={4}>
+                    <Input
+                      name="search"
+                      type="text"
+                      value={searchText}
+                      onChange={onSearch}
+                      placeholder="Search here..."
+                    />
+                  </Col>
+                ) : (
+                  <Col md={4}></Col>
+                )}
+              </Row>
+            </CardHeader>
+          )}
 
           <div className="table-responsive">
             <Table hover={true} className="table-border-horizontal">
