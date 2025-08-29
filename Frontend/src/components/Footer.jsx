@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from "react-router-dom";
 
 const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     // <footer className="bg-hospital-dark-blue text-white">
     //   <div className="container mx-auto px-4 py-12">
@@ -65,7 +67,7 @@ const Footer = () => {
     //       </div>
     //     </div>
     //   </div>
-      
+
     //   {/* Copyright */}
     //   <div className="border-t border-blue-700 py-4">
     //     <div className="container mx-auto px-4 text-center text-blue-200">
@@ -74,82 +76,143 @@ const Footer = () => {
     //   </div>
     // </footer>
 
-<footer>
-    <div className="footer-main container">
+    <footer>
+      <div className="footer-main container">
         <div className="row">
-            
-            <div className="col-lg-3 col-md-6 col-sm-12">
-              <div className="widget">
-                <h3>Specialities</h3>
-                <ul>
-                  <li><a href="#">Anaesthesia & Pain Management</a></li>
-                    <li><a href="#">Cardiac Sciences</a></li>
-                    <li><a href="#">Critical care Team</a></li>
-                    <li><a href="#">E.N.T</a></li>
-                    <li><a href="#">General Medicine</a></li>
-                    <li><a href="#">General Surgery</a></li>
-                    <li><a href="#">Interventional Pulmonology</a></li>
-                    <li><a href="#">Nephrology & Urology</a></li>
-                    <li><a href="#">Neuro Sciences</a></li>
-                </ul>
-              </div>
+          <div className="col-lg-3 col-md-6 col-sm-12">
+            <div className="widget">
+              <h3>Specialities</h3>
+              <ul>
+                <li>
+                  <a href="#">Anaesthesia & Pain Management</a>
+                </li>
+                <li>
+                  <a href="#">Cardiac Sciences</a>
+                </li>
+                <li>
+                  <a href="#">Critical care Team</a>
+                </li>
+                <li>
+                  <a href="#">E.N.T</a>
+                </li>
+                <li>
+                  <a href="#">General Medicine</a>
+                </li>
+                <li>
+                  <a href="#">General Surgery</a>
+                </li>
+                <li>
+                  <a href="#">Interventional Pulmonology</a>
+                </li>
+                <li>
+                  <a href="#">Nephrology & Urology</a>
+                </li>
+                <li>
+                  <a href="#">Neuro Sciences</a>
+                </li>
+              </ul>
             </div>
+          </div>
 
-            
-            <div className="col-lg-3 col-md-6 col-sm-12">
-              <div className="widget">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Patient Care</a></li>
-                    <li><a href="#">News & Updates</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Blogs</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                </ul>
-              </div>
+          <div className="col-lg-3 col-md-6 col-sm-12">
+            <div className="widget">
+              <h3>Quick Links</h3>
+              <ul>
+                <li>
+                  <a href="#" onClick={() => navigate("/about")}>
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/patient-care")}>
+                    Patient Care
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/news-and-updates")}>
+                    News & Updates
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/careers")}>
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/blog")}>
+                    Blogs
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/contact-us")}>
+                    Contact Us
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/privacy-policy")}>
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <a href="#" onClick={() => navigate("/terms-and-conditions")}>
+                    Terms & Conditions
+                  </a>
+                </li>
+              </ul>
             </div>
+          </div>
 
-            
-            <div className="col-lg-3 col-md-6 col-sm-12">
-              <div className="widget">
-                <h3>Quick Links</h3>
-                <ul>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">International Patient</a></li>
-                    <li><a href="#">Gallery</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#">Blogs</a></li>
-                    <li><a href="#">Contact Us</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                </ul>
-              </div>
+          <div className="col-lg-3 col-md-6 col-sm-12">
+            <div className="widget">
+              <h3>Quick Links</h3>
+              <ul>
+                <li>
+                  <a href="#">About Us</a>
+                </li>
+                <li>
+                  <a href="#">International Patient</a>
+                </li>
+                <li>
+                  <a href="#">Gallery</a>
+                </li>
+                <li>
+                  <a href="#">Careers</a>
+                </li>
+                <li>
+                  <a href="#">Blogs</a>
+                </li>
+                <li>
+                  <a href="#">Contact Us</a>
+                </li>
+                <li>
+                  <a href="#">Privacy Policy</a>
+                </li>
+                <li>
+                  <a href="#">Terms & Conditions</a>
+                </li>
+              </ul>
             </div>
+          </div>
 
-            
-            <div className="col-lg-3 col-md-6 col-sm-12">
-              <div className="widget">
-                <h3>Contact Info</h3>
-                <p>agastyahospitals@gmail.com</p>
-                <p>+91 9876543210</p>
-                <h5 className="mt-5">24×7 Appointment Helpline</h5>
-                <div className="helpline">
-                    <span className="dot"></span> +91 40 65 108 108
-                </div>
+          <div className="col-lg-3 col-md-6 col-sm-12">
+            <div className="widget">
+              <h3>Contact Info</h3>
+              <p>agastyahospitals@gmail.com</p>
+              <p>+91 9876543210</p>
+              <h5 className="mt-5">24×7 Appointment Helpline</h5>
+              <div className="helpline">
+                <span className="dot"></span> +91 40 65 108 108
               </div>
             </div>
+          </div>
         </div>
-    </div>
+      </div>
 
-    
-    <div className="footer-copy">
+      <div className="footer-copy">
         Copyright © 2025 Agastya Hospitals. All rights reserved.
-    </div>
-</footer>
-  )
-}
+      </div>
+    </footer>
+  );
+};
 
-export default Footer 
+export default Footer;
