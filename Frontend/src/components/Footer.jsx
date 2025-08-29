@@ -119,42 +119,42 @@ const Footer = () => {
               <h3>Quick Links</h3>
               <ul>
                 <li>
-                  <a href="#" onClick={() => navigate("/about")}>
+                  <a onClick={() => navigate("/about")}>
                     About Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/patient-care")}>
+                  <a onClick={() => navigate("/patient-care")}>
                     Patient Care
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/news-and-updates")}>
+                  <a onClick={() => navigate("/news-and-updates")}>
                     News & Updates
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/careers")}>
+                  <a onClick={() => navigate("/careers")}>
                     Careers
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/blog")}>
+                  <a onClick={() => navigate("/blog")}>
                     Blogs
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/contact-us")}>
+                  <a onClick={() => navigate("/contact-us")}>
                     Contact Us
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/privacy-policy")}>
+                  <a onClick={() => navigate("/privacy-policy")}>
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={() => navigate("/terms-and-conditions")}>
+                  <a onClick={() => navigate("/terms-and-conditions")}>
                     Terms & Conditions
                   </a>
                 </li>
