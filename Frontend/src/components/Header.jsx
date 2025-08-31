@@ -34,12 +34,12 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center">
             <div className="text-2xl font-bold text-hospital-blue">
-              <img
+              <Link to="/"><img
                 src={
                   "https://res.cloudinary.com/sdk28cdn/image/upload/v1756301086/agastya/agastyahospitals-logo.svg"
                 }
                 alt="Agastya Hospitals"
-              />
+              /></Link>
             </div>
           </div>
           {/* Left Navigation */}

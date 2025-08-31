@@ -51,9 +51,29 @@ const Blog = () => {
   ]
 
   return (
-    <div className="py-16">
-      <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
+    <div>
+
+        <div class="container-fluid">
+            <div class="banner mb-12">
+              <div class="container mx-auto">
+                <div class="row">
+                  <div class="col-lg-12">
+                    <h2 class="banner-title">Blog</h2>
+                    <div class="breadcrumb">
+                      <a href="/">Home</a> <span>/</span>
+                      <span>Blog Articles</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+ 
+      {/* <div className="container mx-auto px-4">
+         <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Health Blog
         </h1>
         
@@ -63,12 +83,12 @@ const Blog = () => {
               key={blog.id}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200"
             >
-              {/* Blog Image */}
+           
               <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
                 <span className="text-6xl">{blog.image}</span>
               </div>
 
-              {/* Blog Content */}
+               
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm text-hospital-blue font-medium">
@@ -94,7 +114,32 @@ const Blog = () => {
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
+   
+
+          <div className="container pb-16">    
+            <div className="row">
+                <div className="col-lg-12">
+                    <div className="blog-list">       
+                        {blogs.map((blog) => (
+                        <div key={blog.id} className="blog-card medical-news">
+                            
+                            <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                <span className="text-6xl">{blog.image}</span>
+                              </div>
+                            <div className="blog-meta">
+                                <span>{blog.category}</span>
+                                <span>{blog.date}</span>
+                            </div>
+                            <h3><a href="#">{blog.title}</a></h3>
+                            <p className="excerpt"> {blog.excerpt}</p>
+                            <a href="#">Read the article →</a>
+                        </div>
+                        ))}        
+                    </div>    
+                  </div>
+            </div>
+          </div>
     </div>
   )
 }

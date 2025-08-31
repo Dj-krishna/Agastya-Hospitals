@@ -965,38 +965,50 @@ h1.main-title-center::after, .main-title-center::after {
 
     
 
-   .booking-form-container {
+   .booking-form-container,
+   .contact-form-container {
         background: #fff;
         padding: 30px;
         border-radius: 15px;
-        
         margin: 30px auto;
      border: 6px solid #F8FBFF;
 /*         box-shadow: 0 0 15px rgba(0,0,0,0.05); */
     }
-    .booking-form-title {
+
+    .contact-form-container {
+      margin-top: 0;
+    }
+    .booking-form-title,
+    .contact-form-title {
         font-size: 22px;
         font-weight: bold;
         margin-bottom: 20px;
     }
-    .booking-form-row {
+    .booking-form-row,
+    .contact-form-row {
         display: flex;
         gap: 15px;
 /*         margin-bottom: 15px; */
     }
-    .booking-form-group {
+    .booking-form-group,
+    .contact-form-group
+     {
         flex: 1;
        margin-bottom: 5px;
       margin-top: 10px;
     }
-    .booking-form-label {
+    .booking-form-label,
+    .contact-form-label {
         display: block;
         margin-bottom: 6px;
         font-weight: 500;
         font-size: 14px;
     }
     .booking-form-input,
-    .booking-form-select {
+    .booking-form-select,
+     .contact-form-input,
+    .contact-form-select,
+    .contact-form-textarea {
         width: 100%;
         padding: 14px 10px;
         border-radius: 8px;
@@ -1004,35 +1016,73 @@ h1.main-title-center::after, .main-title-center::after {
         border: 1px solid #ddd;
         font-size: 14px;
     }
-    .booking-form-checkbox-group {
+
+    .contact-form-textarea {
+      min-height: 200px;
+    }
+    .booking-form-checkbox-group,
+    .contact-form-checkbox-group {
         display: flex;
         align-items: flex-start;
         gap: 8px;
         margin-bottom: 15px;
     }
-    .booking-form-checkbox {
+    .booking-form-checkbox,
+    .contact-form-checkbox {
         margin-top: 4px;
         transform: scale(1.2);
     }
-    .booking-form-checkbox-label {
+    .booking-form-checkbox-label 
+      .contact-form-checkbox-label {
         font-size: 14px;
     }
-    .booking-form-btn-submit {
+    .booking-form-btn-submit,
+    .contact-form-btn-submit {
         background-color: #0a2c55;
         color: white;
         border: none;
-        padding: 12px;
+        padding: 12px 24px;
         border-radius: 30px;
         font-size: 16px;
         font-weight: bold;
-        width: 150px;
+        min-width: 150px;
         cursor: pointer;
         text-align: center;
         transition: 0.3s;
     }
-    .booking-form-btn-submit:hover {
+    .booking-form-btn-submit:hover,
+    .contact-form-btn-submit:hover {
         background-color: #0d3c70;
     }
+
+
+
+
+
+.contact-location-box {
+  background-color: #ccc;
+  background: linear-gradient(75deg, #EAF3FF, #EEEDFF);
+  padding:2.5rem;
+  margin-bottom: 20px;
+  border-radius: 25px;
+}
+
+.contact-location-box h4{
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+.contact-location-box .infotext{
+  font-size: 16px;
+  font-weight: normal;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+
+
 
 
 
@@ -1099,8 +1149,107 @@ background: linear-gradient(180deg, rgba(234,243,255,1), rgba(238,237,255,1));
 
 
 
+ 
+
+.terms-privacy p {
+  font-size:16px;
+  margin-bottom:20px;
+  line-height:normal;
+}
+
+.terms-privacy h3{
+  font-size:24px;
+  margin-bottom:10px;
+  line-height:normal;
+  font-weight:700;
+}
+
+.terms-privacy ul{
+  font-size:16px;
+  margin-bottom:20px;
+  margin-left: 30px;
+  line-height:normal;
+}
+
+.terms-privacy ul li{
+  font-size:16px;
+  margin-bottom:10px;
+  line-height:normal;
+  list-style:disc;
+}
+
+.terms-privacy .point {
+  margin-bottom:30px;
+}
 
 
+
+
+/* Blog Cards */
+.blog-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 20px;
+}
+
+.blog-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.blog-card img {
+    width: 100%;
+    height: auto;
+  min-height:220px;
+    object-fit: cover;
+}
+
+.blog-meta {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    font-size: 12px;
+    color: gray;
+}
+
+.blog-card h3 {
+    padding: 0 15px;
+    height: 50px;
+    display: flex; 
+    margin: 5px 0 10px;
+}
+.blog-card h3 a{
+  color: #000;
+  font-size: 20px;
+  font-weight: bold;
+  text-decoration: none;
+  line-height: normal;
+  margin:0;
+  padding:0;
+}
+
+.blog-card .excerpt {
+    padding: 0 15px;
+    font-size: 14px;
+    font-weight: normal;
+    color: #666;
+    margin: 5px 0 10px;
+}
+
+.blog-card a {
+    padding: 0 15px 15px;
+    color: #007BFF;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.blog-card a:hover {
+    text-decoration: underline;
+}
 
 
 
