@@ -481,12 +481,30 @@ select.form-select {
   margin-right: 10px;
 }
 
+.herosection-bg  {
+ 
+  padding-top: 20px;
+  background: url('https://res.cloudinary.com/sdk28cdn/image/upload/v1756660474/agastya/hero-background.jpg') no-repeat center center;
+}
+
+.hero-container {
+ position: relative;
+}
+.hero-content {
+  padding: 5rem 1rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .hero-title {
     font-size:60px;
     color:#000;
     margin-bottom: 20px;
     line-height: normal;
     font-weight: 800;
+    width: 100%;
+    display: block;
 }
 
 .hero-title .thin {
@@ -500,6 +518,30 @@ select.form-select {
 .hero-title .semibold {
     font-weight: 800;
 }
+
+.herobanner-quicklinks {
+  position: absolute;
+  bottom: 100px;
+  background: linear-gradient(90deg, #ABC9EF, #E8A2A6);
+  padding: 20px 40px;
+  border-radius: 100px;
+    display: flex;
+    gap: 4rem;
+      /* -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent; */
+}
+.herobanner-quicklinks .quicklink {
+  background-color: transparent;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: normal;
+  text-decoration: none;
+}
+
+.herobanner-quicklinks .quicklink:hover {
+  color: #022b50;
+} 
 
 .specialties-bg {
     background-color: #CEDDF0;

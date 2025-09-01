@@ -1,9 +1,12 @@
 const HeroSection = () => {
   return (
-    <section className="bg-gradient-to-r from-blue-50 to-white py-20">
+  <div>
+
+
+      {/* <section className="bg-gradient-to-r from-blue-50 to-white py-20">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+          
           <div>
             <h1 className="hero-title">
               Transforming lives, <span className="thin">Restoring</span>{" "}
@@ -17,7 +20,7 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Right Content - Doctor Image */}
+          
           <div className="flex justify-center lg:justify-end">
             <div className="relative">
               <div className="w-80 h-96 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
@@ -35,7 +38,43 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
+    </section> */}
+
+
+      <section className="container-fluid">
+        <div className="herosection-bg">
+          <div className="container hero-container">
+            <div className="row">
+              <div className="col-lg-6 hero-content">
+                <h1 className="hero-title">
+                  Transforming lives, <span className="thin">Restoring</span>{" "}
+                  <span className="regular">your</span> health
+                </h1>
+              </div>
+              <div className="col-lg-6">
+                <img src={"https://res.cloudinary.com/sdk28cdn/image/upload/v1756659932/agastya/doctor-image.png"} alt="Transofrm Health Care" />
+              </div>
+            </div>
+            <div className="herobanner-quicklinks">
+              <a href="#" className="quicklink">Book a Doctor's <br />Appointment</a>
+              <a href="#" className="quicklink">Explore Our <br />Health Packages</a>
+              <a href="#" className="quicklink">View Your <br />Medical Reports</a>
+              <a href="#" className="quicklink">Get a Free <br />Second Opinion</a>
+            </div>
+          </div>
+           
+        </div>
+      </section>
+
+
+
+
+
+
+
+
+  
+</div>
   );
 };
 

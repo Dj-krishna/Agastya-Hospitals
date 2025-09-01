@@ -43,40 +43,24 @@ const BlogSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-8">
+
+
           {blogs.map((blog) => (
             <div
               key={blog.id}
-              className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200"
-            >
-              {/* Blog Header */}
-              <div className="p-4 border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <span className="text-2xl mr-2">{blog.logo}</span>
-                    <span className="text-sm text-gray-500">Agastya Hospitals</span>
-                  </div>
-                  <span className="text-sm text-gray-500">{blog.date}</span>
-                </div>
-              </div>
-
-              {/* Blog Image */}
+              className="blog-card medical-news">
+             
               <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                <span className="text-6xl">{blog.image}</span>
-              </div>
-
-              {/* Blog Content */}
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
-                  {blog.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                  {blog.excerpt}
-                </p>
-                <button className="text-hospital-blue hover:text-hospital-dark-blue font-medium text-sm">
-                  Read More →
-                </button>
-              </div>
+                    <span className="text-6xl">{blog.image}</span>
+                  </div>
+                <div className="blog-meta">
+                    <span>{blog.category}</span>
+                    <span>{blog.date}</span>
+                </div>
+                <h3><a href="#">{blog.title}</a></h3>
+                <p className="excerpt"> {blog.excerpt}</p>
+                <a href="#">Read the article →</a>
             </div>
           ))}
         </div>
