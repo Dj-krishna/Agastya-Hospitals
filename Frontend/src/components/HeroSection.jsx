@@ -3,9 +3,7 @@ import { useNavigate } from "react-router-dom";
 const HeroSection = () => {
   const navigate = useNavigate();
   return (
-  <div>
-
-
+    <div>
       {/* <section className="bg-gradient-to-r from-blue-50 to-white py-20">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -48,7 +46,6 @@ const HeroSection = () => {
       </div>
     </section> */}
 
-
       <section className="container-fluid">
         <div className="herosection-bg">
           <div className="container hero-container">
@@ -60,29 +57,48 @@ const HeroSection = () => {
                 </h1>
               </div>
               <div className="col-lg-6">
-                <img src={"https://res.cloudinary.com/sdk28cdn/image/upload/v1756659932/agastya/doctor-image.png"} alt="Transofrm Health Care" />
+                <img
+                  src={
+                    "https://res.cloudinary.com/sdk28cdn/image/upload/v1756659932/agastya/doctor-image.png"
+                  }
+                  alt="Transofrm Health Care"
+                />
               </div>
             </div>
             <div className="herobanner-quicklinks">
-              <a href="#" className="quicklink">Book a Doctor's <br />Appointment</a>
-              <a href="#" className="quicklink">Explore Our <br />Health Packages</a>
-              <a href="#" className="quicklink">View Your <br />Medical Reports</a>
-              <a href="#" className="quicklink">Get a Free <br />Second Opinion</a>
+              <a
+                className="quicklink"
+                onClick={() => navigate("/book-appointment")}
+              >
+                Book a Doctor's <br />
+                Appointment
+              </a>
+              <a
+                onClick={() => navigate("/health-packages")}
+                className="quicklink"
+              >
+                Explore Our <br />
+                Health Packages
+              </a>
+              <a
+                onClick={() => navigate("/medical-reports")}
+                className="quicklink"
+              >
+                View Your <br />
+                Medical Reports
+              </a>
+              <a
+                onClick={() => navigate("/free-second-opinion")}
+                className="quicklink"
+              >
+                Get a Free <br />
+                Second Opinion
+              </a>
             </div>
           </div>
-           
         </div>
       </section>
-
-
-
-
-
-
-
-
-  
-</div>
+    </div>
   );
 };
 

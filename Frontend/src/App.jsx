@@ -16,6 +16,8 @@ import NewsAndUpdates from "./components/FooterPages/NewsAndUpdates";
 import ContactUs from "./components/FooterPages/ContactUs";
 import PrivacyPolicy from "./components/FooterPages/PrivacyPolicy";
 import TermsAndConditions from "./components/FooterPages/TermsAndConditions";
+import FreeSecondOpinionForm from "./pages/FreeSecondOpinionForm";
+import MedicalReports from "./pages/MedicalReports";
 
 function App() {
   return (
@@ -40,6 +42,11 @@ function App() {
             path="/terms-and-conditions"
             element={<TermsAndConditions />}
           />
+          <Route
+            path="/free-second-opinion"
+            element={<FreeSecondOpinionForm />}
+          />
+          <Route path="/medical-reports" element={<MedicalReports />} />
         </Routes>
       </main>
       <Footer />
