@@ -7,7 +7,7 @@ import { USERS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import Swal from "sweetalert2"; // Add this import
 import { FaEdit, FaInfoCircle, FaPencilAlt, FaUserEdit } from "react-icons/fa"; // Add this import
-import ModulesModal from "./ModulesModal";
+import TableSkeleton from "../Common/Component/TableSkeleton";
 
 const RolesPermissions = () => {
   const [showUserRoleForm, setShowUserRoleForm] = useState(false);
@@ -60,42 +60,38 @@ const RolesPermissions = () => {
           <Container fluid={true}>
             <UserRolesForm />
             <Row className="widget-grid">
-              <TableComponent
-                headers={["User Name", "Role Name", "Action"]}
-                tableBody={
-                  <tbody>
-                    {loading ? (
-                      <tr>
-                        <td colSpan="4" className="text-center">
-                          <div className="spinner-border" role="status">
-                            <span className="sr-only">Loading...</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : userRoles?.length === 0 ? (
-                      <tr>
-                        <td colSpan="4" className="text-center">
-                          No user roles found
-                        </td>
-                      </tr>
-                    ) : (
-                      userRoles?.map((role, index) => (
-                        <tr key={index}>
-                          <td>{role.userName || role.fullName || "N/A"}</td>
-                          <td>{role.roleName || role.loginType || "N/A"}</td>
-                          <td>
-                            <FaPencilAlt
-                              color="#7366ff"
-                              onClick={() => handleEdit(role)}
-                              className="cursor-pointer"
-                            />
+              {loading ? (
+                <TableSkeleton columns={3} />
+              ) : (
+                <TableComponent
+                  headers={["User Name", "Role Name", "Action"]}
+                  tableBody={
+                    <tbody>
+                      {userRoles?.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="text-center">
+                            No user roles found
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                }
-              />
+                      ) : (
+                        userRoles?.map((role, index) => (
+                          <tr key={index}>
+                            <td>{role.userName || role.fullName || "N/A"}</td>
+                            <td>{role.roleName || role.loginType || "N/A"}</td>
+                            <td>
+                              <FaPencilAlt
+                                color="#7366ff"
+                                onClick={() => handleEdit(role)}
+                                className="cursor-pointer"
+                              />
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  }
+                />
+              )}
             </Row>
           </Container>
         </>

@@ -363,24 +363,6 @@ const UserRolesForm = ({
     });
   };
 
-  if (loading) {
-    return (
-      <>
-        <Breadcrumbs mainTitle="Health Packages" />
-        <Card>
-          <CardBody>
-            <div className="text-center p-4">
-              <div className="spinner-border" role="status">
-                <span className="sr-only">Loading...</span>
-              </div>
-              <p className="mt-2">Loading form data...</p>
-            </div>
-          </CardBody>
-        </Card>
-      </>
-    );
-  }
-
   if (isEditMode) {
     return (
       <>

@@ -1,4 +1,7 @@
+import { useNavigate } from "react-router-dom";
+
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
   <div>
 
@@ -13,7 +16,12 @@ const HeroSection = () => {
               <span className="regular">your</span> health
             </h1>
             <div className="flex flex-wrap gap-4">
-              <button className="btn-primary">Book a Doctor</button>
+              <button
+                className="btn-primary"
+                onClick={() => navigate("/book-appointment")}
+              >
+                Book a Doctor
+              </button>
               <button className="btn-primary">Consultation</button>
               <button className="btn-primary">View All</button>
               <button className="btn-primary">Get a Quote</button>

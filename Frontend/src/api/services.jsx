@@ -1,0 +1,18 @@
+const api = `api`;
+const baseUrl = `https://agastya-hospitals-0bfo.onrender.com`;
+export const DOCTORS_API = `${baseUrl}/${api}/doctors`;
+export const SPECIALITIES_API = `${baseUrl}/${api}/specialities`;
+export const SPECIALITY_BY_ID_API = `${baseUrl}/${api}/specialities`;
+export const DEPARTMENTS_API = `${baseUrl}/${api}/departments`;
+export const SPECIALITIES_API_DROPDOWN = `${baseUrl}/${api}/specialities/specialityList`;
+export const USER_ROLES_API = `${baseUrl}/${api}/user-roles`;
+export const MODULES_API = `${baseUrl}/${api}/modules`;
+export const USERS_API = `${baseUrl}/${api}/users`;
+export const HEALTH_PACKAGES_API = `${baseUrl}/${api}/health-packages`;
+export const PATIENTS_API = `${baseUrl}/${api}/patients`;
+export const PATIENT_VERIFY_API = `${baseUrl}/${api}/patients/verify`;
+export const UPDATE_PATIENT = `${baseUrl}/${api}/patients`;
+
+export const SLOTS_API = `${baseUrl}/${api}/doctor-slots`;
+export const APPOINTMENTS_API = `${baseUrl}/${api}/appointments`;
+export const UPDATE_APPOINTMENT_API = `${baseUrl}/${api}/appointments`;

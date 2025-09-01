@@ -21,7 +21,7 @@ import { fetchPatients } from "../../slices/patientSlice";
 import DatePicker from "react-datepicker";
 import { FaCalendarAlt } from "react-icons/fa";
 import axios from "axios";
-import { APPOINTMENTS_API, PATIENT_VERIFY_API,SLOTS_API } from "../../api";
+import { APPOINTMENTS_API, PATIENT_VERIFY_API, SLOTS_API } from "../../api";
 import { toast } from "react-toastify";
 
 const today = new Date();
@@ -94,8 +94,8 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
       fetchAvailableSlots();
     } else {
       setAvailableSlots([]);
-      setFormState(prev => ({ ...prev, startTime: "" }));
-      setFormErrors(prev => ({ ...prev, startTime: "" }));
+      setFormState((prev) => ({ ...prev, startTime: "" }));
+      setFormErrors((prev) => ({ ...prev, startTime: "" }));
     }
   }, [formState.doctorID, formState.appointmentDate]);
 
@@ -104,7 +104,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
     setIsLoadingSlots(true);
     try {
-      const formattedDate = formState.appointmentDate.toISOString().split('T')[0];
+      const formattedDate = formState.appointmentDate
+        .toISOString()
+        .split("T")[0];
       const response = await axios.get(
         `${SLOTS_API}/available?doctorID=${formState.doctorID}&date=${formattedDate}`
       );
@@ -116,11 +118,15 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
         return;
       }
 
-      if (response.data && response.data.available && response.data.available.length > 0) {
+      if (
+        response.data &&
+        response.data.available &&
+        response.data.available.length > 0
+      ) {
         const slots = response.data.available[0];
         const allSlots = [
           ...(slots.morningSlot || []),
-          ...(slots.eveningSlot || [])
+          ...(slots.eveningSlot || []),
         ];
         setAvailableSlots(allSlots);
       } else {
@@ -147,7 +153,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
     const endMinutes = startMinutes + 30;
     const endHours = Math.floor(endMinutes / 60);
     const endMins = endMinutes % 60;
-    const endTime = `${String(endHours).padStart(2, "0")}:${String(endMins).padStart(2, "0")}`;
+    const endTime = `${String(endHours).padStart(2, "0")}:${String(
+      endMins
+    ).padStart(2, "0")}`;
     endOptions.push(endTime);
 
     return endOptions;
@@ -155,29 +163,29 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
   const verifyMobileNumber = async (mobile) => {
     if (!mobile || mobile.length !== 10) return;
-    
+
     setIsVerifying(true);
     try {
       const response = await axios.post(PATIENT_VERIFY_API, { mobile });
       const { flag, patient } = response.data;
-      
+
       setPatientExists(flag === 1);
       if (flag === 1 && patient) {
         setVerifiedPatient(patient);
         // Auto-fill existing patient data
-        setFormState(prev => ({
+        setFormState((prev) => ({
           ...prev,
           fullName: patient.fullName,
           email: patient.email,
           countryCode: patient.countryCode,
-          patientID: patient.patientID
+          patientID: patient.patientID,
         }));
         toast.success("Patient found! Details auto-filled.");
       } else {
         setVerifiedPatient(null);
-        setFormState(prev => ({
+        setFormState((prev) => ({
           ...prev,
-          patientID: ""
+          patientID: "",
         }));
         toast.info("New patient. Please fill in additional details.");
       }
@@ -192,7 +200,11 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
   };
 
   const checkSlotAvailability = async () => {
-    if (!formState.doctorID || !formState.appointmentDate || !formState.startTime) {
+    if (
+      !formState.doctorID ||
+      !formState.appointmentDate ||
+      !formState.startTime
+    ) {
       return true; // Can't check without all required fields
     }
 
@@ -206,27 +218,35 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
     setIsCheckingSlot(true);
     try {
       // Check if there are any existing appointments for the same doctor, date, and time
-      const formattedDate = formState.appointmentDate.toISOString().split('T')[0];
-      const response = await axios.get(`${APPOINTMENTS_API}?doctorID=${formState.doctorID}&date=${formattedDate}`);
-      
+      const formattedDate = formState.appointmentDate
+        .toISOString()
+        .split("T")[0];
+      const response = await axios.get(
+        `${APPOINTMENTS_API}?doctorID=${formState.doctorID}&date=${formattedDate}`
+      );
+
       if (response.data && response.data.appointments) {
-        const conflictingAppointments = response.data.appointments.filter(appointment => {
-          // Check if the time slots overlap
-          const existingStart = appointment.startTime;
-          const existingEnd = appointment.endTime;
-          const newStart = formState.startTime;
-          const newEnd = endTime;
-          
-          // Check for overlap: new appointment starts before existing ends AND new appointment ends after existing starts
-          return (newStart < existingEnd && newEnd > existingStart);
-        });
+        const conflictingAppointments = response.data.appointments.filter(
+          (appointment) => {
+            // Check if the time slots overlap
+            const existingStart = appointment.startTime;
+            const existingEnd = appointment.endTime;
+            const newStart = formState.startTime;
+            const newEnd = endTime;
+
+            // Check for overlap: new appointment starts before existing ends AND new appointment ends after existing starts
+            return newStart < existingEnd && newEnd > existingStart;
+          }
+        );
 
         if (conflictingAppointments.length > 0) {
-          toast.error("This time slot conflicts with an existing appointment. Please select a different time.");
+          toast.error(
+            "This time slot conflicts with an existing appointment. Please select a different time."
+          );
           return false;
         }
       }
-      
+
       return true;
     } catch (error) {
       console.error("Error checking slot availability:", error);
@@ -256,13 +276,16 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
           return "Invalid email format";
         return "";
       case "dob":
-        if (!patientExists && !value) return "Date of birth is required for new patients";
+        if (!patientExists && !value)
+          return "Date of birth is required for new patients";
         return "";
       case "gender":
-        if (!patientExists && !value) return "Gender is required for new patients";
+        if (!patientExists && !value)
+          return "Gender is required for new patients";
         return "";
       case "address":
-        if (!patientExists && !value) return "Address is required for new patients";
+        if (!patientExists && !value)
+          return "Address is required for new patients";
         return "";
       case "appointmentDate":
         if (!value) return "Appointment date is required";
@@ -288,7 +311,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // If mobile number is changing, reset patient-related fields
     if (name === "mobile") {
       if (value.length === 10) {
@@ -297,23 +320,23 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
         // Reset patient verification status when mobile is incomplete
         setPatientExists(null);
         setVerifiedPatient(null);
-        setFormState(prev => ({
+        setFormState((prev) => ({
           ...prev,
           patientID: "",
           fullName: "",
           email: "",
           dob: "",
           gender: "",
-          address: ""
+          address: "",
         }));
       }
     }
-    
+
     setFormState((prevState) => ({
       ...prevState,
       [name]: value,
     }));
-    
+
     if (isSubmitted) {
       const errorMsg = validateField(name, value);
       setFormErrors((prev) => ({ ...prev, [name]: errorMsg }));
@@ -326,7 +349,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
       const errorMsg = validateField(dateName, date);
       setFormErrors((prev) => ({ ...prev, [dateName]: errorMsg }));
     }
-    
+
     // Check slot availability when appointment date changes
     if (dateName === "appointmentDate") {
       handleTimeOrDateChange();
@@ -341,16 +364,18 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
       const errorMsg = validateField("startTime", startTime);
       setFormErrors((prev) => ({ ...prev, startTime: errorMsg }));
     }
-    
+
     // Check slot availability when start time changes
     handleTimeOrDateChange();
   };
 
-
-
   // Check slot availability when time or date changes
   const handleTimeOrDateChange = () => {
-    if (formState.doctorID && formState.appointmentDate && formState.startTime) {
+    if (
+      formState.doctorID &&
+      formState.appointmentDate &&
+      formState.startTime
+    ) {
       // Debounce the check to avoid too many API calls
       setTimeout(() => {
         checkSlotAvailability();
@@ -360,7 +385,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Calculate end time based on start time
     let endTime = "";
     if (formState.startTime) {
@@ -369,7 +394,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
         endTime = endTimeOptions[0];
       }
     }
-    
+
     const errors = {};
     Object.keys(formState).forEach((field) => {
       const errorMsg = validateField(field, formState[field]);
@@ -390,7 +415,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
         setIsSubmitting(false);
         return;
       }
-      
+
       try {
         // Format date to YYYY-MM-DD
         const formattedDate = formState.appointmentDate
@@ -410,25 +435,25 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
 
         // If new patient, include patient details
         if (!patientExists) {
-          appointmentData.fullName= formState.fullName;
-          appointmentData.email= formState.email;
-          appointmentData.dob= formState.dob;
-          appointmentData.gender= formState.gender;
-          appointmentData.address= formState.address;
-          appointmentData.countryCode= formState.countryCode
+          appointmentData.fullName = formState.fullName;
+          appointmentData.email = formState.email;
+          appointmentData.dob = formState.dob;
+          appointmentData.gender = formState.gender;
+          appointmentData.address = formState.address;
+          appointmentData.countryCode = formState.countryCode;
         }
 
         const response = await axios.post(APPOINTMENTS_API, appointmentData);
 
         if (response.status === 201 || response.status === 200) {
           const responseData = response.data;
-          
+
           // Check if the response contains an error message
           if (responseData.error) {
             toast.error(responseData.error);
             return;
           }
-          
+
           // Check if the response contains the success message
           if (responseData.message === "Appointment booked successfully") {
             toast.success("Appointment booked successfully!");
@@ -442,7 +467,7 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
         }
       } catch (error) {
         console.error("Error booking appointment:", error);
-        
+
         // Handle different types of error responses
         if (error.response?.data?.error) {
           // Handle API error responses like "Slot already booked"
@@ -452,7 +477,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
           toast.error(error.response.data.message);
         } else if (error.response?.status === 409) {
           // Handle conflict status (slot already booked)
-          toast.error("This time slot is already booked. Please select a different time.");
+          toast.error(
+            "This time slot is already booked. Please select a different time."
+          );
         } else if (error.response?.status === 400) {
           // Handle bad request
           toast.error("Invalid appointment data. Please check your inputs.");
@@ -522,9 +549,15 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                           maxLength={10}
                         />
                       </InputGroup>
-                      {isVerifying && <small className="text-info">Verifying...</small>}
-                      {patientExists === true && <small className="text-success">✓ Patient found</small>}
-                      {patientExists === false && <small className="text-warning">⚠ New patient</small>}
+                      {isVerifying && (
+                        <small className="text-info">Verifying...</small>
+                      )}
+                      {patientExists === true && (
+                        <small className="text-success">✓ Patient found</small>
+                      )}
+                      {patientExists === false && (
+                        <small className="text-warning">⚠ New patient</small>
+                      )}
                       <ValidationAlert error={formErrors.mobile} />
                     </Col>
 
@@ -609,9 +642,13 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                           </option>
                         ))}
                       </Input>
-                      {formState.doctorID && formState.appointmentDate && isLoadingSlots && (
-                        <small className="text-info">Fetching available slots...</small>
-                      )}
+                      {formState.doctorID &&
+                        formState.appointmentDate &&
+                        isLoadingSlots && (
+                          <small className="text-info">
+                            Fetching available slots...
+                          </small>
+                        )}
                       <ValidationAlert error={formErrors.doctorID} />
                     </Col>
                     <Col md="4 mb-3">
@@ -644,7 +681,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                           <Label for="dob">Date of Birth</Label>
                           <DatePicker
                             className="form-control datetimepicker-input digits"
-                            selected={formState.dob ? new Date(formState.dob) : null}
+                            selected={
+                              formState.dob ? new Date(formState.dob) : null
+                            }
                             onChange={(date) => handleDateChange("dob", date)}
                             dateFormat="dd/MM/yyyy"
                             maxDate={new Date()}
@@ -686,49 +725,77 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                       </>
                     )}
 
-                                         <Col md="6 mb-3">
-                       <Label for="startTime">Start Time</Label>
-                       <Input
-                         type="select"
-                         name="startTime"
-                         id="startTime"
-                         value={formState.startTime}
-                         onChange={handleStartTimeChange}
-                         invalid={!!formErrors.startTime}
-                         disabled={isLoadingSlots || availableSlots.length === 0}
-                       >
-                         <option value="">
-                           {isLoadingSlots ? "Loading slots..." : availableSlots.length === 0 ? "No slots available" : "Select start time"}
-                         </option>
-                         {availableSlots.map((slot) => (
-                           <option key={slot} value={slot}>
-                             {slot}
-                           </option>
-                         ))}
-                       </Input>
-                       {isLoadingSlots && <small className="text-info">Loading available slots...</small>}
-                       {!isLoadingSlots && availableSlots.length === 0 && formState.doctorID && formState.appointmentDate && (
-                         <small className="text-warning">No slots available for selected date and doctor</small>
-                       )}
-                       {isCheckingSlot && <small className="text-info">Checking slot availability...</small>}
-                       <ValidationAlert error={formErrors.startTime} />
-                     </Col>
+                    <Col md="6 mb-3">
+                      <Label for="startTime">Start Time</Label>
+                      <Input
+                        type="select"
+                        name="startTime"
+                        id="startTime"
+                        value={formState.startTime}
+                        onChange={handleStartTimeChange}
+                        invalid={!!formErrors.startTime}
+                        disabled={isLoadingSlots || availableSlots.length === 0}
+                      >
+                        <option value="">
+                          {isLoadingSlots
+                            ? "Loading slots..."
+                            : availableSlots.length === 0
+                            ? "No slots available"
+                            : "Select start time"}
+                        </option>
+                        {availableSlots.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </Input>
+                      {isLoadingSlots && (
+                        <small className="text-info">
+                          Loading available slots...
+                        </small>
+                      )}
+                      {!isLoadingSlots &&
+                        availableSlots.length === 0 &&
+                        formState.doctorID &&
+                        formState.appointmentDate && (
+                          <small className="text-warning">
+                            No slots available for selected date and doctor
+                          </small>
+                        )}
+                      {isCheckingSlot && (
+                        <small className="text-info">
+                          Checking slot availability...
+                        </small>
+                      )}
+                      <ValidationAlert error={formErrors.startTime} />
+                    </Col>
                     <Col md="6 mb-3">
                       <Label for="endTime">End Time</Label>
                       <Input
                         type="text"
                         name="endTime"
                         id="endTime"
-                        value={formState.startTime ? generateEndTimeOptions(formState.startTime)[0] || "" : ""}
+                        value={
+                          formState.startTime
+                            ? generateEndTimeOptions(formState.startTime)[0] ||
+                              ""
+                            : ""
+                        }
                         readOnly
                         className="form-control"
                         placeholder="Will be set automatically"
                       />
                       {!formState.startTime && (
-                        <small className="text-muted">End time will be automatically set to 30 minutes after start time</small>
+                        <small className="text-muted">
+                          End time will be automatically set to 30 minutes after
+                          start time
+                        </small>
                       )}
                       {formState.startTime && (
-                        <small className="text-info">End time is automatically set to 30 minutes after start time</small>
+                        <small className="text-info">
+                          End time is automatically set to 30 minutes after
+                          start time
+                        </small>
                       )}
                     </Col>
                     <Col md="12" className="mt-3 text-center">
@@ -753,9 +820,15 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
                       <Button
                         type="submit"
                         color="primary"
-                        disabled={isSubmitting || isCheckingSlot || isLoadingSlots}
+                        disabled={
+                          isSubmitting || isCheckingSlot || isLoadingSlots
+                        }
                       >
-                        {isCheckingSlot ? "Checking Slot..." : isSubmitting ? "Booking..." : "Book"}
+                        {isCheckingSlot
+                          ? "Checking Slot..."
+                          : isSubmitting
+                          ? "Booking..."
+                          : "Book"}
                       </Button>
                     </Col>
                   </Row>
