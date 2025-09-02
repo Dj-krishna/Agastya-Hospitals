@@ -174,7 +174,8 @@ exports.addAppointment = async (req, res) => {
   try {
     const {
       doctorID, date, startTime, endTime,
-      mobile, email, fullName, dob, gender, address, countryCode, packageIDs
+      mobile, email, fullName, dob, gender, address, countryCode, packageIDs,
+      isWhatsAppNumber, termsAccepted, marketingConsent
     } = req.body;
 
     if (!doctorID || !date || !startTime || !mobile) {
@@ -228,7 +229,10 @@ exports.addAppointment = async (req, res) => {
       mobile,
       email: email || patient.email,
       packageIDs: Array.isArray(packageIDs) ? packageIDs : [],
-      status: "booked"
+      status: "booked",
+      isWhatsAppNumber: !!isWhatsAppNumber,
+      termsAccepted: !!termsAccepted,
+      marketingConsent: !!marketingConsent
     });
     await appointment.save();
 
@@ -251,7 +255,10 @@ exports.addAppointment = async (req, res) => {
         date: appointment.date,
         startTime: appointment.startTime,
         endTime: appointment.endTime,
-        status: appointment.status
+        status: appointment.status,
+        isWhatsAppNumber: appointment.isWhatsAppNumber,
+        termsAccepted: appointment.termsAccepted,
+        marketingConsent: appointment.marketingConsent
       }
     });
   } catch (err) {
@@ -265,9 +272,17 @@ exports.updateAppointment = async (req, res) => {
     const appointmentID = Number(req.params.id);
     if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
+    // Allow updating the three new fields along with existing ones
+    const allowedUpdates = {
+      ...req.body,
+      isWhatsAppNumber: req.body.isWhatsAppNumber ?? undefined,
+      termsAccepted: req.body.termsAccepted ?? undefined,
+      marketingConsent: req.body.marketingConsent ?? undefined
+    };
+
     const updated = await Appointment.findOneAndUpdate(
       { appointmentID },
-      req.body,
+      allowedUpdates,
       { new: true }
     );
 
