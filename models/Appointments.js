@@ -9,7 +9,10 @@ const appointmentSchema = new mongoose.Schema({
   endTime: { type: String, required: true },   // "10:30"
   mobile: { type: String, required: true},
   email: { type: String },
-  status: { type: String, enum: ["booked", "completed", "cancelled"], default: "booked" }
+  status: { type: String, enum: ["booked", "completed", "cancelled"], default: "booked" },
+  isWhatsAppNumber: { type: Boolean, default: false },
+  termsAccepted: { type: Boolean, default: false },
+  marketingConsent: { type: Boolean, default: false }
 }, { timestamps: true, versionKey: false });
 
 // Prevent double booking on same doctor, date, and slot
