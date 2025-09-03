@@ -1,46 +1,27 @@
+import axios from "axios";
+import { useEffect } from "react";
+import { useState } from "react";
+import { SPECIALITIES_API } from "../api/services";
+import { Link } from "react-router-dom";
+
 const Specialties = () => {
-  const specialties = [
-    {
-      name: "Heart & Vascular Management",
-      description: "Comprehensive cardiac care with advanced diagnostic and treatment facilities",
-      icon: "❤️"
-    },
-    {
-      name: "Cardiac Sciences",
-      description: "Expert cardiology services including interventional procedures",
-      icon: "🫀"
-    },
-    {
-      name: "Joint Care",
-      description: "Specialized orthopedic care for joint-related conditions",
-      icon: "🦴"
-    },
-    {
-      name: "ENT",
-      description: "Ear, Nose, and Throat specialists providing comprehensive care",
-      icon: "👂"
-    },
-    {
-      name: "General Surgery",
-      description: "Advanced surgical procedures with minimal invasive techniques",
-      icon: "🔪"
-    },
-    {
-      name: "Interventional Pulmonology",
-      description: "Specialized respiratory care and advanced pulmonary procedures",
-      icon: "🫁"
-    },
-    {
-      name: "Nephrology & Urology",
-      description: "Comprehensive kidney and urinary system care",
-      icon: "🫘"
-    },
-    {
-      name: "Neuro Sciences",
-      description: "Advanced neurological care and brain surgery",
-      icon: "🧠"
+  const [specialties, setSpecialties] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchSpecialties = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios(SPECIALITIES_API);
+      setSpecialties(response.data);
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+      setIsLoading(false);
     }
-  ]
+  };
+  useEffect(() => {
+    fetchSpecialties();
+  }, []);
 
   return (
     <div className="py-16">
@@ -48,29 +29,62 @@ const Specialties = () => {
         <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Our Specialties
         </h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {specialties.map((specialty, index) => (
+
+        {isLoading ? (
+          <div className="text-center">
             <div
-              key={index}
-              className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
+              className="spinner-grow text-primary"
+              style={{ width: "3rem", height: "3rem" }}
+              role="status"
             >
-              <div className="text-4xl mb-4">{specialty.icon}</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                {specialty.name}
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                {specialty.description}
-              </p>
-              <button className="mt-4 btn-primary">
-                Learn More
-              </button>
+              <span className="visually-hidden">Loading...</span>
             </div>
-          ))}
-        </div>
+            <p className="text-center">Loading...</p>
+          </div>
+        ) : (
+          <div className="row">
+            {specialties.length > 0 ? (
+              specialties.map((specialty, index) => (
+                <div key={index} className="col-md-4">
+                  <div className="bg-white p-6 rounded-4 shadow-lg mb-4">
+                    <div className="text-4xl mb-4">
+                      {/* <img src={specialty.icon} alt={specialty.name} /> */}
+                      <svg
+                        class="bd-placeholder-img rounded-4"
+                        width="40"
+                        height="40"
+                        xmlns="http://www.w3.org/2000/svg"
+                        role="img"
+                        aria-label="Example larger rounded image: 75x75"
+                        preserveAspectRatio="xMidYMid slice"
+                        focusable="false"
+                      >
+                        <title>Example larger rounded image</title>
+                        <rect
+                          width="100%"
+                          height="100%"
+                          fill="#6c757d61"
+                        ></rect>
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                      {specialty.specialityName}
+                    </h3>
+                    <p className="text-gray-600 leading-relaxed">
+                      {specialty.shortDescription}
+                    </p>
+                    <button className="mt-4 btn-primary">Learn More</button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div>No Specialties available...</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Specialties 
+export default Specialties;
