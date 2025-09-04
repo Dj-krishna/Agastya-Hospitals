@@ -12,55 +12,91 @@ exports.register = async (req, res) => {
   try {
     const { userName, email, password, mobile, isActive, roleID, modules, whatsAppNumber, countryCode } = req.body;
 
-    const existingUser = await User.findOne({ email: { $regex: `^${email}$`, $options: 'i' } });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    // Check if user already exists (mobile + countryCode)
+    const existingUser = await User.findOne({ mobile, countryCode });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-    const role = await Role.findOne({ roleID });
+    // Use default roleID if not provided
+    const effectiveRoleID = roleID || 3;
+
+    // Validate role
+    const role = await Role.findOne({ roleID: effectiveRoleID });
     if (!role) return res.status(400).json({ message: 'Invalid roleID' });
 
-    const assignedModules = Array.isArray(modules) && modules.length > 0 ? modules : role.defaultModules || [];
+    // Assign modules: use provided, role default, or fallback [1,5]
+    const assignedModules = Array.isArray(modules) && modules.length > 0
+      ? modules
+      : (role.defaultModules && role.defaultModules.length > 0 ? role.defaultModules : [1, 5]);
 
+    // WhatsApp number defaults to mobile if not provided
+    const whatsApp = whatsAppNumber && whatsAppNumber.trim() !== '' ? whatsAppNumber : mobile;
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate userID
     const userID = await getNextSequence('userID');
 
+    // Create new user
     const newUser = new User({
       userID,
       userName,
-      email,
+      email: email || '', // optional
       password: hashedPassword,
-      rawPassword: password, // for testing only ⚠️ remove in production
       mobile,
-      whatsAppNumber,
+      whatsAppNumber: whatsApp,
       countryCode,
       isActive: isActive === undefined ? true : isActive,
-      roleID,
+      roleID: effectiveRoleID,
       modules: assignedModules
     });
 
     await newUser.save();
 
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userID: newUser.userID,
+        email: newUser.email,
+        mobile: newUser.mobile,
+        countryCode: newUser.countryCode,
+        roleID: newUser.roleID,
+        modules: assignedModules,
+        isActive: newUser.isActive,
+        roleName: role.roleName
+      },
+      JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
+    // Send response
     res.status(201).json({
       message: 'User registered successfully',
+      token,
       user: {
-        userID,
-        userName,
-        email,
-        mobile,
-        rawPassword: password, // testing only
-        whatsAppNumber,
-        countryCode,
+        userID: newUser.userID,
+        userName: newUser.userName,
+        email: newUser.email,
+        mobile: newUser.mobile,
+        whatsAppNumber: newUser.whatsAppNumber,
+        countryCode: newUser.countryCode,
         isActive: newUser.isActive,
-        roleID,
+        roleID: newUser.roleID,
         roleName: role.roleName,
         modules: assignedModules
       }
     });
+
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+
+
 
 // ============================== LOGIN ==============================
 exports.login = async (req, res) => {
@@ -110,22 +146,50 @@ exports.login = async (req, res) => {
   }
 };
 
-// ============================== FORGOT PASSWORD ==============================
+
+// ============================== FORGOT PASSWORD (VERIFY + RESET IN ONE) ==============================
 exports.forgotPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { mobile, countryCode, newPassword, confirmPassword } = req.body;
 
-    const user = await User.findOne({ email: { $regex: `^${email}$`, $options: 'i' } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!mobile || !countryCode || !newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'Mobile, countryCode, newPassword, confirmPassword are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Passwords do not match' });
+    }
+
+    // Find user
+    const user = await User.findOne({ mobile, countryCode });
+    if (!user) {
+      return res.status(404).json({ message: 'Invalid mobile number or country code' });
+    }
+
+    // Reset password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    user.rawPassword = newPassword; // optional, like you’re doing in registration
+    await user.save();
 
     res.status(200).json({
-      message: `Reset link sent to ${email} (simulation)`
+      message: 'Password reset successfully',
+      user: {
+        userID: user.userID,
+        userName: user.userName,
+        mobile: user.mobile,
+        countryCode: user.countryCode,
+        email: user.email
+      }
     });
   } catch (err) {
     console.error('Forgot password error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+
+
 
 // ============================== UPDATE PASSWORD ==============================
 exports.updatePassword = async (req, res) => {
