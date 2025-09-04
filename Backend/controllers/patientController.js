@@ -174,30 +174,6 @@ exports.addPatient = async (req, res) => {
   }
 };
 
-
-// PROFILE PICTURE UPLOAD
-exports.uploadPatientImage = async (req, res) => {
-  try {
-    const { patientID } = req.body;
-
-    if (!patientID) return res.status(400).json({ error: 'patientID is required' });
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-
-    const imagePath = req.file.path;
-
-    const updatedPatient = await Patient.findOneAndUpdate(
-      { patientID: Number(patientID) },
-      { profilePicture: imagePath },
-      { new: true }
-    );
-
-    if (!updatedPatient) return res.status(404).json({ error: 'Patient not found' });
-    res.json({ message: 'Profile image uploaded', patient: updatedPatient });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
 // UPDATE by filter (can update arrays/fields)
 exports.updatePatient = async (req, res) => {
   const filter = req.query;
