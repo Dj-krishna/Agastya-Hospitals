@@ -1,14 +1,5 @@
 const mongoose = require('mongoose');
 
-const fileRefSchema = new mongoose.Schema({
-	fileId: { type: mongoose.Schema.Types.ObjectId, index: true },
-	filename: String,
-	contentType: String,
-	length: Number,
-	uploadDate: Date,
-	bucket: { type: String, enum: ['images', 'videos'] }
-}, { _id: false });
-
 const doctorSchema = new mongoose.Schema({
   doctorID: { type: Number, required: true, unique: true },
   fullName: { type: String, required: true },
@@ -31,8 +22,8 @@ const doctorSchema = new mongoose.Schema({
   opTimings: { type: [String] },
   gender: { type: String, enum: ['Male', 'Female', 'Others'] },
   profilePicture: { type: String },
-  profileImageGfs: fileRefSchema,
-  introVideoGfs: fileRefSchema,
+  profileImageGfs: { type: String }, 
+  introVideoGfs: { type: String }, 
   about: { type: String }
 }, {
   versionKey: false  // disables __v column when POST request is sent
