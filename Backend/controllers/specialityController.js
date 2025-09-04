@@ -108,28 +108,6 @@ exports.addSpeciality = async (req, res) => {
   }
 };
 
-// UPLOAD icon or banner for a speciality
-exports.uploadSpecialityImage = async (req, res) => {
-  try {
-    const { specialityID, type } = req.body;
-    if (!specialityID || !type || !req.file)
-      return res.status(400).json({ error: 'specialityID, type, and file are required' });
-    if (type !== 'icon' && type !== 'banner')
-      return res.status(400).json({ error: 'type must be icon or banner' });
-
-    const updateField = {};
-    updateField[type] = req.file.path;
-    const updated = await Speciality.findOneAndUpdate(
-      { specialityID: Number(specialityID) },
-      { $set: updateField },
-      { new: true }
-    );
-    if (!updated) return res.status(404).json({ error: 'Speciality not found' });
-    res.json({ message: 'Image uploaded', speciality: updated });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
 // UPDATE specialities
 exports.updateSpeciality = async (req, res) => {

@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
   countryCode: { type: String, required: true }, 
   mobile: { type: String, required: true },
   isActive: { type: Boolean, required: true },
-  roleID: { type: Number, required: true },         // links to UserRoles.roleID
-  modules: [{ type: Number }],
+  roleID: { type: Number, default: 3 },                // default roleID
+  modules: { type: [Number], default: [1, 5] },
   whatsAppNumber: { type: String }
 }, {
   timestamps: true,

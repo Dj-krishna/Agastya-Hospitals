@@ -163,20 +163,7 @@ exports.addDoctor = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// 🟢 POST /doctors/upload-profile-image
-exports.uploadDoctorImage = async (req, res) => {
-  try {
-    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-    res.status(201).json({
-      message: 'Profile image uploaded successfully',
-      fileName: req.file.filename,
-      path: req.file.path
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
 
 // 🟢 PUT /doctors
