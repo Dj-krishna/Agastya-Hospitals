@@ -4,10 +4,12 @@ const mongoose = require('mongoose');
 const specialitySchema = new mongoose.Schema({
   specialityID: { type: Number, required: true, unique: true },
   specialityName: { type: String, required: true },
-  icon: { type: String },                        // uploaded icon file name
-  banner: { type: String },                      // banner file name
-  iconGfs: { type: String }, 
-  bannerGfs: { type: String }, 
+  icon: { type: String },                         // single icon image
+  banner: { type: String },                       // single banner image
+
+  // Multiple file uploads (arrays) - optional
+  iconGfs: { type: [String], default: [] }, 
+  bannerGfs: { type: [String], default: [] },
   displayOrder: { type: Number },                // order on home page
   doctor: { type: Number },  // single doctorID
   shortDescription: { type: String },

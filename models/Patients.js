@@ -18,7 +18,7 @@ const patientSchema = new mongoose.Schema({
   altMobile: { type: String }, 
   address: { type: String },
   profilePicture: { type: String },
-  profileImageGfs: { type: String },
+  profileImageGfs: { type: [String], default: [] },
   pastHistory: { type: String }, 
   transactions: [
     {

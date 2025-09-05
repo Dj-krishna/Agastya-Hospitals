@@ -22,8 +22,8 @@ const doctorSchema = new mongoose.Schema({
   opTimings: { type: [String] },
   gender: { type: String, enum: ['Male', 'Female', 'Others'] },
   profilePicture: { type: String },
-  profileImageGfs: { type: String }, 
-  introVideoGfs: { type: String }, 
+  profileImageGfs: { type: [String], default: []  }, 
+  introVideoGfs: { type: [String], default: []  }, 
   about: { type: String }
 }, {
   versionKey: false  // disables __v column when POST request is sent
