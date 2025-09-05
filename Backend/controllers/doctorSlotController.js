@@ -136,12 +136,16 @@ exports.getAvailableSlots = async (req, res) => {
     const slotDoc = await DoctorSlot.findOne({ doctorID: Number(doctorID) });
     if (!slotDoc) return res.status(404).json({ error: 'No slots found' });
 
+    const today = normalizeDate(new Date()); // today's date, no time
+
     // Prepare available slots array
     let available = [];
 
-    // If date is specified, only get that date
     if (date) {
       const normalizedDate = normalizeDate(date);
+      if (normalizedDate < today) {
+        return res.status(400).json({ error: 'Cannot fetch slots for past dates' });
+      }
 
       const daySchedule = slotDoc.schedule.flatMap((range) =>
         range.eachSchedule.filter(
@@ -166,7 +170,7 @@ exports.getAvailableSlots = async (req, res) => {
         eveningSlot: es.eveningSlot.filter((t) => !bookedTimes.has(t)),
       }));
     } else {
-      // No date specified: return all available slots for all dates
+      // No specific date: return all future slots only
       const bookedAppointments = await Appointment.find({
         doctorID: Number(doctorID),
         status: { $in: ['booked', 'completed'] },
@@ -181,13 +185,16 @@ exports.getAvailableSlots = async (req, res) => {
 
       slotDoc.schedule.forEach((range) => {
         range.eachSchedule.forEach((es) => {
-          const key = normalizeDate(es.date).toISOString();
-          const bookedTimes = bookedMap[key] || new Set();
-          available.push({
-            date: es.date,
-            morningSlot: es.morningSlot.filter((t) => !bookedTimes.has(t)),
-            eveningSlot: es.eveningSlot.filter((t) => !bookedTimes.has(t)),
-          });
+          const slotDate = normalizeDate(es.date);
+          if (slotDate >= today) { // filter out past dates
+            const key = slotDate.toISOString();
+            const bookedTimes = bookedMap[key] || new Set();
+            available.push({
+              date: es.date,
+              morningSlot: es.morningSlot.filter((t) => !bookedTimes.has(t)),
+              eveningSlot: es.eveningSlot.filter((t) => !bookedTimes.has(t)),
+            });
+          }
         });
       });
     }
@@ -200,6 +207,7 @@ exports.getAvailableSlots = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 
 // ------------------ POST ------------------

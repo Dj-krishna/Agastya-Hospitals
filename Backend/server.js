@@ -68,7 +68,7 @@ app.listen(PORT, () => {
 // Set AUTO_UPDATE_APPOINTMENTS=false in .env to disable automatic updates
 
 // ------This block should be inserted again
-/*
+
 if (process.env.AUTO_UPDATE_APPOINTMENTS !== 'false') {
   setInterval(async () => {
     try {
@@ -76,10 +76,9 @@ if (process.env.AUTO_UPDATE_APPOINTMENTS !== 'false') {
     } catch (error) {
       console.error('❌ Scheduled appointment status update failed:', error);
     }
-  }, 300000); // 300000ms = 5 minutes
+  }, 24 * 3600000); // 3600000ms = 1 hour
 
-  console.log('🔄 Automatic appointment status updater started (runs every 5 minutes)');
+  console.log('🔄 Automatic appointment status updater started (runs every day)');
 } else {
   console.log('⏸️  Automatic appointment status updates disabled');
 }
-*/

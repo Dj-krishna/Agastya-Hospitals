@@ -174,28 +174,27 @@ exports.addAppointment = async (req, res) => {
   try {
     const {
       doctorID, date, startTime, endTime,
-      mobile, email, fullName, dob, gender, address, countryCode, packageIDs,
+      mobile, email, fullName, countryCode, packageIDs,
       isWhatsAppNumber, termsAccepted, marketingConsent
     } = req.body;
 
-    if (!doctorID || !date || !startTime || !mobile) {
-      return res.status(400).json({ error: "doctorID, date, startTime, mobile required" });
+    if (!doctorID || !date || !startTime || !mobile || !fullName) {
+      return res.status(400).json({ error: "doctorID, date, startTime, mobile, fullName required" });
     }
 
     const normalizedDate = normalizeDate(date);
     let patient = await Patient.findOne({ mobile });
 
     if (!patient) {
-      if (!fullName || !dob || !gender || !email || !address || !countryCode) {
-        return res.status(400).json({
-          error: "Patient not found. Provide fullName, dob, gender, email, address, countryCode to create patient."
-        });
-      }
-
+      // Only create patient with the fields that exist in the form
       const patientID = await getNextSequence("patientID");
       patient = new Patient({
-        patientID, fullName, dob, gender, email, address,
-        countryCode, mobile, doctorID,
+        patientID,
+        fullName,
+        mobile,
+        email: email || null,
+        countryCode: countryCode || null,
+        doctorID: doctorID,
         packageIDs: Array.isArray(packageIDs) ? packageIDs : []
       });
       await patient.save();
@@ -265,6 +264,7 @@ exports.addAppointment = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // ------------------ PUT ------------------
 exports.updateAppointment = async (req, res) => {
