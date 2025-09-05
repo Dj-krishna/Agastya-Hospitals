@@ -3,7 +3,7 @@ const Doctor = require('../models/Doctors');
 const HealthPackage = require('../models/HealthPackages');
 const getNextSequence = require('../utils/getNextSequence');
 
-// Build filter from req.query
+// 🔧 Build filter from query
 const buildPatientFilter = (query) => {
   const filter = {};
   for (const key in query) {
@@ -23,7 +23,7 @@ const buildPatientFilter = (query) => {
   return filter;
 };
 
-// GET all/bulk/filter (handles all cases including by ID)
+// 🔍 GET patients (single/bulk/filter)
 exports.getPatients = async (req, res) => {
   try {
     const filter = buildPatientFilter(req.query);
@@ -56,11 +56,10 @@ exports.getPatients = async (req, res) => {
         packageNames: Array.isArray(p.packageIDs)
           ? p.packageIDs.map(id => packageMap.get(id)).filter(Boolean)
           : [],
-        UHID: `AHA${p.patientID}`  // append AHA
+        UHID: `AHA${p.patientID}`
       };
     });
-    
-    // If filtering by patientID, return single object, otherwise return array
+
     if (req.query.patientID) {
       res.json(enriched[0]);
     } else {
@@ -75,15 +74,10 @@ exports.getPatients = async (req, res) => {
 exports.verifyPatient = async (req, res) => {
   try {
     const { mobile } = req.body;
-
-    if (!mobile) {
-      return res.status(400).json({ error: "mobile is required" });
-    }
+    if (!mobile) return res.status(400).json({ error: "mobile is required" });
 
     const patient = await Patient.findOne({ mobile });
-
     if (patient) {
-      // Patient found
       return res.json({
         flag: 1,
         patient: {
@@ -94,11 +88,12 @@ exports.verifyPatient = async (req, res) => {
           dob: patient.dob,
           gender: patient.gender,
           address: patient.address,
-          countryCode: patient.countryCode
+          countryCode: patient.countryCode,
+          profilePicture: patient.profilePicture || null,
+          profileImageGfs: patient.profileImageGfs || []
         }
       });
     } else {
-      // Patient not found
       return res.json({ flag: 0 });
     }
   } catch (err) {
@@ -106,12 +101,26 @@ exports.verifyPatient = async (req, res) => {
   }
 };
 
-// ADD (single or bulk) with UHID auto-generation
+// 🟢 ADD patient (single/bulk) + ImageKit
+// 🟢 ADD patient (single/bulk) + ImageKit + form-data friendly
 exports.addPatient = async (req, res) => {
   try {
-    const payload = req.body;
+    // Merge form-data fields with body
+    let payload = { ...req.body };
+
+    // If packageIDs sent as string, convert to array
+    if (payload.packageIDs && typeof payload.packageIDs === 'string') {
+      payload.packageIDs = payload.packageIDs.split(',').map(Number);
+    }
+
     const getNextPatientID = async () => await getNextSequence('patientID');
     const emailExists = async (email) => await Patient.exists({ email });
+
+    // Handle ImageKit files
+    if (req.files) {
+      if (req.files.profilePicture) payload.profilePicture = req.files.profilePicture[0].url;
+      if (req.files.profileImageGfs) payload.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
+    }
 
     // Single insert
     if (!Array.isArray(payload)) {
@@ -119,22 +128,19 @@ exports.addPatient = async (req, res) => {
         return res.status(409).json({ error: 'A patient with this email already exists.' });
       }
 
-      // Generate patientID
       if (!payload.patientID) payload.patientID = await getNextPatientID();
-
-      // Generate UHID based on patientID
       payload.UHID = `AHA${payload.patientID}`;
 
-      const newPatient = new Patient(payload);
-      const saved = await newPatient.save();
+      const saved = await new Patient(payload).save();
       return res.status(201).json(saved);
     }
 
-    // Bulk insert
+    // Bulk insert (if payload is array)
     const emails = payload.map(doc => doc.email);
     const existingPatients = await Patient.find({ email: { $in: emails } }, { email: 1 });
     const existingEmails = new Set(existingPatients.map(doc => doc.email));
     const duplicateEmails = emails.filter((email, idx) => emails.indexOf(email) !== idx);
+
     const errors = [];
     const patientsToInsert = [];
 
@@ -148,20 +154,25 @@ exports.addPatient = async (req, res) => {
         continue;
       }
 
-      // Generate patientID if missing
       if (!doc.patientID) doc.patientID = await getNextPatientID();
-
-      // Generate UHID
       doc.UHID = `AHA${doc.patientID}`;
+
+      // Handle ImageKit files for bulk items if sent in form-data arrays (optional)
+      if (req.files) {
+        if (doc.profilePicture) doc.profilePicture = doc.profilePicture;
+        if (doc.profileImageGfs) doc.profileImageGfs = doc.profileImageGfs;
+      }
+
+      // Normalize packageIDs if string
+      if (doc.packageIDs && typeof doc.packageIDs === 'string') {
+        doc.packageIDs = doc.packageIDs.split(',').map(Number);
+      }
 
       patientsToInsert.push(doc);
     }
 
     if (patientsToInsert.length === 0) {
-      return res.status(409).json({
-        error: 'No patients inserted due to duplicate emails.',
-        details: errors
-      });
+      return res.status(409).json({ error: 'No patients inserted', details: errors });
     }
 
     const inserted = await Patient.insertMany(patientsToInsert);
@@ -174,23 +185,36 @@ exports.addPatient = async (req, res) => {
   }
 };
 
-// UPDATE by filter (can update arrays/fields)
+// 🟢 UPDATE patient by filter + ImageKit + form-data friendly
 exports.updatePatient = async (req, res) => {
-  const filter = req.query;
-  const updateData = req.body;
-
-  if (!Object.keys(filter).length)
-    return res.status(400).json({ error: 'No filter provided' });
-  if (!Object.keys(updateData).length)
-    return res.status(400).json({ error: 'No update data provided' });
-
   try {
+    const filter = req.query;
+    if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
+
+    // Merge form-data fields with files
+    const updateData = { ...req.body };
+
+    // Normalize packageIDs if string
+    if (updateData.packageIDs && typeof updateData.packageIDs === 'string') {
+      updateData.packageIDs = updateData.packageIDs.split(',').map(Number);
+    }
+
+    // Handle ImageKit uploads
+    if (req.files) {
+      if (req.files.profilePicture) updateData.profilePicture = req.files.profilePicture[0].url;
+      if (req.files.profileImageGfs) {
+        const existing = Array.isArray(updateData.profileImageGfs) ? updateData.profileImageGfs : [];
+        updateData.profileImageGfs = existing.concat(req.files.profileImageGfs.map(f => f.url));
+      }
+    }
+
+    if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
+
     const result = await Patient.updateMany(filter, { $set: updateData });
-    if (result.modifiedCount === 0)
-      return res.status(404).json({ message: 'No matching patients found to update' });
+    if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching patients found to update' });
 
     const updatedPatients = await Patient.find(filter);
-    return res.json({
+    res.json({
       message: 'Patient(s) updated',
       updatedCount: result.modifiedCount,
       updatedPatients: updatedPatients.length === 1 ? updatedPatients[0] : updatedPatients
@@ -200,47 +224,36 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-// bulkUpdatePatients: removed per requirement
 
-// DELETE patients (handles all cases: by ID, by filter, bulk by IDs)
+// 🟢 DELETE patients (same as before)
 exports.deletePatients = async (req, res) => {
   try {
     let filter = {};
 
-    // Handle different delete scenarios
     if (req.params.ids) {
-      // Bulk delete by comma-separated IDs
       const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
       if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
       filter = { patientID: { $in: ids } };
     } else if (req.query.patientID) {
-      // Delete single patient by ID
       filter = { patientID: Number(req.query.patientID) };
     } else if (Object.keys(req.query).length > 0) {
-      // Delete by query parameters
       filter = buildPatientFilter(req.query);
     } else if (req.body.filter) {
-      // Delete by filter from request body
       if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
       filter = req.body.filter;
     } else {
       return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
     }
 
-    // Get patients to delete (for response)
     const toDelete = await Patient.find(filter);
     if (!toDelete.length) return res.status(404).json({ message: 'No patients found matching the criteria' });
 
-    // Perform deletion
     const result = await Patient.deleteMany(filter);
     if (result.deletedCount === 0) return res.status(404).json({ message: 'No patients were deleted' });
 
-    // Return appropriate response
     if (req.query.patientID) {
-      // Single patient deleted
       res.json({ message: 'Patient deleted', patient: toDelete[0] });
     } else {
-      // Multiple patients deleted
       res.json({ 
         message: 'Patients deleted', 
         deletedCount: result.deletedCount,

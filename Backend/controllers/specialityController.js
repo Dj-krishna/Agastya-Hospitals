@@ -1,6 +1,6 @@
-const Speciality = require('../models/Specialities');  // Specialities model
-const getNextSequence = require('../utils/getNextSequence'); // used for specialityID
-const Doctor = require('../models/Doctors'); // needed to get doctorName
+const Speciality = require('../models/Specialities');
+const getNextSequence = require('../utils/getNextSequence');
+const Doctor = require('../models/Doctors');
 
 // Utility: Build filter object from query params
 const buildSpecialityFilter = (query) => {
@@ -15,7 +15,7 @@ const buildSpecialityFilter = (query) => {
     } else if (key === 'isActive' || key === 'isNavigationDisplay') {
       filter[key] = value === 'true';
     } else {
-      filter[key] = { $regex: value, $options: 'i' }; // Partial, case-insensitive
+      filter[key] = { $regex: value, $options: 'i' };
     }
   }
   return filter;
@@ -68,11 +68,21 @@ exports.getSpecialityList = async (req, res) => {
 // ADD new speciality
 exports.addSpeciality = async (req, res) => {
   try {
-    const payload = req.body;
+    // Start with req.body; ensure it's an object
+    const payload = req.body || {};
 
-    // Validate doctor
+    // Attach uploaded file URLs from ImageKit middleware
+    if (req.files) {
+      if (req.files.icon) payload.icon = req.files.icon[0].url;
+      if (req.files.banner) payload.banner = req.files.banner[0].url;
+      if (req.files.iconGfs) payload.iconGfs = req.files.iconGfs.map(f => f.url);
+      if (req.files.bannerGfs) payload.bannerGfs = req.files.bannerGfs.map(f => f.url);
+    }
+
+    // Validate required field
     if (!payload.doctor) return res.status(400).json({ error: 'doctor is required' });
 
+    // Helper to generate URL slug
     const generateSlug = (name) => {
       return name
         .toLowerCase()
@@ -80,43 +90,76 @@ exports.addSpeciality = async (req, res) => {
         .replace(/^-+|-+$/g, '');
     };
 
-    // Single insert
-    if (!Array.isArray(payload)) {
+    // Check if bulk insert
+    const isBulk = Array.isArray(payload) && payload.length > 0;
+
+    if (!isBulk) {
+      // Single insert
       if (!payload.specialityID) payload.specialityID = await getNextSequence('specialityID');
       if (!payload.urlSlug && payload.specialityName) payload.urlSlug = generateSlug(payload.specialityName);
 
       const doc = new Speciality(payload);
       const saved = await doc.save();
       return res.status(201).json(saved);
+    } else {
+      // Bulk insert
+      const insertedDocs = [];
+      for (let sp of payload) {
+        if (!sp.doctor) continue;
+        if (!sp.specialityID) sp.specialityID = await getNextSequence('specialityID');
+        if (!sp.urlSlug && sp.specialityName) sp.urlSlug = generateSlug(sp.specialityName);
+
+        // Attach files if present in req.files for this entry (optional)
+        if (req.files) {
+          if (req.files.icon) sp.icon = req.files.icon[0].url;
+          if (req.files.banner) sp.banner = req.files.banner[0].url;
+          if (req.files.iconGfs) sp.iconGfs = req.files.iconGfs.map(f => f.url);
+          if (req.files.bannerGfs) sp.bannerGfs = req.files.bannerGfs.map(f => f.url);
+        }
+
+        const doc = new Speciality(sp);
+        const saved = await doc.save();
+        insertedDocs.push(saved);
+      }
+      return res.status(201).json(insertedDocs);
     }
 
-    // Bulk insert (if ever needed)
-    const insertedDocs = [];
-    for (const sp of payload) {
-      if (!sp.doctor) continue; // skip invalid
-      if (!sp.specialityID) sp.specialityID = await getNextSequence('specialityID');
-      if (!sp.urlSlug && sp.specialityName) sp.urlSlug = generateSlug(sp.specialityName);
-
-      const doc = new Speciality(sp);
-      const saved = await doc.save();
-      insertedDocs.push(saved);
-    }
-
-    res.status(201).json(insertedDocs);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
 
-
 // UPDATE specialities
 exports.updateSpeciality = async (req, res) => {
   const filter = req.query;
-  const updateData = req.body;
-  if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
-  if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
-
+  const updateData = req.body || {};
+  
+  if (!Object.keys(filter).length) {
+    return res.status(400).json({ error: 'No filter provided' });
+  }
+  
+  // Check both body and files
+  if (Object.keys(updateData).length === 0 && (!req.files || Object.keys(req.files).length === 0)) {
+    return res.status(400).json({ error: 'No update data provided' });
+  }
+  
   try {
+    // Handle uploaded files via ImageKit
+    if (req.files) {
+      if (req.files.icon) updateData.icon = req.files.icon[0].url;
+      if (req.files.banner) updateData.banner = req.files.banner[0].url;
+
+      if (req.files.iconGfs) {
+        const existing = Array.isArray(updateData.iconGfs) ? updateData.iconGfs : [];
+        updateData.iconGfs = existing.concat(req.files.iconGfs.map(f => f.url));
+      }
+      if (req.files.bannerGfs) {
+        const existing = Array.isArray(updateData.bannerGfs) ? updateData.bannerGfs : [];
+        updateData.bannerGfs = existing.concat(req.files.bannerGfs.map(f => f.url));
+      }
+    }
+
     const result = await Speciality.updateMany(filter, { $set: updateData });
     if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching specialities found to update' });
     const updated = await Speciality.find(filter);
@@ -131,7 +174,6 @@ exports.deleteSpecialities = async (req, res) => {
   try {
     let filter = {};
 
-    // Bulk IDs from params
     if (req.params.ids) {
       const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
       if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });

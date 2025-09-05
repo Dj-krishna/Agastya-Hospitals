@@ -113,19 +113,37 @@ exports.addDoctor = async (req, res) => {
 
     const emailExists = async (email) => await Doctor.exists({ email });
 
+    // ---------------- SINGLE INSERT ----------------
     if (!Array.isArray(payload)) {
       if (await emailExists(payload.email)) {
         return res.status(409).json({ error: 'A doctor with this email already exists.' });
       }
+
       if (!payload.doctorID) payload.doctorID = await getNextDoctorID();
+
+      // ✅ Handle uploaded files (ImageKit)
+      if (req.files) {
+        if (req.files.profilePicture) {
+          payload.profilePicture = req.files.profilePicture[0].url;
+        }
+        if (req.files.profileImageGfs) {
+          payload.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
+        }
+        if (req.files.introVideoGfs) {
+          payload.introVideoGfs = req.files.introVideoGfs.map(f => f.url);
+        }
+      }
+
       const normalized = normalizeFields(payload);
       const saved = await new Doctor(normalized).save();
 
-      const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID }));
+      const enriched = await Doctor.aggregate(
+        doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID })
+      );
       return res.status(201).json(transformSpecialities(enriched[0]));
     }
 
-    // Bulk insert
+    // ---------------- BULK INSERT ----------------
     const emails = payload.map(doc => doc.email);
     const existingDoctors = await Doctor.find({ email: { $in: emails } }, { email: 1 });
     const existingEmails = new Set(existingDoctors.map(doc => doc.email));
@@ -143,7 +161,10 @@ exports.addDoctor = async (req, res) => {
         errors.push({ email: doc.email, error: 'Duplicate email in request payload.' });
         continue;
       }
+
       if (!doc.doctorID) doc.doctorID = await getNextDoctorID();
+
+      // ✅ For bulk insert, file uploads are usually handled per-doctor via separate requests
       doctorsToInsert.push(normalizeFields(doc));
     }
 
@@ -153,12 +174,15 @@ exports.addDoctor = async (req, res) => {
 
     const inserted = await Doctor.insertMany(doctorsToInsert);
     const ids = inserted.map(doc => doc.doctorID);
-    const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } }));
+    const enriched = await Doctor.aggregate(
+      doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } })
+    );
     const transformed = enriched.map(transformSpecialities);
 
     const response = { inserted: transformed };
     if (errors.length > 0) response.errors = errors;
     res.status(errors.length > 0 ? 207 : 201).json(response);
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -166,21 +190,40 @@ exports.addDoctor = async (req, res) => {
 
 
 
-// 🟢 PUT /doctors
+
+// 🟢 PUT /doctors (supports file uploads)
 exports.updateDoctor = async (req, res) => {
   try {
     const filter = req.query;
+    if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
+
     const updateData = req.body;
 
-    if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
-    if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
-
-    ['languagesKnown', 'servicesOffered'].forEach(field => {
+    // Normalize array fields if passed as comma-separated string
+    ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         updateData[field] = updateData[field].split(',').map(s => s.trim());
       }
     });
 
+    // ✅ Handle uploaded files via ImageKit
+    if (req.files) {
+      if (req.files.profilePicture) {
+        updateData.profilePicture = req.files.profilePicture[0].url;
+      }
+      if (req.files.profileImageGfs) {
+        const existingImages = Array.isArray(updateData.profileImageGfs) ? updateData.profileImageGfs : [];
+        const newImages = req.files.profileImageGfs.map(f => f.url);
+        updateData.profileImageGfs = existingImages.concat(newImages);
+      }
+      if (req.files.introVideoGfs) {
+        const existingVideos = Array.isArray(updateData.introVideoGfs) ? updateData.introVideoGfs : [];
+        const newVideos = req.files.introVideoGfs.map(f => f.url);
+        updateData.introVideoGfs = existingVideos.concat(newVideos);
+      }
+    }
+
+    // Update the doctor(s)
     const result = await Doctor.updateMany(filter, { $set: updateData });
     if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching doctors found to update' });
 
@@ -193,7 +236,8 @@ exports.updateDoctor = async (req, res) => {
   }
 };
 
-// bulkUpdateDoctors: removed per requirement
+
+
 
 // 🟢 DELETE doctors (handles all cases: by ID, by filter, bulk by IDs)
 exports.deleteDoctors = async (req, res) => {
