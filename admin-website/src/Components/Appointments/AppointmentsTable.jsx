@@ -118,42 +118,6 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
     );
   };
 
-  const StatusFilterDropdown = () => (
-    <div style={dropdownStyle}>
-      <button
-        className="btn btn-outline-secondary btn-sm"
-        type="button"
-        onClick={() => setShowStatusDropdown((prev) => !prev)}
-      >
-        Filter Status
-      </button>
-      {showStatusDropdown && (
-        <div style={dropdownContentStyle}>
-          {STATUS_OPTIONS.map((option) => (
-            <div key={option.value}>
-              <label style={{ cursor: "pointer" }}>
-                <input
-                  type="checkbox"
-                  checked={selectedStatuses.includes(option.value)}
-                  onChange={() => handleStatusChange(option.value)}
-                  style={{ marginRight: "8px" }}
-                />
-                {option.label}
-              </label>
-            </div>
-          ))}
-          <button
-            className="btn btn-link btn-sm"
-            style={{ padding: 0, marginTop: 8 }}
-            onClick={() => setSelectedStatuses([])}
-          >
-            Clear
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <TableComponent
       title={title}
@@ -162,8 +126,6 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
       isSearch={true}
       searchText={searchText}
       onSearch={(e) => setSearchText(e.target.value)}
-      showStatusFilter={true}
-      statusFilterComponent={<StatusFilterDropdown />}
     />
   );
 };

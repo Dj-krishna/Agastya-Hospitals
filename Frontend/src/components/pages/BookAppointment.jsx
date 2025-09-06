@@ -3,24 +3,43 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchDoctors } from "../../slices/doctorsSlice";
 import axios from "axios";
-import { toast } from "react-toastify";
-import { PATIENT_VERIFY_API, SLOTS_API } from "../../api/services";
+import {
+  APPOINTMENTS_API,
+  PATIENT_VERIFY_API,
+  SLOTS_API,
+} from "../../api/services";
+import { countryCodes } from "../../api/countryCode";
+import { useRef } from "react";
+import { toasterConfig } from "../../utils";
 
 const initialState = {
-  fname: "",
-  lname: "",
+  fullName: "",
   mobile: "",
   email: "",
   whatsapp: false,
   doctorID: "",
   appointmentDate: new Date(),
-  time: "",
+  startTime: "",
   terms: false,
   consent: false,
+  patientID: "",
+  countryCode: "+91",
+};
+const initialStateErrors = {
+  fullName: "",
+  mobile: "",
+  email: "",
+  whatsapp: "",
+  doctorID: "",
+  appointmentDate: "",
+  startTime: "",
+  terms: "",
+  consent: "",
+  patientID: "",
 };
 const BookAppointment = () => {
   const [formState, setFormState] = useState(initialState);
-  const [formErrors, setFormErrors] = useState({});
+  const [formErrors, setFormErrors] = useState(initialStateErrors);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isVerifying, setIsVerifying] = React.useState(false);
@@ -31,11 +50,25 @@ const BookAppointment = () => {
   const [isLoadingSlots, setIsLoadingSlots] = React.useState(false);
 
   const dispatch = useDispatch();
+  const dateInputRef = useRef(null);
   const { data: doctors } = useSelector((state) => state.doctors);
 
   useEffect(() => {
     dispatch(fetchDoctors());
   }, [dispatch]);
+
+  useEffect(() => {
+    return () => {
+      setFormState(initialState);
+      setFormErrors(initialStateErrors);
+      setIsSubmitted(false);
+      setIsSubmitting(false);
+      setIsVerifying(false);
+      setPatientExists(null);
+      setVerifiedPatient(null);
+      setAvailableSlots([]);
+    };
+  }, []);
 
   useEffect(() => {
     if (formState.doctorID && formState.appointmentDate) {
@@ -52,9 +85,7 @@ const BookAppointment = () => {
 
     setIsLoadingSlots(true);
     try {
-      const formattedDate = formState.appointmentDate
-        .toISOString()
-        .split("T")[0];
+      const formattedDate = formState.appointmentDate;
       const response = await axios.get(
         `${SLOTS_API}/available?doctorID=${formState.doctorID}&date=${formattedDate}`
       );
@@ -62,7 +93,7 @@ const BookAppointment = () => {
       // Check if the response contains an error message
       if (response.data && response.data.error) {
         setAvailableSlots([]);
-        toast.error(response.data.error);
+        toasterConfig("error",response.data.error);
         return;
       }
 
@@ -79,12 +110,12 @@ const BookAppointment = () => {
         setAvailableSlots(allSlots);
       } else {
         setAvailableSlots([]);
-        toast.warning("No available slots for the selected date and doctor.");
+        toasterConfig.warning("No available slots for the selected date and doctor.");
       }
     } catch (error) {
       console.error("Error fetching available slots:", error);
       setAvailableSlots([]);
-      toast.error("Failed to fetch available slots. Please try again.");
+      toasterConfig("error","Failed to fetch available slots. Please try again.");
     } finally {
       setIsLoadingSlots(false);
     }
@@ -109,18 +140,18 @@ const BookAppointment = () => {
           countryCode: patient.countryCode,
           patientID: patient.patientID,
         }));
-        toast.success("Patient found! Details auto-filled.");
+        toasterConfig("success","Patient found! Details auto-filled.");
       } else {
         setVerifiedPatient(null);
         setFormState((prev) => ({
           ...prev,
           patientID: "",
         }));
-        toast.info("New patient. Please fill in additional details.");
+        toasterConfig("info","New patient. Please fill in additional details.");
       }
     } catch (error) {
       console.error("Error verifying mobile:", error);
-      toast.error("Error verifying mobile number");
+      toasterConfig("error","Error verifying mobile number");
       setPatientExists(null);
       setVerifiedPatient(null);
     } finally {
@@ -166,9 +197,7 @@ const BookAppointment = () => {
     setIsCheckingSlot(true);
     try {
       // Check if there are any existing appointments for the same doctor, date, and time
-      const formattedDate = formState.appointmentDate
-        .toISOString()
-        .split("T")[0];
+      const formattedDate = formState.appointmentDate;
       const response = await axios.get(
         `${APPOINTMENTS_API}?doctorID=${formState.doctorID}&date=${formattedDate}`
       );
@@ -188,7 +217,7 @@ const BookAppointment = () => {
         );
 
         if (conflictingAppointments.length > 0) {
-          toast.error(
+          toasterConfig("error",
             "This time slot conflicts with an existing appointment. Please select a different time."
           );
           return false;
@@ -258,7 +287,7 @@ const BookAppointment = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, type } = e.target;
+    const { name, value, type, checked } = e.target;
 
     // If mobile number is changing, reset patient-related fields
     if (name === "mobile") {
@@ -305,9 +334,9 @@ const BookAppointment = () => {
   };
 
   const handleDateChange = (dateName, e) => {
-    setFormState({ ...formState, [dateName]: e.target.date });
+    setFormState({ ...formState, [dateName]: e.target.value });
     if (isSubmitted) {
-      const errorMsg = validateField(dateName, e.target.date);
+      const errorMsg = validateField(dateName, e.target.value);
       setFormErrors((prev) => ({ ...prev, [dateName]: errorMsg }));
     }
 
@@ -328,6 +357,81 @@ const BookAppointment = () => {
 
     // Check slot availability when start time changes
     handleTimeOrDateChange();
+  };
+
+  const formatDateForInput = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${month}-${day}`;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      debugger;
+      const appointmentData = {
+        patientName: formState.fullName,
+        mobile: formState.mobile,
+        doctorID: parseInt(formState.doctorID),
+        patientID: patientExists ? parseInt(formState.patientID) : "",
+        date: formState.appointmentDate,
+        startTime: formState.startTime,
+        endTime: formState.startTime
+          ? generateEndTimeOptions(formState.startTime)[0] || ""
+          : "",
+        status: "booked",
+        fullName: formState.fullName,
+        email: formState.email,
+        countryCode: formState.countryCode,
+        isWhatsAppNumber: formState.whatsapp,
+        termsAccepted: formState.terms,
+        marketingConsent: formState.consent,
+      };
+      const response = await axios.post(APPOINTMENTS_API, appointmentData);
+      if (response.status === 201 || response.status === 200) {
+        const responseData = response.data;
+
+        // Check if the response contains an error message
+        if (responseData.error) {
+          toasterConfig("error",responseData.error);
+          return;
+        }
+
+        // Check if the response contains the success message
+        if (responseData.message === "Appointment booked successfully") {
+          setFormState(initialState);
+          toasterConfig("success","Appointment booked successfully!");
+        } else {
+          toasterConfig("error","Unexpected response format");
+        }
+      }
+    } catch (error) {
+      console.error("Error booking appointment:", error);
+
+      // Handle different types of error responses
+      if (error.response?.data?.error) {
+        // Handle API error responses like "Slot already booked"
+        toasterConfig("error",error.response.data.error);
+      } else if (error.response?.data?.message) {
+        // Handle other API error messages
+        toasterConfig("error",error.response.data.message);
+      } else if (error.response?.status === 409) {
+        // Handle conflict status (slot already booked)
+        toasterConfig("error",
+          "This time slot is already booked. Please select a different time."
+        );
+      } else if (error.response?.status === 400) {
+        // Handle bad request
+        toasterConfig("error","Invalid appointment data. Please check your inputs.");
+      } else {
+        // Handle network or other errors
+        toasterConfig("error","Failed to book appointment. Please try again.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -355,60 +459,50 @@ const BookAppointment = () => {
               <h2 className="booking-form-title">
                 Book a Doctor’s Appointment
               </h2>
-              <form>
-                <div className="booking-form-row">
-                  <div className="booking-form-group">
-                    <label for="fname" className="booking-form-label">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      id="fname"
-                      name="fname"
-                      className="booking-form-input"
-                      value={formState.fname}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="booking-form-group">
-                    <label for="lname" className="booking-form-label">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      id="lname"
-                      name="lname"
-                      className="booking-form-input"
-                      value={formState.lname}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
+              <form onSubmit={handleSubmit}>
                 <div className="booking-form-row">
                   <div className="booking-form-group">
                     <label for="mobile" className="booking-form-label">
                       Mobile Number
                     </label>
-                    <input
-                      type="text"
-                      id="mobile"
-                      name="mobile"
-                      className="booking-form-input"
-                      value={formState.mobile}
-                      onChange={handleChange}
-                    />
+                    <div className="flex">
+                      <select
+                        name="countryCode"
+                        className="booking-form-input w-24 mr-2"
+                        value={formState.countryCode}
+                        onChange={handleChange}
+                        style={{ minWidth: "70px" }}
+                      >
+                        <option value="">Code</option>
+                        {countryCodes.map((code) => (
+                          <option value={code.dial_code} key={code.code}>
+                            {code.dial_code}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        id="mobile"
+                        name="mobile"
+                        className="booking-form-input flex-1"
+                        value={formState.mobile}
+                        onChange={handleChange}
+                        placeholder="Enter mobile number"
+                      />
+                    </div>
                   </div>
                   <div className="booking-form-group">
-                    <label for="email" className="booking-form-label">
-                      Email Address
+                    <label for="fullName" className="booking-form-label">
+                      Full Name
                     </label>
                     <input
-                      type="email"
-                      id="email"
-                      name="email"
+                      type="text"
+                      id="fullName"
+                      name="fullName"
                       className="booking-form-input"
-                      value={formState.email}
+                      value={formState.fullName}
                       onChange={handleChange}
+                      placeholder="Enter your first name"
                     />
                   </div>
                 </div>
@@ -425,27 +519,44 @@ const BookAppointment = () => {
                     for="whatsapp-bform"
                     className="booking-form-checkbox-label"
                   >
-                    This is My WhatsApp Number
+                    This is my WhatsApp Number
                   </label>
                 </div>
-                <div className="booking-form-group">
-                  <label for="doctor" className="booking-form-label">
-                    Select Doctor
-                  </label>
-                  <select
-                    id="doctor"
-                    name="doctorID"
-                    className="booking-form-select"
-                    value={formState?.doctorID}
-                    onChange={handleChange}
-                  >
-                    <option value="">-- Select Doctor --</option>
-                    {doctors?.map((doctor, index) => (
-                      <option key={index} value={doctor.doctorID}>
-                        {doctor.fullName}
-                      </option>
-                    ))}
-                  </select>
+                <div className="booking-form-row">
+                  {" "}
+                  <div className="booking-form-group">
+                    <label for="email" className="booking-form-label">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      className="booking-form-input"
+                      value={formState.email}
+                      onChange={handleChange}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                  <div className="booking-form-group">
+                    <label for="doctor" className="booking-form-label">
+                      Select Doctor
+                    </label>
+                    <select
+                      id="doctor"
+                      name="doctorID"
+                      className="booking-form-select"
+                      value={formState?.doctorID}
+                      onChange={handleChange}
+                    >
+                      <option value="">-- Select Doctor --</option>
+                      {doctors?.map((doctor, index) => (
+                        <option key={index} value={doctor.doctorID}>
+                          {doctor.fullName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
                 <div className="booking-form-row">
                   <div className="booking-form-group">
@@ -457,14 +568,30 @@ const BookAppointment = () => {
                       id="appointmentDate"
                       name="appointmentDate"
                       className="booking-form-input"
-                      value={formState?.appointmentDate}
-                      onChange={(date) =>
-                        handleDateChange("appointmentDate", date)
-                      }
+                      value={formatDateForInput(formState?.appointmentDate)}
+                      onChange={(date) => {
+                        handleDateChange("appointmentDate", date);
+                        if (dateInputRef.current) {
+                          setTimeout(() => dateInputRef.current.blur(), 0);
+                        }
+                      }}
+                      min={formatDateForInput(new Date())}
+                      max={formatDateForInput(
+                        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                      )}
+                      ref={dateInputRef}
+                      onFocus={() => {
+                        if (
+                          dateInputRef.current &&
+                          dateInputRef.current.showPicker
+                        ) {
+                          dateInputRef.current.showPicker();
+                        }
+                      }}
                     />
                   </div>
                   <div className="booking-form-group">
-                    <label for="time" className="booking-form-label">
+                    <label for="startTime" className="booking-form-label">
                       Select Time Slot
                     </label>
                     <select
@@ -474,9 +601,15 @@ const BookAppointment = () => {
                       value={formState.startTime}
                       onChange={handleStartTimeChange}
                       //   invalid={!!formErrors.startTime}
-                      //   disabled={isLoadingSlots || availableSlots.length === 0}
+                      disabled={availableSlots.length === 0}
+                      style={
+                        availableSlots.length === 0
+                          ? {
+                              backgroundColor: "lightgray",
+                            }
+                          : {}
+                      }
                     >
-                      <option value="">-- Select Time Slot --</option>
                       <option value="">
                         {isLoadingSlots
                           ? "Loading slots..."

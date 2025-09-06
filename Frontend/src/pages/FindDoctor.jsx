@@ -83,26 +83,11 @@ const FindDoctor = () => {
                   <div key={doctor.ID} className="col-md-4 col-sm-6 col-xs-12">
                     <div className="card border-none shadow-lg rounded-4 mb-4">
                       <div className="text-center mb-6">
-                        <div className="w-24 h-24 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                          {/* <span className="text-4xl">{doctor.image}</span> */}
-                          {/* {doctor.profilePicture} */}
-                          {/* <svg
-                          class="bd-placeholder-img rounded-4"
-                          width="90"
-                          height="90"
-                          xmlns="http://www.w3.org/2000/svg"
-                          role="img"
-                          aria-label="Example larger rounded image: 75x75"
-                          preserveAspectRatio="xMidYMid slice"
-                          focusable="false"
-                        >
-                          <title>Example larger rounded image</title>
-                          <rect
-                            width="100%"
-                            height="100%"
-                            fill="#6c757d61"
-                          ></rect>
-                        </svg> */}
+                        <div className="w-24 h-24 bg-light rounded-full mx-auto mb-4 d-flex items-center justify-center">
+                          <img
+                            style={{ width: "5rem" }}
+                            src={doctor.profilePicture}
+                          />
                         </div>
                         <h3 className="fs-4 font-semibold mb-2 text-center">
                           {doctor.fullName}

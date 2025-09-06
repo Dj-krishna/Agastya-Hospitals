@@ -15,7 +15,7 @@ const ITEMS_PER_PAGE = 7;
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [showAddAppointment, setShowAddAppointment] = useState(false);
-  const [searchDate, setSearchDate] = useState(today);
+  const [searchDate, setSearchDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -45,18 +45,18 @@ const Appointments = () => {
     fetchAppointments();
   }, []);
 
-  const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentData = appointments.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+  // const totalPages = Math.ceil(appointments.length / ITEMS_PER_PAGE);
+  // const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  // const currentData = appointments.slice(
+  //   startIndex,
+  //   startIndex + ITEMS_PER_PAGE
+  // );
 
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  // const handlePageChange = (page) => {
+  //   if (page >= 1 && page <= totalPages) {
+  //     setCurrentPage(page);
+  //   }
+  // };
 
   return (
     <Fragment>
@@ -68,6 +68,7 @@ const Appointments = () => {
             onClick={() => setShowAddAppointment(true)}
             searchDate={searchDate}
             setSearchDate={handleSearch}
+            showDate={true}
           />
 
           <Container fluid={true}>
@@ -75,13 +76,8 @@ const Appointments = () => {
               {isLoading ? (
                 <TableSkeleton columns={6} rows={5} />
               ) : (
-                <AppointmentsTable appointments={currentData} />
+                <AppointmentsTable appointments={appointments} />
               )}
-                <PaginationComponent
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  handlePageChange={handlePageChange}
-                />
             </Row>
           </Container>
         </>

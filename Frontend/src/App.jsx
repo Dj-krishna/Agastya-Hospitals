@@ -18,6 +18,8 @@ import PrivacyPolicy from "./components/FooterPages/PrivacyPolicy";
 import TermsAndConditions from "./components/FooterPages/TermsAndConditions";
 import FreeSecondOpinionForm from "./pages/FreeSecondOpinionForm";
 import MedicalReports from "./pages/MedicalReports";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -50,6 +52,7 @@ function App() {
         </Routes>
       </main>
       <Footer />
+      <ToastContainer autoClose={3000} theme="colored" />
     </div>
   );
 }

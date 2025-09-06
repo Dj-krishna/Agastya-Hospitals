@@ -14,35 +14,31 @@ const TableComponent = ({
 }) => {
   return (
     <Fragment>
-      <Col sm="12">
+      <Col sm="12" md={12} xs={12}>
         <Card className="p-1">
-          {(title || isSearch || showStatusFilter) && (
+          {(title || isSearch) && (
             <CardHeader className="py-2">
               <Row>
                 {title ? (
-                  <Col md={4}>
+                  <Col md={4} sm={6} xs={12}>
                     <H5>{title}</H5>
                   </Col>
                 ) : (
-                  <Col md={4}></Col>
+                  <Col md={4} sm={6} xs={12}></Col>
                 )}
-                {showStatusFilter ? (
-                  <Col md={4}> {statusFilterComponent}</Col>
-                ) : (
-                  <Col md={4}></Col>
-                )}
+                <Col md={4} sm={6} xs={12}></Col>
                 {isSearch ? (
-                  <Col md={4}>
+                  <Col md={4} sm={6} xs={12}>
                     <Input
                       name="search"
                       type="text"
                       value={searchText}
                       onChange={onSearch}
-                      placeholder="Search here..."
+                      placeholder="Search here - Name, ID, Status..."
                     />
                   </Col>
                 ) : (
-                  <Col md={4}></Col>
+                  <Col md={4} sm={6} xs={12}></Col>
                 )}
               </Row>
             </CardHeader>
@@ -53,9 +49,7 @@ const TableComponent = ({
               <thead className="">
                 <tr>
                   {headers.map((header) => (
-                    <th scope="col" key={header}>
-                      {header}
-                    </th>
+                    <th key={header}>{header}</th>
                   ))}
                 </tr>
               </thead>
