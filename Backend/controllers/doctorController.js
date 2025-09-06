@@ -192,21 +192,29 @@ exports.addDoctor = async (req, res) => {
 
 
 // 🟢 PUT /doctors (supports file uploads)
+// 🟢 PUT /doctors (supports file uploads)
 exports.updateDoctor = async (req, res) => {
   try {
+    // Build filter from query
     const filter = buildDoctorFilter(req.query);
-    if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
+    if (!Object.keys(filter).length) 
+      return res.status(400).json({ error: 'No filter provided' });
 
-    const updateData = req.body;
+    // Clone body to avoid modifying original
+    const updateData = { ...req.body };
 
-    // Normalize array fields if passed as comma-separated string
+    // Remove fields that should not be updated
+    delete updateData._id;
+    delete updateData.doctorID;
+
+    // Normalize array fields if passed as comma-separated strings
     ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
       if (updateData[field] && typeof updateData[field] === 'string') {
         updateData[field] = updateData[field].split(',').map(s => s.trim());
       }
     });
 
-    // ✅ Handle uploaded files via ImageKit
+    // Handle uploaded files via ImageKit
     if (req.files) {
       if (req.files.profilePicture) {
         updateData.profilePicture = req.files.profilePicture[0].url;
@@ -223,18 +231,29 @@ exports.updateDoctor = async (req, res) => {
       }
     }
 
-    // Update the doctor(s)
+    // Perform the update
     const result = await Doctor.updateMany(filter, { $set: updateData });
-    if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching doctors found to update' });
 
-    const updated = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(buildDoctorFilter(filter)));
-    const transformed = updated.map(transformSpecialities);
+    if (result.matchedCount === 0) 
+      return res.status(404).json({ message: 'No matching doctors found to update' });
 
-    res.json({ message: 'Doctor(s) updated', updatedCount: result.modifiedCount, updatedDoctors: transformed });
+    // Fetch enriched updated doctors
+    const updatedDoctors = await Doctor.aggregate(
+      doctorWithDepartmentAndSpecialitiesLookup(filter)
+    );
+    const transformedDoctors = updatedDoctors.map(transformSpecialities);
+
+    res.json({
+      message: `Doctor(s) updated successfully`,
+      updatedCount: result.modifiedCount,
+      updatedDoctors: transformedDoctors
+    });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 
