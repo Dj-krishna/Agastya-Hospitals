@@ -189,9 +189,6 @@ exports.addDoctor = async (req, res) => {
 };
 
 
-
-
-// 🟢 PUT /doctors (supports file uploads)
 // 🟢 PUT /doctors (supports file uploads)
 exports.updateDoctor = async (req, res) => {
   try {
@@ -216,19 +213,19 @@ exports.updateDoctor = async (req, res) => {
 
     // Handle uploaded files via ImageKit
     if (req.files) {
-      if (req.files.profilePicture) {
-        updateData.profilePicture = req.files.profilePicture[0].url;
+      if (req.files?.profilePicture?.length > 0) {
+        updateData.profilePicture = req.files.profilePicture[0].url || updateData.profilePicture;
       }
-      if (req.files.profileImageGfs) {
+      if (req.files?.profileImageGfs?.length > 0) {
         const existingImages = Array.isArray(updateData.profileImageGfs) ? updateData.profileImageGfs : [];
-        const newImages = req.files.profileImageGfs.map(f => f.url);
+        const newImages = req.files.profileImageGfs.map(f => f.url).filter(Boolean);
         updateData.profileImageGfs = existingImages.concat(newImages);
       }
-      if (req.files.introVideoGfs) {
+      if (req.files?.introVideoGfs?.length > 0) {
         const existingVideos = Array.isArray(updateData.introVideoGfs) ? updateData.introVideoGfs : [];
-        const newVideos = req.files.introVideoGfs.map(f => f.url);
+        const newVideos = req.files.introVideoGfs.map(f => f.url).filter(Boolean);
         updateData.introVideoGfs = existingVideos.concat(newVideos);
-      }
+      }      
     }
 
     // Perform the update
