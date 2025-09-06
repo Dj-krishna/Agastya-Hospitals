@@ -132,7 +132,7 @@ exports.addSpeciality = async (req, res) => {
 
 // UPDATE specialities
 exports.updateSpeciality = async (req, res) => {
-  const filter = req.query;
+  const filter = buildSpecialityFilter(req.query);
   const updateData = req.body || {};
   
   if (!Object.keys(filter).length) {
