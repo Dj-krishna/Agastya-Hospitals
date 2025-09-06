@@ -21,7 +21,7 @@ const doctorSchema = new mongoose.Schema({
   researchAndPublications: { type: String },
   opTimings: { type: [String] },
   gender: { type: String, enum: ['Male', 'Female', 'Others'] },
-  profilePicture: { type: String },
+  profilePicture: { type: String, default: null },
   profileImageGfs: { type: [String], default: []  }, 
   introVideoGfs: { type: [String], default: []  }, 
   about: { type: String }
