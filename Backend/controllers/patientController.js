@@ -188,7 +188,7 @@ exports.addPatient = async (req, res) => {
 // 🟢 UPDATE patient by filter + ImageKit + form-data friendly
 exports.updatePatient = async (req, res) => {
   try {
-    const filter = req.query;
+    const filter = buildPatientFilter(req.query);
     if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
 
     // Merge form-data fields with files
