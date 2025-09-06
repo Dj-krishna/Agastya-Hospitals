@@ -194,7 +194,7 @@ exports.addDoctor = async (req, res) => {
 // 🟢 PUT /doctors (supports file uploads)
 exports.updateDoctor = async (req, res) => {
   try {
-    const filter = req.query;
+    const filter = buildDoctorFilter(req.query);
     if (!Object.keys(filter).length) return res.status(400).json({ error: 'No filter provided' });
 
     const updateData = req.body;
