@@ -43,9 +43,9 @@ const doctorFilesMiddleware = (req, res, next) => {
               fileName: file.originalname,
               folder: `/doctors/${field}`
             });
-            return { ...file, url: uploaded.url };
+            return { url: uploaded.url }; // Only store the URL
           })
-        );
+        );        
       }
       next();
     } catch (error) {
