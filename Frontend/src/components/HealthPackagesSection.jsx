@@ -107,10 +107,11 @@ const HealthPackagesSection = () => {
                       {pkg.price}
                     </span>
                   </div>
-                  <button className="btn-primary w-full">
+                  <button className="primary-btn">
                     Book Now
                   </button>
                 </div>
+                
               </div>
             ))}
           </div>

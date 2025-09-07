@@ -24,11 +24,26 @@ const Specialties = () => {
   }, []);
 
   return (
-    <div className="py-16">
+    <div>
+       <div class="container-fluid">
+        <div class="banner mb-12">
+          <div class="container mx-auto">
+            <div class="row">
+              <div class="col-lg-12">
+                <h2 class="banner-title">Our Specialties</h2>
+                <div class="breadcrumb">
+                  <a href="/">Home</a> <span>/</span>
+                  <span>Our Specialties</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
+        {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Our Specialties
-        </h1>
+        </h1> */}
 
         {isLoading ? (
           <div className="text-center">
@@ -46,7 +61,7 @@ const Specialties = () => {
             {specialties.length > 0 ? (
               specialties.map((specialty, index) => (
                 <div key={index} className="col-md-4">
-                  <div className="bg-white p-6 rounded-4 shadow-lg mb-4">
+                  <div className="bg-white p-6 rounded-4 mb-4 specialty-card">
                     <div className="text-4xl mb-4">
                       {/* <img src={specialty.icon} alt={specialty.name} /> */}
                       <svg
@@ -73,7 +88,7 @@ const Specialties = () => {
                     <p className="text-gray-600 leading-relaxed">
                       {specialty.shortDescription}
                     </p>
-                    <button className="mt-4 btn-primary">Learn More</button>
+                    <button className="mt-4 learn-more">Learn More</button>
                   </div>
                 </div>
               ))

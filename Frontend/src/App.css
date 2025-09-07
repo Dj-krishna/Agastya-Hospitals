@@ -534,6 +534,7 @@ select.form-select {
   background-color: transparent;
   color: #000;
   font-size: 16px;
+  cursor: pointer;
   font-weight: 700;
   line-height: normal;
   text-decoration: none;
@@ -542,6 +543,74 @@ select.form-select {
 .herobanner-quicklinks .quicklink:hover {
   color: #022b50;
 } 
+
+.heading-20 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+.heading-22 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+.heading-24 {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+.heading-28 {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+.heading-32 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+.heading-36 {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: normal;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+
+.bg-white {
+  background-color: #fff;
+}
+
+.paragraph-14 {
+ font-size: 14px;
+ margin-bottom: 10px;
+ line-height: normal;
+}
+
+.paragraph-16 {
+ font-size: 16px;
+ margin-bottom: 10px;
+ line-height: normal;
+}
+
+.paragraph-18 {
+ font-size: 18px;
+ margin-bottom: 10px;
+ line-height: normal;
+}
+
 
 .specialties-bg {
     background-color: #CEDDF0;
@@ -581,6 +650,20 @@ select.form-select {
 .specialties-bg-scroller::-webkit-scrollbar-thumb {
   background: #888; /* Dark gray thumb */
   border-radius: 4px; /* Rounded corners for the thumb */
+}
+
+.specialty-card {
+  border:1px solid #D9D9D9;
+}
+
+.specialty-card .learn-more {
+  font-size: 14px;
+  color: #022b50;
+  font-weight: 600;
+}
+
+.specialty-card .learn-more:hover {
+  text-decoration: underline;
 }
 
 h1.main-title, .main-title,
@@ -1378,4 +1461,91 @@ footer {
         text-align: center;
         padding: 30px 0;
         font-size: 16px;
+    }
+
+
+    .careers-card {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      padding: 35px;
+    }
+
+    .careers-card .careers-category {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      height: auto;
+    }
+    .careers-card .position-title {
+      font-size: 20px;
+      margin-bottom: 10px;
+      line-height: normal;
+      font-weight: 700;
+      color: #000;
+    }
+    
+    .careers-card .position-desc {
+      font-size: 16px;
+      margin-bottom: 10px;
+      line-height: normal;
+      font-weight:normal;
+      color: #333;
+    }
+    .careers-card .applynow {
+      border-radius: 0.375rem;
+      background-color: #fff;
+      border:1px solid #022b50;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      color: #022b50;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
+    }
+    .careers-card .applynow:hover {
+      background-color: #022b50;
+      color: #fff;
+    }
+
+    .careers-card .careers-category .label {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+      line-height: normal;
+    }
+    
+    .careers-card .careers-category .information {
+      font-size: 16px;
+      color: #000;
+      margin-bottom: 5px;
+      line-height: normal;
+    }
+
+
+
+     .primary-btn {
+      border-radius: 0.375rem;
+      background-color: #022b50;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      color: #fff;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
+    }
+
+    .primary-btn-outline {
+      border-radius: 0.375rem;
+      background-color: #fff;
+      border:1px solid #022b50;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      color: #022b50;
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      transition-duration: 200ms;
     }

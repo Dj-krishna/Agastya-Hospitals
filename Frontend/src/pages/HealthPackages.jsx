@@ -76,10 +76,25 @@ const HealthPackages = () => {
   ]
 
   return (
-    <div className="py-16">
+    <div>
+      <div class="container-fluid">
+        <div class="banner mb-12">
+          <div class="container mx-auto">
+            <div class="row">
+              <div class="col-lg-12">
+                <h2 class="banner-title">Health Packages</h2>
+                <div class="breadcrumb">
+                  <a href="/">Home</a> <span>/</span>
+                  <span>Health Packages</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
-          Health Check-up Packages
+         Explore the Health Packages
         </h1>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -125,21 +140,30 @@ const HealthPackages = () => {
                 ))}
               </ul>
               
-              <button className="w-full btn-primary">
+              <button className="primary-btn">
                 Book Now
               </button>
             </div>
           ))}
         </div>
         
-        <div className="text-center mt-12">
+        {/* <div className="text-center mt-12">
           <p className="text-gray-600 mb-4">
             Need a custom package? Contact us for personalized health check-up plans.
           </p>
           <button className="btn-secondary">
             Contact Us
           </button>
-        </div>
+        </div> */}
+
+        <div className="col-lg-12 text-center pt-3 m-5">
+            <p className="paragraph-16 text-center">
+              Need a custom package? Contact us for personalized health check-up plans.
+            </p>
+            <button className="primary-btn mb-5 mt-2">
+             Contact US
+            </button>
+          </div>
       </div>
     </div>
   )

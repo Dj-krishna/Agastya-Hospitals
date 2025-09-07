@@ -61,7 +61,22 @@ const FindDoctor = () => {
   // ];
 
   return (
-    <div className="py-16">
+    <div>
+      <div class="container-fluid">
+        <div class="banner mb-12">
+          <div class="container mx-auto">
+            <div class="row">
+              <div class="col-lg-12">
+                <h2 class="banner-title">Our Doctors</h2>
+                <div class="breadcrumb">
+                  <a href="/">Home</a> <span>/</span>
+                  <span>Our Doctors</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4">
         <h1 className="text-center mb-5 fs-1 fw-bolder">Find a Doctor</h1>
         {isLoading ? (

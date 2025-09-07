@@ -39,56 +39,73 @@ const Careers = () => {
   ]
 
   return (
-    <div className="py-16">
+    <div>
+      <div class="container-fluid">
+        <div class="banner mb-12">
+          <div class="container mx-auto">
+            <div class="row">
+              <div class="col-lg-12">
+                <h2 class="banner-title">Careers at Agastya</h2>
+                <div class="breadcrumb">
+                  <a href="/">Home</a> <span>/</span>
+                  <span>Careers</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4">
-        <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
+        {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Careers at Agastya Hospitals
-        </h1>
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white p-8 rounded-lg shadow-lg mb-12">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+        </h1> */}
+
+        <div className="row">
+          <div className="col-lg-12">
+            <h2 className="heading-22">
               Join Our Team
             </h2>
-            <p className="text-gray-600 leading-relaxed mb-6">
+            <p className="paragraph-16">
               At Agastya Hospitals, we believe in fostering a culture of excellence, innovation, and compassion. 
               We are always looking for talented healthcare professionals who share our commitment to providing 
               the best possible care to our patients.
             </p>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="paragraph-16">
               Join us in our mission to transform lives and restore health through advanced medical care 
               and compassionate service.
             </p>
           </div>
-
-          <h2 className="text-2xl font-semibold text-gray-900 mb-8">
+        </div>
+        
+        
+        <div className="row mt-5">
+           <div className="col-lg-12">
+          
+          <h2 className="heading-22 mb-3">
             Current Openings
           </h2>
           
           <div className="space-y-6">
             {positions.map((position) => (
-              <div
-                key={position.id}
-                className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
-              >
-                <div className="flex justify-between items-start mb-4">
+              <div key={position.id} className="bg-white careers-card" >
+                <div className="">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    <h3 className="position-title">
                       {position.title}
                     </h3>
-                    <p className="text-gray-600 mb-2">
+                    <p className="position-desc">
                       {position.description}
                     </p>
                   </div>
-                  <button className="btn-primary">
+                  <button className="applynow">
                     Apply Now
                   </button>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div className="careers-category">
                   <div>
-                    <span className="text-gray-500">Department:</span>
-                    <p className="font-medium">{position.department}</p>
+                    <span className="label">Department:</span>
+                    <p className="information">{position.department}</p>
                   </div>
                   <div>
                     <span className="text-gray-500">Location:</span>
@@ -107,13 +124,14 @@ const Careers = () => {
             ))}
           </div>
           
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">
+          <div className="col-lg-12 text-center pt-3 m-5">
+            <p className="paragraph-16 text-center">
               Don't see a position that matches your skills? Send us your resume!
             </p>
-            <button className="btn-secondary">
+            <button className="primary-btn mb-5 mt-2">
               Submit Resume
             </button>
+          </div>
           </div>
         </div>
       </div>

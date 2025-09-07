@@ -46,9 +46,27 @@ const FreeSecondOpinionForm = () => {
   };
 
   return (
-    <div className="container py-8 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-hospital-blue">Request a Free Second Opinion</h2>
-      <p className="mb-6">
+<div>
+     <div class="container-fluid">
+        <div class="banner mb-12">
+          <div class="container mx-auto">
+            <div class="row">
+              <div class="col-lg-12">
+                <h2 class="banner-title">Request a Free Second Opinion</h2>
+                <div class="breadcrumb">
+                  <a href="/">Home</a> <span>/</span>
+                  <span>Free Second Opinion</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <div className="container">
+     
+      <div className="row">
+        <div className="col-lg-6 mx-auto">
+          <p className="mb-6">
         Fill out the form below and our specialists will review your case and get back to you as soon as possible.
       </p>
       {submitted ? (
@@ -118,12 +136,15 @@ const FreeSecondOpinionForm = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-hospital-blue text-white py-2 rounded font-semibold hover:bg-blue-700 transition"
+            className="primary-btn"
           >
             Submit Request
           </button>
         </form>
       )}
+        </div>
+      </div>
+    </div>
     </div>
   );
 };
