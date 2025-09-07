@@ -3,7 +3,54 @@ const Department = require('../models/Departments');
 const Speciality = require('../models/Specialities');
 const getNextSequence = require('../utils/getNextSequence');
 
-// 🔧 Build filter from request query
+
+// Helper: Validate and normalize input fields including speciality conversion
+const validateAndNormalizeDoctor = async (doc) => {
+  const errors = [];
+
+  // Normalize array fields from comma-separated strings if needed
+  ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
+    if (doc[field] && !Array.isArray(doc[field])) {
+      doc[field] = doc[field].split(',').map(s => s.trim());
+    }
+  });
+
+  // Validate and convert speciality field
+  if (doc.speciality) {
+    let specialityArray = [];
+
+    if (Array.isArray(doc.speciality)) {
+      specialityArray = doc.speciality;
+    } else if (typeof doc.speciality === 'string') {
+      specialityArray = [doc.speciality];
+    } else {
+      errors.push('Field "speciality" must be a string or an array.');
+    }
+
+    const specialityIDs = [];
+    for (const item of specialityArray) {
+      if (typeof item === 'number') {
+        specialityIDs.push(item);
+      } else if (typeof item === 'string') {
+        const specDoc = await Speciality.findOne({ specialityName: { $regex: `^${item}$`, $options: 'i' } }, { specialityID: 1 });
+        if (specDoc) {
+          specialityIDs.push(specDoc.specialityID);
+        } else {
+          errors.push(`Speciality not found: ${item}`);
+        }
+      } else {
+        errors.push(`Invalid speciality item: ${item}`);
+      }
+    }
+
+    doc.speciality = specialityIDs;
+  }
+
+  return { normalizedDoc: doc, errors };
+};
+
+
+// Build filter from request query for GET, DELETE, etc.
 const buildDoctorFilter = (query) => {
   const filter = {};
   const exactMatchFields = ['gender', 'doctorID'];
@@ -25,7 +72,8 @@ const buildDoctorFilter = (query) => {
   return filter;
 };
 
-// 🔍 Aggregation to join department and specialities
+
+// Aggregation pipeline to enrich doctors with department and speciality names
 const doctorWithDepartmentAndSpecialitiesLookup = (match = {}) => [
   { $match: match },
   {
@@ -60,7 +108,8 @@ const doctorWithDepartmentAndSpecialitiesLookup = (match = {}) => [
   { $project: { departmentData: 0, specialityDetails: 0 } }
 ];
 
-// 🔁 Transform speciality array to { id: name }
+
+// Transform speciality arrays of IDs and names to a map { id: name }
 const transformSpecialities = (doctor) => {
   if (Array.isArray(doctor.speciality) && Array.isArray(doctor.specialityNames)) {
     const mapped = {};
@@ -73,19 +122,19 @@ const transformSpecialities = (doctor) => {
   return doctor;
 };
 
-// 🟢 GET /doctors (handles all cases including by ID)
+
+// GET /doctors (supports filtering, returns enriched data)
 exports.getDoctors = async (req, res) => {
   try {
     const filter = buildDoctorFilter(req.query);
     const doctors = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
-    
+
     if (doctors.length === 0) {
       return res.status(404).json({ message: 'No doctors found.' });
     }
 
     const transformed = doctors.map(transformSpecialities);
-    
-    // If filtering by doctorID, return single object, otherwise return array
+
     if (req.query.doctorID) {
       res.json(transformed[0]);
     } else {
@@ -96,54 +145,47 @@ exports.getDoctors = async (req, res) => {
   }
 };
 
-// 🟢 POST /doctors
+
+// POST /doctors (single or bulk insert, with validation and file upload handling)
 exports.addDoctor = async (req, res) => {
   try {
     const payload = req.body;
     const getNextDoctorID = async () => await getNextSequence('doctorID');
 
-    const normalizeFields = (doc) => {
-      ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
-        if (!Array.isArray(doc[field]) && doc[field]) {
-          doc[field] = doc[field].split(',').map(s => s.trim());
-        }
-      });
-      return doc;
-    };
-
     const emailExists = async (email) => await Doctor.exists({ email });
 
-    // ---------------- SINGLE INSERT ----------------
+    // Handle single insert
     if (!Array.isArray(payload)) {
-      if (await emailExists(payload.email)) {
+      const { normalizedDoc, errors } = await validateAndNormalizeDoctor(payload);
+      if (errors.length > 0) {
+        return res.status(400).json({ errors });
+      }
+
+      if (await emailExists(normalizedDoc.email)) {
         return res.status(409).json({ error: 'A doctor with this email already exists.' });
       }
 
-      if (!payload.doctorID) payload.doctorID = await getNextDoctorID();
+      if (!normalizedDoc.doctorID) normalizedDoc.doctorID = await getNextDoctorID();
 
-      // ✅ Handle uploaded files (ImageKit)
       if (req.files) {
         if (req.files.profilePicture) {
-          payload.profilePicture = req.files.profilePicture[0].url;
+          normalizedDoc.profilePicture = req.files.profilePicture[0].url;
         }
         if (req.files.profileImageGfs) {
-          payload.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
+          normalizedDoc.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
         }
         if (req.files.introVideoGfs) {
-          payload.introVideoGfs = req.files.introVideoGfs.map(f => f.url);
+          normalizedDoc.introVideoGfs = req.files.introVideoGfs.map(f => f.url);
         }
       }
 
-      const normalized = normalizeFields(payload);
-      const saved = await new Doctor(normalized).save();
+      const saved = await new Doctor(normalizedDoc).save();
+      const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID }));
 
-      const enriched = await Doctor.aggregate(
-        doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID })
-      );
       return res.status(201).json(transformSpecialities(enriched[0]));
     }
 
-    // ---------------- BULK INSERT ----------------
+    // Handle bulk insert
     const emails = payload.map(doc => doc.email);
     const existingDoctors = await Doctor.find({ email: { $in: emails } }, { email: 1 });
     const existingEmails = new Set(existingDoctors.map(doc => doc.email));
@@ -153,19 +195,25 @@ exports.addDoctor = async (req, res) => {
     const doctorsToInsert = [];
 
     for (const doc of payload) {
-      if (existingEmails.has(doc.email)) {
-        errors.push({ email: doc.email, error: 'Email already exists in DB.' });
+      const { normalizedDoc, errors: validationErrors } = await validateAndNormalizeDoctor(doc);
+
+      if (existingEmails.has(normalizedDoc.email)) {
+        errors.push({ email: normalizedDoc.email, error: 'Email already exists in DB.' });
         continue;
       }
-      if (duplicateEmails.includes(doc.email)) {
-        errors.push({ email: doc.email, error: 'Duplicate email in request payload.' });
+      if (duplicateEmails.includes(normalizedDoc.email)) {
+        errors.push({ email: normalizedDoc.email, error: 'Duplicate email in request payload.' });
+        continue;
+      }
+      if (validationErrors.length > 0) {
+        errors.push({ email: normalizedDoc.email, errors: validationErrors });
         continue;
       }
 
-      if (!doc.doctorID) doc.doctorID = await getNextDoctorID();
+      if (!normalizedDoc.doctorID) normalizedDoc.doctorID = await getNextDoctorID();
 
-      // ✅ For bulk insert, file uploads are usually handled per-doctor via separate requests
-      doctorsToInsert.push(normalizeFields(doc));
+      // For bulk insert, file uploads usually handled separately per doctor
+      doctorsToInsert.push(normalizedDoc);
     }
 
     if (doctorsToInsert.length === 0) {
@@ -174,13 +222,12 @@ exports.addDoctor = async (req, res) => {
 
     const inserted = await Doctor.insertMany(doctorsToInsert);
     const ids = inserted.map(doc => doc.doctorID);
-    const enriched = await Doctor.aggregate(
-      doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } })
-    );
+    const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } }));
     const transformed = enriched.map(transformSpecialities);
 
     const response = { inserted: transformed };
     if (errors.length > 0) response.errors = errors;
+
     res.status(errors.length > 0 ? 207 : 201).json(response);
 
   } catch (error) {
@@ -189,122 +236,111 @@ exports.addDoctor = async (req, res) => {
 };
 
 
-// 🟢 PUT /doctors (supports file uploads)
+// PUT /doctors (update with optional file uploads, validation, and error reporting)
 exports.updateDoctor = async (req, res) => {
   try {
-    // Build filter from query
     const filter = buildDoctorFilter(req.query);
-    if (!Object.keys(filter).length) 
+    if (!Object.keys(filter).length) {
       return res.status(400).json({ error: 'No filter provided' });
+    }
 
-    // Clone body to avoid modifying original
+    // Clone body to avoid mutations
     const updateData = { ...req.body };
 
     // Remove fields that should not be updated
     delete updateData._id;
     delete updateData.doctorID;
 
-    // Normalize array fields if passed as comma-separated strings
-    ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
-      if (updateData[field] && typeof updateData[field] === 'string') {
-        updateData[field] = updateData[field].split(',').map(s => s.trim());
-      }
-    });
-
-    // Handle uploaded files via ImageKit
-    if (req.files) {
-      if (req.files?.profilePicture?.length > 0) {
-        updateData.profilePicture = req.files.profilePicture[0].url || updateData.profilePicture;
-      }
-      if (req.files?.profileImageGfs?.length > 0) {
-        const existingImages = Array.isArray(updateData.profileImageGfs) ? updateData.profileImageGfs : [];
-        const newImages = req.files.profileImageGfs.map(f => f.url).filter(Boolean);
-        updateData.profileImageGfs = existingImages.concat(newImages);
-      }
-      if (req.files?.introVideoGfs?.length > 0) {
-        const existingVideos = Array.isArray(updateData.introVideoGfs) ? updateData.introVideoGfs : [];
-        const newVideos = req.files.introVideoGfs.map(f => f.url).filter(Boolean);
-        updateData.introVideoGfs = existingVideos.concat(newVideos);
-      }      
+    const { normalizedDoc, errors } = await validateAndNormalizeDoctor(updateData);
+    if (errors.length > 0) {
+      return res.status(400).json({ errors });
     }
 
-    // Perform the update
-    const result = await Doctor.updateMany(filter, { $set: updateData });
+    if (req.files) {
+      // Replace console.log with proper logging as needed
+      // For now, no logging
 
-    if (result.matchedCount === 0) 
+      if (req.files?.profilePicture?.length > 0) {
+        normalizedDoc.profilePicture = req.files.profilePicture[0].url || normalizedDoc.profilePicture;
+      }
+      if (req.files?.profileImageGfs?.length > 0) {
+        const existingImages = Array.isArray(normalizedDoc.profileImageGfs) ? normalizedDoc.profileImageGfs : [];
+        const newImages = req.files.profileImageGfs.map(f => f.url).filter(Boolean);
+        normalizedDoc.profileImageGfs = existingImages.concat(newImages);
+      }
+      if (req.files?.introVideoGfs?.length > 0) {
+        const existingVideos = Array.isArray(normalizedDoc.introVideoGfs) ? normalizedDoc.introVideoGfs : [];
+        const newVideos = req.files.introVideoGfs.map(f => f.url).filter(Boolean);
+        normalizedDoc.introVideoGfs = existingVideos.concat(newVideos);
+      }
+    }
+
+    const result = await Doctor.updateMany(filter, { $set: normalizedDoc });
+
+    if (result.matchedCount === 0) {
       return res.status(404).json({ message: 'No matching doctors found to update' });
+    }
 
-    // Fetch enriched updated doctors
-    const updatedDoctors = await Doctor.aggregate(
-      doctorWithDepartmentAndSpecialitiesLookup(filter)
-    );
+    const updatedDoctors = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
     const transformedDoctors = updatedDoctors.map(transformSpecialities);
 
     res.json({
       message: `Doctor(s) updated successfully`,
       updatedCount: result.modifiedCount,
-      updatedDoctors: transformedDoctors
+      updatedDoctors: transformedDoctors,
     });
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 
-
-
-
-// 🟢 DELETE doctors (handles all cases: by ID, by filter, bulk by IDs)
+// DELETE /doctors (supports bulk delete by IDs, filter, or single by query)
 exports.deleteDoctors = async (req, res) => {
   try {
     let filter = {};
     let deletedDoctors = [];
 
-    // Handle different delete scenarios
     if (req.params.ids) {
-      // Bulk delete by comma-separated IDs
+      // Bulk delete by comma-separated doctorIDs
       const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
       if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
+
       filter = { doctorID: { $in: ids } };
     } else if (req.query.doctorID) {
-      // Delete single doctor by ID
+      // Single delete by ID
       filter = { doctorID: Number(req.query.doctorID) };
     } else if (Object.keys(req.query).length > 0) {
-      // Delete by query parameters
+      // Delete by query params
       filter = buildDoctorFilter(req.query);
     } else if (req.body.filter) {
-      // Delete by filter from request body
       if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
       filter = req.body.filter;
     } else {
       return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
     }
 
-    // Get doctors to delete (for response)
+    // Find doctors before deletion for response
     const toDelete = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
-    if (!toDelete.length) return res.status(404).json({ message: 'No doctors found matching the criteria' });
+    if (toDelete.length === 0) return res.status(404).json({ message: 'No doctors found matching the criteria' });
 
-    // Perform deletion
     const result = await Doctor.deleteMany(filter);
     if (result.deletedCount === 0) return res.status(404).json({ message: 'No doctors were deleted' });
 
-    // Transform the deleted doctors for response
     deletedDoctors = toDelete.map(transformSpecialities);
 
-    // Return appropriate response
     if (req.query.doctorID) {
-      // Single doctor deleted
+      // Single delete response
       res.json({ message: 'Doctor deleted', doctor: deletedDoctors[0] });
     } else {
-      // Multiple doctors deleted
-      res.json({ 
-        message: 'Doctors deleted', 
-        deletedCount: result.deletedCount, 
-        deletedDoctors: deletedDoctors 
+      // Bulk or filtered delete response
+      res.json({
+        message: 'Doctors deleted',
+        deletedCount: result.deletedCount,
+        deletedDoctors: deletedDoctors,
       });
     }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

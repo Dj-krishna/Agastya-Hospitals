@@ -47,6 +47,7 @@ const doctorFilesMiddleware = (req, res, next) => {
           })
         );        
       }
+      console.log('Middleware - Uploaded files:', req.files);
       next();
     } catch (error) {
       next(error);
