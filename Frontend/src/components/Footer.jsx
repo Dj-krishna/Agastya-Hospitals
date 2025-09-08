@@ -1,4 +1,4 @@
-import { Link, usehandleNavigation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Footer = () => {
   const navigate = useNavigate();
