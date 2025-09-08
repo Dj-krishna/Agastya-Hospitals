@@ -93,7 +93,7 @@ const BookAppointment = () => {
       // Check if the response contains an error message
       if (response.data && response.data.error) {
         setAvailableSlots([]);
-        toasterConfig("error",response.data.error);
+        toasterConfig("error", response.data.error);
         return;
       }
 
@@ -110,12 +110,17 @@ const BookAppointment = () => {
         setAvailableSlots(allSlots);
       } else {
         setAvailableSlots([]);
-        toasterConfig.warning("No available slots for the selected date and doctor.");
+        toasterConfig.warning(
+          "No available slots for the selected date and doctor."
+        );
       }
     } catch (error) {
       console.error("Error fetching available slots:", error);
       setAvailableSlots([]);
-      toasterConfig("error","Failed to fetch available slots. Please try again.");
+      toasterConfig(
+        "error",
+        "Failed to fetch available slots. Please try again."
+      );
     } finally {
       setIsLoadingSlots(false);
     }
@@ -140,18 +145,21 @@ const BookAppointment = () => {
           countryCode: patient.countryCode,
           patientID: patient.patientID,
         }));
-        toasterConfig("success","Patient found! Details auto-filled.");
+        toasterConfig("success", "Patient found! Details auto-filled.");
       } else {
         setVerifiedPatient(null);
         setFormState((prev) => ({
           ...prev,
           patientID: "",
         }));
-        toasterConfig("info","New patient. Please fill in additional details.");
+        toasterConfig(
+          "info",
+          "New patient. Please fill in additional details."
+        );
       }
     } catch (error) {
       console.error("Error verifying mobile:", error);
-      toasterConfig("error","Error verifying mobile number");
+      toasterConfig("error", "Error verifying mobile number");
       setPatientExists(null);
       setVerifiedPatient(null);
     } finally {
@@ -217,7 +225,8 @@ const BookAppointment = () => {
         );
 
         if (conflictingAppointments.length > 0) {
-          toasterConfig("error",
+          toasterConfig(
+            "error",
             "This time slot conflicts with an existing appointment. Please select a different time."
           );
           return false;
@@ -370,7 +379,6 @@ const BookAppointment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      debugger;
       const appointmentData = {
         patientName: formState.fullName,
         mobile: formState.mobile,
@@ -395,16 +403,16 @@ const BookAppointment = () => {
 
         // Check if the response contains an error message
         if (responseData.error) {
-          toasterConfig("error",responseData.error);
+          toasterConfig("error", responseData.error);
           return;
         }
 
         // Check if the response contains the success message
         if (responseData.message === "Appointment booked successfully") {
           setFormState(initialState);
-          toasterConfig("success","Appointment booked successfully!");
+          toasterConfig("success", "Appointment booked successfully!");
         } else {
-          toasterConfig("error","Unexpected response format");
+          toasterConfig("error", "Unexpected response format");
         }
       }
     } catch (error) {
@@ -413,25 +421,50 @@ const BookAppointment = () => {
       // Handle different types of error responses
       if (error.response?.data?.error) {
         // Handle API error responses like "Slot already booked"
-        toasterConfig("error",error.response.data.error);
+        toasterConfig("error", error.response.data.error);
       } else if (error.response?.data?.message) {
         // Handle other API error messages
-        toasterConfig("error",error.response.data.message);
+        toasterConfig("error", error.response.data.message);
       } else if (error.response?.status === 409) {
         // Handle conflict status (slot already booked)
-        toasterConfig("error",
+        toasterConfig(
+          "error",
           "This time slot is already booked. Please select a different time."
         );
       } else if (error.response?.status === 400) {
         // Handle bad request
-        toasterConfig("error","Invalid appointment data. Please check your inputs.");
+        toasterConfig(
+          "error",
+          "Invalid appointment data. Please check your inputs."
+        );
       } else {
         // Handle network or other errors
-        toasterConfig("error","Failed to book appointment. Please try again.");
+        toasterConfig("error", "Failed to book appointment. Please try again.");
       }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const isFormInvalid = () => {
+    const requiredFields = [
+      "fullName",
+      "mobile",
+      "email",
+      "doctorID",
+      "appointmentDate",
+      "startTime",
+      "terms",
+      "consent",
+      "countryCode",
+    ];
+    return requiredFields.some(
+      (field) =>
+        formState[field] === null ||
+        formState[field] === undefined ||
+        formState[field] === "" ||
+        (typeof formState[field] === "boolean" && formState[field] === false)
+    );
   };
 
   return (
@@ -659,7 +692,13 @@ const BookAppointment = () => {
                     consent will override any registration for NDNC.
                   </label>
                 </div>
-                <button type="submit" className="booking-form-btn-submit">
+                <button
+                  type="submit"
+                  className={`btn ${
+                    isFormInvalid() ? "btn-secondary" : "btn-primary"
+                  }`}
+                  disabled={isFormInvalid()}
+                >
                   Submit
                 </button>
               </form>
