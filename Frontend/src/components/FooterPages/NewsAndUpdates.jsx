@@ -2,7 +2,7 @@ import React from "react";
 
 const NewsAndUpdates = () => {
   return (
-    <div className="container py-8">
+    <div className="container p-5">
       <h2 className="text-2xl font-bold mb-4">News & Updates</h2>
       <ul className="list-disc ml-6">
         <li>

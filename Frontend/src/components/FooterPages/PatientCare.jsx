@@ -2,7 +2,7 @@ import React from "react";
 
 const PatientCare = () => {
   return (
-    <div className="container py-8">
+    <div className="container p-5">
       <h2 className="text-2xl font-bold mb-4">
         Patient Care at Agastya Hospitals
       </h2>

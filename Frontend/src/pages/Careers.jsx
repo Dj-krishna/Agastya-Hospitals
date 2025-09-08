@@ -7,7 +7,8 @@ const Careers = () => {
       location: "Hyderabad",
       type: "Full-time",
       experience: "5+ years",
-      description: "We are looking for an experienced cardiologist to join our cardiac team."
+      description:
+        "We are looking for an experienced cardiologist to join our cardiac team.",
     },
     {
       id: 2,
@@ -16,7 +17,7 @@ const Careers = () => {
       location: "Hyderabad",
       type: "Full-time",
       experience: "2+ years",
-      description: "Join our nursing team to provide excellent patient care."
+      description: "Join our nursing team to provide excellent patient care.",
     },
     {
       id: 3,
@@ -25,7 +26,8 @@ const Careers = () => {
       location: "Hyderabad",
       type: "Full-time",
       experience: "3+ years",
-      description: "Work with advanced medical equipment in our state-of-the-art laboratory."
+      description:
+        "Work with advanced medical equipment in our state-of-the-art laboratory.",
     },
     {
       id: 4,
@@ -34,74 +36,48 @@ const Careers = () => {
       location: "Hyderabad",
       type: "Full-time",
       experience: "1+ years",
-      description: "Support our administrative team in managing hospital operations."
-    }
-  ]
+      description:
+        "Support our administrative team in managing hospital operations.",
+    },
+  ];
 
   return (
-    <div>
-      <div class="container-fluid">
-        <div class="banner mb-12">
-          <div class="container mx-auto">
-            <div class="row">
-              <div class="col-lg-12">
-                <h2 class="banner-title">Careers at Agastya</h2>
-                <div class="breadcrumb">
-                  <a href="/">Home</a> <span>/</span>
-                  <span>Careers</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="container mx-auto px-4">
-        {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
+    <div className="container mx-auto p-5">
+      {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Careers at Agastya Hospitals
         </h1> */}
 
-        <div className="row">
-          <div className="col-lg-12">
-            <h2 className="heading-22">
-              Join Our Team
-            </h2>
-            <p className="paragraph-16">
-              At Agastya Hospitals, we believe in fostering a culture of excellence, innovation, and compassion. 
-              We are always looking for talented healthcare professionals who share our commitment to providing 
-              the best possible care to our patients.
-            </p>
-            <p className="paragraph-16">
-              Join us in our mission to transform lives and restore health through advanced medical care 
-              and compassionate service.
-            </p>
-          </div>
+      <div className="row">
+        <div className="col-lg-12">
+          <h2 className="heading-22">Join Our Team</h2>
+          <p className="paragraph-16">
+            At Agastya Hospitals, we believe in fostering a culture of
+            excellence, innovation, and compassion. We are always looking for
+            talented healthcare professionals who share our commitment to
+            providing the best possible care to our patients.
+          </p>
+          <p className="paragraph-16">
+            Join us in our mission to transform lives and restore health through
+            advanced medical care and compassionate service.
+          </p>
         </div>
-        
-        
-        <div className="row mt-5">
-           <div className="col-lg-12">
-          
-          <h2 className="heading-22 mb-3">
-            Current Openings
-          </h2>
-          
+      </div>
+
+      <div className="row mt-5">
+        <div className="col-lg-12">
+          <h2 className="heading-22 mb-3">Current Openings</h2>
+
           <div className="space-y-6">
             {positions.map((position) => (
-              <div key={position.id} className="bg-white careers-card" >
+              <div key={position.id} className="bg-white careers-card">
                 <div className="">
                   <div>
-                    <h3 className="position-title">
-                      {position.title}
-                    </h3>
-                    <p className="position-desc">
-                      {position.description}
-                    </p>
+                    <h3 className="position-title">{position.title}</h3>
+                    <p className="position-desc">{position.description}</p>
                   </div>
-                  <button className="applynow">
-                    Apply Now
-                  </button>
+                  <button className="applynow">Apply Now</button>
                 </div>
-                
+
                 <div className="careers-category">
                   <div>
                     <span className="label">Department:</span>
@@ -123,20 +99,18 @@ const Careers = () => {
               </div>
             ))}
           </div>
-          
+
           <div className="col-lg-12 text-center pt-3 m-5">
             <p className="paragraph-16 text-center">
-              Don't see a position that matches your skills? Send us your resume!
+              Don't see a position that matches your skills? Send us your
+              resume!
             </p>
-            <button className="primary-btn mb-5 mt-2">
-              Submit Resume
-            </button>
-          </div>
+            <button className="primary-btn mb-5 mt-2">Submit Resume</button>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Careers 
+export default Careers;
