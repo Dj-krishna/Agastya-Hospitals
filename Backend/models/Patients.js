@@ -7,18 +7,17 @@ const patientSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   dob: { type: Date },
   gender: { type: String },
-  email: { type: String, required: true },
+  email: { type: String},
   countryCode: { type: String, required: true }, 
   bloodGroup: { 
     type: String,
     enum: ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'], // only allow these values
     required: false
   },
-  mobile: { type: String, required: true, unique: true},
+  mobile: { type: String},
   altMobile: { type: String }, 
   address: { type: String },
   profilePicture: { type: String },
-  profileImageGfs: { type: [String], default: [] },
   pastHistory: { type: String }, 
   transactions: [
     {

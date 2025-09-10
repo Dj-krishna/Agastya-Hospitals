@@ -9,7 +9,6 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { updateExpiredAppointments } = require('./utils/appointmentStatusUpdater');
 
-// ---------------- Routes ----------------
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const patientRoutes = require('./routes/patientRoutes');
@@ -18,57 +17,63 @@ const healthPackageRoutes = require('./routes/healthPackageRoutes');
 const subSpecialityRoutes = require('./routes/subSpecialityRoutes');
 const userRoutes = require('./routes/userRoutes');
 const userRoleRoutes = require('./routes/userRoleRoutes');
-const doctorSlotRoutes  = require('./routes/doctorSlotRoutes');
+const doctorSlotRoutes = require('./routes/doctorSlotRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 
-// ---------------- Connect to MongoDB ----------------
+// Connect to MongoDB
 connectDB();
 
-// ---------------- Express App ----------------
 const app = express();
 
-// ---------------- Middleware ----------------
+// Global security, CORS, logging middleware
 app.use(cors());
-app.use(express.json());
-app.use(helmet()); // Security headers
-app.use(morgan('dev')); // Logging
+app.use(helmet());
+app.use(morgan('dev'));
 
-// Rate limiting: 100 requests per 15 minutes
+// Rate limiting middleware
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+  windowMs: 15 * 60 * 1000, // 15 min
   max: 100,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
-// ---------------- API Routes ----------------
-app.use('/api/auth', authRoutes);
+// ---------------- ROUTES ----------------
+
+// Doctor routes (multipart handled via multer, no express.json())
 app.use('/api/doctors', doctorRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/specialities', specialityRoutes);
-app.use('/api/health-packages', healthPackageRoutes);
-app.use('/api/sub-specialities', subSpecialityRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/user-roles', userRoleRoutes);
-app.use('/api/doctor-slots', doctorSlotRoutes);
-app.use('/api/modules', moduleRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/appointments', appointmentRoutes);
 
+// JSON-only routes
+app.use('/api/auth', express.json(), authRoutes);
+app.use('/api/patients', express.json(), patientRoutes);
+app.use('/api/specialities', express.json(), specialityRoutes);
+app.use('/api/health-packages', express.json(), healthPackageRoutes);
+app.use('/api/sub-specialities', express.json(), subSpecialityRoutes);
+app.use('/api/users', express.json(), userRoutes);
+app.use('/api/user-roles', express.json(), userRoleRoutes);
+app.use('/api/doctor-slots', express.json(), doctorSlotRoutes);
+app.use('/api/modules', express.json(), moduleRoutes);
+app.use('/api/departments', express.json(), departmentRoutes);
+app.use('/api/appointments', express.json(), appointmentRoutes);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
+// ---------------- ERROR HANDLER ----------------
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (err.name === 'MulterError') {
+    return res.status(400).json({ error: 'File upload error', details: err.message });
+  }
+  res.status(500).json({ error: 'Internal server error', details: err.message });
 });
 
-// Schedule automatic appointment status updates
-// Run every 5 minutes to check for expired appointments (less frequent to reduce noise)
-// Set AUTO_UPDATE_APPOINTMENTS=false in .env to disable automatic updates
+// ---------------- SERVER ----------------
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
+});
 
-// ------This block should be inserted again
-
+// ---------------- SCHEDULER ----------------
 if (process.env.AUTO_UPDATE_APPOINTMENTS !== 'false') {
   setInterval(async () => {
     try {
@@ -76,9 +81,9 @@ if (process.env.AUTO_UPDATE_APPOINTMENTS !== 'false') {
     } catch (error) {
       console.error('❌ Scheduled appointment status update failed:', error);
     }
-  }, 24 * 3600000); // 3600000ms = 1 hour
+  }, 24 * 3600000); // every 24 hours
 
   console.log('🔄 Automatic appointment status updater started (runs every day)');
 } else {
-  console.log('⏸️  Automatic appointment status updates disabled');
+  console.log('⏸️ Automatic appointment status updates disabled');
 }

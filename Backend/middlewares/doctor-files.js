@@ -1,6 +1,8 @@
+const express = require("express");
 const multer = require("multer");
 const ImageKit = require("imagekit");
 
+// Multer setup for memory storage
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -23,34 +25,62 @@ const imagekit = new ImageKit({
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
+// ✅ Middleware that handles JSON OR multipart
 const doctorFilesMiddleware = (req, res, next) => {
-  const handler = upload.fields([
-    { name: "profilePicture", maxCount: 1 },
-    { name: "profileImageGfs", maxCount: 3 },
-    { name: "introVideoGfs", maxCount: 3 }
-  ]);
+  const contentType = req.headers["content-type"] || "";
+
+  // ---- Case 1: Raw JSON ----
+  if (contentType.includes("application/json")) {
+    return express.json()(req, res, (err) => {
+      if (err) {
+        console.error("JSON parse error:", err.message);
+        return res.status(400).json({ error: "Invalid JSON", details: err.message });
+      }
+      // No files in JSON case
+      req.files = {};
+      next();
+    });
+  }
+
+  // ---- Case 2/3: Multipart (with or without files) ----
+  const handler = upload.fields([{ name: "profilePicture", maxCount: 1 }]);
 
   handler(req, res, async (err) => {
-    if (err) return next(err);
+    if (err) {
+      console.error("Multer error:", err.message);
+      return res.status(400).json({
+        error: "File upload error",
+        details: err.message,
+      });
+    }
 
     try {
-      // Upload each file to ImageKit
+      if (!req.files) req.files = {};
+
+      // Upload files to ImageKit
       for (const field in req.files) {
-        req.files[field] = await Promise.all(
-          req.files[field].map(async (file) => {
-            const uploaded = await imagekit.upload({
-              file: file.buffer,
-              fileName: file.originalname,
-              folder: `/doctors/${field}`
-            });
-            return { url: uploaded.url }; // Only store the URL
-          })
-        );        
+        if (req.files[field] && req.files[field].length > 0) {
+          req.files[field] = await Promise.all(
+            req.files[field].map(async (file) => {
+              const uploaded = await imagekit.upload({
+                file: file.buffer,
+                fileName: `${Date.now()}-${file.originalname}`,
+                folder: `/doctors/${field}`,
+                useUniqueFileName: true,
+              });
+              return { url: uploaded.url, fileId: uploaded.fileId };
+            })
+          );
+        }
       }
-      console.log('Middleware - Uploaded files:', req.files);
+
       next();
     } catch (error) {
-      next(error);
+      console.error("File upload middleware error:", error);
+      return res.status(500).json({
+        error: "File upload failed",
+        details: error.message,
+      });
     }
   });
 };

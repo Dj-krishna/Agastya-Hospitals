@@ -1,346 +1,300 @@
-const Doctor = require('../models/Doctors');
-const Department = require('../models/Departments');
-const Speciality = require('../models/Specialities');
-const getNextSequence = require('../utils/getNextSequence');
+const Doctor = require("../models/Doctors");
+const Department = require("../models/Departments");
+const Speciality = require("../models/Specialities");
+const getNextSequence = require("../utils/getNextSequence");
 
+// ---------------- Helper Functions ----------------
 
-// Helper: Validate and normalize input fields including speciality conversion
-const validateAndNormalizeDoctor = async (doc) => {
-  const errors = [];
-
-  // Normalize array fields from comma-separated strings if needed
-  ['languagesKnown', 'servicesOffered', 'educationQualification', 'opTimings'].forEach(field => {
-    if (doc[field] && !Array.isArray(doc[field])) {
-      doc[field] = doc[field].split(',').map(s => s.trim());
-    }
-  });
-
-  // Validate and convert speciality field
-  if (doc.speciality) {
-    let specialityArray = [];
-
-    if (Array.isArray(doc.speciality)) {
-      specialityArray = doc.speciality;
-    } else if (typeof doc.speciality === 'string') {
-      specialityArray = [doc.speciality];
-    } else {
-      errors.push('Field "speciality" must be a string or an array.');
-    }
-
-    const specialityIDs = [];
-    for (const item of specialityArray) {
-      if (typeof item === 'number') {
-        specialityIDs.push(item);
-      } else if (typeof item === 'string') {
-        const specDoc = await Speciality.findOne({ specialityName: { $regex: `^${item}$`, $options: 'i' } }, { specialityID: 1 });
-        if (specDoc) {
-          specialityIDs.push(specDoc.specialityID);
-        } else {
-          errors.push(`Speciality not found: ${item}`);
-        }
-      } else {
-        errors.push(`Invalid speciality item: ${item}`);
-      }
-    }
-
-    doc.speciality = specialityIDs;
-  }
-
-  return { normalizedDoc: doc, errors };
+// Safe file URL extraction (ImageKit or Multer)
+const getFileUrl = (fileArr) => {
+  if (!fileArr || !Array.isArray(fileArr) || fileArr.length === 0) return null;
+  const f = fileArr[0];
+  return f.url || f.path || f.location || null;
 };
 
+// Normalize arrays (string, CSV, or JSON string → array)
+const normalizeArray = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (_) {
+      // fallback to comma-split
+    }
+    return value.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+};
 
-// Build filter from request query for GET, DELETE, etc.
+// Validate and normalize doctor input
+const validateAndNormalizeDoctor = async (doc, isUpdate = false) => {
+  const errors = [];
+  let normalizedDoc = { ...doc };
+
+  // Required fields only for create
+  if (!isUpdate) {
+    if (!normalizedDoc.fullName) errors.push("fullName is required");
+    if (!normalizedDoc.email) errors.push("email is required");
+    if (!normalizedDoc.mobile) errors.push("mobile is required");
+    if (!normalizedDoc.medicalRegNumber) errors.push("medicalRegNumber is required");
+    if (!normalizedDoc.designation) errors.push("designation is required");
+    if (!normalizedDoc.departmentID) errors.push("departmentID is required");
+  }
+
+  // Normalize array fields
+  normalizedDoc.languagesKnown = normalizeArray(doc.languagesKnown);
+  normalizedDoc.servicesOffered = normalizeArray(doc.servicesOffered);
+  normalizedDoc.educationQualification = normalizeArray(doc.educationQualification);
+  normalizedDoc.opTimings = normalizeArray(doc.opTimings);
+  normalizedDoc.speciality = normalizeArray(doc.speciality);
+
+  // Validate email
+  if (
+    normalizedDoc.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedDoc.email)
+  ) {
+    errors.push("Invalid email format");
+  }
+
+  // Validate mobile
+  if (
+    normalizedDoc.mobile &&
+    !/^\d{10}$/.test(normalizedDoc.mobile.replace(/\D/g, ""))
+  ) {
+    errors.push("Mobile number must be 10 digits");
+  }
+
+  // Validate gender
+  if (
+    normalizedDoc.gender &&
+    !["Male", "Female", "Others"].includes(normalizedDoc.gender)
+  ) {
+    errors.push("Gender must be Male, Female, or Others");
+  }
+
+  // Convert numbers
+  if (normalizedDoc.departmentID) {
+    normalizedDoc.departmentID = Number(normalizedDoc.departmentID);
+    if (isNaN(normalizedDoc.departmentID)) {
+      errors.push("departmentID must be a valid number");
+    }
+  }
+
+  if (normalizedDoc.speciality && Array.isArray(normalizedDoc.speciality)) {
+    normalizedDoc.speciality = normalizedDoc.speciality
+      .map((s) => Number(s))
+      .filter((s) => !isNaN(s));
+  }
+
+  return { normalizedDoc, errors };
+};
+
+// Build filter from query
 const buildDoctorFilter = (query) => {
   const filter = {};
-  const exactMatchFields = ['gender', 'doctorID'];
+  const regexMatchFields = ["gender"];
 
   for (const key in query) {
     const value = query[key];
     if (!value) continue;
 
-    if (!isNaN(value)) {
+    if (key === "doctorID") {
       filter[key] = Number(value);
-    } else if (exactMatchFields.includes(key)) {
-      filter[key] = { $regex: `^${value}$`, $options: 'i' };
-    } else if (['speciality', 'languagesKnown', 'servicesOffered'].includes(key)) {
-      filter[key] = { $elemMatch: { $regex: value, $options: 'i' } };
+    } else if (regexMatchFields.includes(key)) {
+      filter[key] = { $regex: `^${value}$`, $options: "i" };
+    } else if (["speciality", "languagesKnown", "servicesOffered"].includes(key)) {
+      filter[key] = { $elemMatch: { $regex: value, $options: "i" } };
     } else {
-      filter[key] = { $regex: value, $options: 'i' };
+      filter[key] = { $regex: value, $options: "i" };
     }
   }
   return filter;
 };
 
-
-// Aggregation pipeline to enrich doctors with department and speciality names
+// Aggregation pipeline
 const doctorWithDepartmentAndSpecialitiesLookup = (match = {}) => [
   { $match: match },
   {
     $lookup: {
-      from: 'departments',
-      localField: 'departmentID',
-      foreignField: 'departmentID',
-      as: 'departmentData'
-    }
+      from: "departments",
+      localField: "departmentID",
+      foreignField: "departmentID",
+      as: "departmentData",
+    },
   },
-  { $unwind: { path: '$departmentData', preserveNullAndEmptyArrays: true } },
+  { $unwind: { path: "$departmentData", preserveNullAndEmptyArrays: true } },
   {
     $lookup: {
-      from: 'specialities',
-      localField: 'speciality',
-      foreignField: 'specialityID',
-      as: 'specialityDetails'
-    }
+      from: "specialities",
+      localField: "speciality",
+      foreignField: "specialityID",
+      as: "specialityDetails",
+    },
   },
   {
     $addFields: {
-      departmentName: '$departmentData.departmentName',
+      departmentName: "$departmentData.departmentName",
       specialityNames: {
         $cond: [
-          { $isArray: '$specialityDetails' },
-          { $map: { input: '$specialityDetails', as: 's', in: '$$s.specialityName' } },
-          []
-        ]
-      }
-    }
+          {
+            $and: [
+              { $isArray: "$specialityDetails" },
+              { $gt: [{ $size: "$specialityDetails" }, 0] },
+            ],
+          },
+          {
+            $map: {
+              input: "$specialityDetails",
+              as: "s",
+              in: "$$s.specialityName",
+            },
+          },
+          [],
+        ],
+      },
+    },
   },
-  { $project: { departmentData: 0, specialityDetails: 0 } }
+  { $project: { departmentData: 0, specialityDetails: 0 } },
 ];
 
+// ---------------- Controllers ----------------
 
-// Transform speciality arrays of IDs and names to a map { id: name }
-const transformSpecialities = (doctor) => {
-  if (Array.isArray(doctor.speciality) && Array.isArray(doctor.specialityNames)) {
-    const mapped = {};
-    doctor.speciality.forEach((id, idx) => {
-      mapped[id] = doctor.specialityNames[idx] || 'Unknown';
-    });
-    doctor.speciality = mapped;
-    delete doctor.specialityNames;
-  }
-  return doctor;
-};
-
-
-// GET /doctors (supports filtering, returns enriched data)
+// GET /doctors
 exports.getDoctors = async (req, res) => {
   try {
     const filter = buildDoctorFilter(req.query);
     const doctors = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
 
     if (doctors.length === 0) {
-      return res.status(404).json({ message: 'No doctors found.' });
+      return res.status(404).json({ success: false, message: "No doctors found matching the criteria.", data: [] });
     }
-
-    const transformed = doctors.map(transformSpecialities);
 
     if (req.query.doctorID) {
-      res.json(transformed[0]);
+      res.json({ success: true, message: "Doctor retrieved successfully", data: doctors[0] });
     } else {
-      res.json(transformed);
+      res.json({ success: true, message: "Doctors retrieved successfully", count: doctors.length, data: doctors });
     }
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-
-// POST /doctors (single or bulk insert, with validation and file upload handling)
+// POST /doctors (Unified: JSON-only or JSON + file)
 exports.addDoctor = async (req, res) => {
   try {
-    const payload = req.body;
-    const getNextDoctorID = async () => await getNextSequence('doctorID');
-
-    const emailExists = async (email) => await Doctor.exists({ email });
-
-    // Handle single insert
-    if (!Array.isArray(payload)) {
-      const { normalizedDoc, errors } = await validateAndNormalizeDoctor(payload);
-      if (errors.length > 0) {
-        return res.status(400).json({ errors });
-      }
-
-      if (await emailExists(normalizedDoc.email)) {
-        return res.status(409).json({ error: 'A doctor with this email already exists.' });
-      }
-
-      if (!normalizedDoc.doctorID) normalizedDoc.doctorID = await getNextDoctorID();
-
-      if (req.files) {
-        if (req.files.profilePicture) {
-          normalizedDoc.profilePicture = req.files.profilePicture[0].url;
-        }
-        if (req.files.profileImageGfs) {
-          normalizedDoc.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
-        }
-        if (req.files.introVideoGfs) {
-          normalizedDoc.introVideoGfs = req.files.introVideoGfs.map(f => f.url);
-        }
-      }
-
-      const saved = await new Doctor(normalizedDoc).save();
-      const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID }));
-
-      return res.status(201).json(transformSpecialities(enriched[0]));
+    let payload = req.body;
+    if (!payload || typeof payload !== "object") {
+      return res.status(400).json({ success: false, error: "Invalid request body" });
     }
 
-    // Handle bulk insert
-    const emails = payload.map(doc => doc.email);
-    const existingDoctors = await Doctor.find({ email: { $in: emails } }, { email: 1 });
-    const existingEmails = new Set(existingDoctors.map(doc => doc.email));
-    const duplicateEmails = emails.filter((email, idx) => emails.indexOf(email) !== idx);
-
-    const errors = [];
-    const doctorsToInsert = [];
-
-    for (const doc of payload) {
-      const { normalizedDoc, errors: validationErrors } = await validateAndNormalizeDoctor(doc);
-
-      if (existingEmails.has(normalizedDoc.email)) {
-        errors.push({ email: normalizedDoc.email, error: 'Email already exists in DB.' });
-        continue;
-      }
-      if (duplicateEmails.includes(normalizedDoc.email)) {
-        errors.push({ email: normalizedDoc.email, error: 'Duplicate email in request payload.' });
-        continue;
-      }
-      if (validationErrors.length > 0) {
-        errors.push({ email: normalizedDoc.email, errors: validationErrors });
-        continue;
-      }
-
-      if (!normalizedDoc.doctorID) normalizedDoc.doctorID = await getNextDoctorID();
-
-      // For bulk insert, file uploads usually handled separately per doctor
-      doctorsToInsert.push(normalizedDoc);
+    const { normalizedDoc, errors } = await validateAndNormalizeDoctor(payload);
+    if (errors.length > 0) {
+      return res.status(400).json({ success: false, error: "Validation failed", details: errors });
     }
 
-    if (doctorsToInsert.length === 0) {
-      return res.status(409).json({ error: 'No doctors inserted', details: errors });
+    if (await Doctor.exists({ email: normalizedDoc.email })) {
+      return res.status(409).json({ success: false, error: "A doctor with this email already exists." });
     }
 
-    const inserted = await Doctor.insertMany(doctorsToInsert);
-    const ids = inserted.map(doc => doc.doctorID);
-    const enriched = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup({ doctorID: { $in: ids } }));
-    const transformed = enriched.map(transformSpecialities);
+    if (!normalizedDoc.doctorID) {
+      normalizedDoc.doctorID = await getNextSequence("doctorID");
+    }
 
-    const response = { inserted: transformed };
-    if (errors.length > 0) response.errors = errors;
+    // ✅ Handle optional profilePicture
+    if (req.files && req.files.profilePicture) {
+      normalizedDoc.profilePicture = getFileUrl(req.files.profilePicture);
+    } else {
+      normalizedDoc.profilePicture = null;
+    }
 
-    res.status(errors.length > 0 ? 207 : 201).json(response);
+    const saved = await new Doctor(normalizedDoc).save();
+    const enriched = await Doctor.aggregate(
+      doctorWithDepartmentAndSpecialitiesLookup({ doctorID: saved.doctorID })
+    );
 
+    res.status(201).json({ success: true, message: "Doctor created successfully", data: enriched[0] });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-
-// PUT /doctors (update with optional file uploads, validation, and error reporting)
+// PUT /doctors/:doctorID (Update + optional file)
 exports.updateDoctor = async (req, res) => {
   try {
-    const filter = buildDoctorFilter(req.query);
-    if (!Object.keys(filter).length) {
-      return res.status(400).json({ error: 'No filter provided' });
+    const doctorID = req.query.doctorID;  // ← get from query now
+    if (!doctorID) {
+      return res.status(400).json({ success: false, error: "doctorID is required in query parameter" });
     }
 
-    // Clone body to avoid mutations
-    const updateData = { ...req.body };
+    const filter = { doctorID: Number(doctorID) };
+    let updateData = { ...req.body };
 
-    // Remove fields that should not be updated
+    if (typeof updateData === "string") {
+      try {
+        updateData = JSON.parse(updateData);
+      } catch (e) {
+        return res.status(400).json({ success: false, error: "Invalid JSON in body" });
+      }
+    }
+
     delete updateData._id;
     delete updateData.doctorID;
 
-    const { normalizedDoc, errors } = await validateAndNormalizeDoctor(updateData);
+    const { normalizedDoc, errors } = await validateAndNormalizeDoctor(updateData, true);
     if (errors.length > 0) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ success: false, error: "Validation failed", details: errors });
     }
 
-    if (req.files) {
-      // Replace console.log with proper logging as needed
-      // For now, no logging
-
-      if (req.files?.profilePicture?.length > 0) {
-        normalizedDoc.profilePicture = req.files.profilePicture[0].url || normalizedDoc.profilePicture;
-      }
-      if (req.files?.profileImageGfs?.length > 0) {
-        const existingImages = Array.isArray(normalizedDoc.profileImageGfs) ? normalizedDoc.profileImageGfs : [];
-        const newImages = req.files.profileImageGfs.map(f => f.url).filter(Boolean);
-        normalizedDoc.profileImageGfs = existingImages.concat(newImages);
-      }
-      if (req.files?.introVideoGfs?.length > 0) {
-        const existingVideos = Array.isArray(normalizedDoc.introVideoGfs) ? normalizedDoc.introVideoGfs : [];
-        const newVideos = req.files.introVideoGfs.map(f => f.url).filter(Boolean);
-        normalizedDoc.introVideoGfs = existingVideos.concat(newVideos);
-      }
+    // ✅ File uploads
+    if (req.files && req.files.profilePicture) {
+      normalizedDoc.profilePicture = getFileUrl(req.files.profilePicture);
     }
 
-    const result = await Doctor.updateMany(filter, { $set: normalizedDoc });
+    const result = await Doctor.updateOne(filter, { $set: normalizedDoc });
 
     if (result.matchedCount === 0) {
-      return res.status(404).json({ message: 'No matching doctors found to update' });
+      return res.status(404).json({ success: false, message: "No doctor found to update" });
     }
 
     const updatedDoctors = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
-    const transformedDoctors = updatedDoctors.map(transformSpecialities);
 
-    res.json({
-      message: `Doctor(s) updated successfully`,
-      updatedCount: result.modifiedCount,
-      updatedDoctors: transformedDoctors,
-    });
+    res.json({ success: true, message: "Doctor updated successfully", data: updatedDoctors[0] });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
-
-// DELETE /doctors (supports bulk delete by IDs, filter, or single by query)
+// DELETE /doctors
 exports.deleteDoctors = async (req, res) => {
   try {
     let filter = {};
-    let deletedDoctors = [];
-
     if (req.params.ids) {
-      // Bulk delete by comma-separated doctorIDs
-      const ids = req.params.ids.split(',').map(id => Number(id.trim())).filter(id => !isNaN(id));
-      if (!ids.length) return res.status(400).json({ error: 'No valid IDs provided' });
-
+      const ids = req.params.ids.split(",").map((id) => Number(id.trim())).filter((id) => !isNaN(id));
       filter = { doctorID: { $in: ids } };
     } else if (req.query.doctorID) {
-      // Single delete by ID
       filter = { doctorID: Number(req.query.doctorID) };
-    } else if (Object.keys(req.query).length > 0) {
-      // Delete by query params
-      filter = buildDoctorFilter(req.query);
     } else if (req.body.filter) {
-      if (typeof req.body.filter !== 'object') return res.status(400).json({ error: 'Provide valid filter' });
       filter = req.body.filter;
     } else {
-      return res.status(400).json({ error: 'No filter provided. Use query params, body filter, or /bulk/:ids' });
+      return res.status(400).json({ success: false, error: "No filter provided." });
     }
 
-    // Find doctors before deletion for response
     const toDelete = await Doctor.aggregate(doctorWithDepartmentAndSpecialitiesLookup(filter));
-    if (toDelete.length === 0) return res.status(404).json({ message: 'No doctors found matching the criteria' });
+    if (toDelete.length === 0) {
+      return res.status(404).json({ success: false, message: "No doctors found" });
+    }
 
     const result = await Doctor.deleteMany(filter);
-    if (result.deletedCount === 0) return res.status(404).json({ message: 'No doctors were deleted' });
 
-    deletedDoctors = toDelete.map(transformSpecialities);
-
-    if (req.query.doctorID) {
-      // Single delete response
-      res.json({ message: 'Doctor deleted', doctor: deletedDoctors[0] });
-    } else {
-      // Bulk or filtered delete response
-      res.json({
-        message: 'Doctors deleted',
-        deletedCount: result.deletedCount,
-        deletedDoctors: deletedDoctors,
-      });
-    }
+    res.json({
+      success: true,
+      message: result.deletedCount === 1 ? "Doctor deleted successfully" : "Doctors deleted successfully",
+      deletedCount: result.deletedCount,
+      data: toDelete,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };

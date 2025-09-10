@@ -74,9 +74,7 @@ exports.addSpeciality = async (req, res) => {
     // Attach uploaded file URLs from ImageKit middleware
     if (req.files) {
       if (req.files.icon) payload.icon = req.files.icon[0].url;
-      if (req.files.banner) payload.banner = req.files.banner[0].url;
-      if (req.files.iconGfs) payload.iconGfs = req.files.iconGfs.map(f => f.url);
-      if (req.files.bannerGfs) payload.bannerGfs = req.files.bannerGfs.map(f => f.url);
+      if (req.files.banner) payload.banner = req.files.banner.map(f => f.url);
     }
 
     // Validate required field
@@ -112,9 +110,7 @@ exports.addSpeciality = async (req, res) => {
         // Attach files if present in req.files for this entry (optional)
         if (req.files) {
           if (req.files.icon) sp.icon = req.files.icon[0].url;
-          if (req.files.banner) sp.banner = req.files.banner[0].url;
-          if (req.files.iconGfs) sp.iconGfs = req.files.iconGfs.map(f => f.url);
-          if (req.files.bannerGfs) sp.bannerGfs = req.files.bannerGfs.map(f => f.url);
+          if (req.files.banner) sp.banner = req.files.banner.map(f => f.url);
         }
 
         const doc = new Speciality(sp);
@@ -148,15 +144,9 @@ exports.updateSpeciality = async (req, res) => {
     // Handle uploaded files via ImageKit
     if (req.files) {
       if (req.files.icon) updateData.icon = req.files.icon[0].url;
-      if (req.files.banner) updateData.banner = req.files.banner[0].url;
-
-      if (req.files.iconGfs) {
-        const existing = Array.isArray(updateData.iconGfs) ? updateData.iconGfs : [];
-        updateData.iconGfs = existing.concat(req.files.iconGfs.map(f => f.url));
-      }
-      if (req.files.bannerGfs) {
-        const existing = Array.isArray(updateData.bannerGfs) ? updateData.bannerGfs : [];
-        updateData.bannerGfs = existing.concat(req.files.bannerGfs.map(f => f.url));
+      if (req.files.banner) {
+        const existingBanner = Array.isArray(updateData.banner) ? updateData.banner : (updateData.banner ? [updateData.banner] : []);
+        updateData.banner = existingBanner.concat(req.files.banner.map(f => f.url));
       }
     }
 

@@ -3,29 +3,17 @@ const router = express.Router();
 const doctorController = require('../controllers/doctorController');
 const { doctorFilesMiddleware } = require('../middlewares/doctor-files');
 
-// ---------------- GET Routes ----------------
+// ---------------- GET ----------------
 router.get('/', doctorController.getDoctors);
 
-// ---------------- POST Routes ----------------
-// Handles file uploads for profilePicture, profileImageGfs, introVideoGfs
-router.post(
-'/', 
-  doctorFilesMiddleware,        // Multer + ImageKit middleware
-  doctorController.addDoctor
-);
+// ---------------- POST ----------------
+router.post('/', doctorFilesMiddleware, doctorController.addDoctor);
 
-// ---------------- PUT Routes ----------------
-// Supports updates with optional file uploads
-router.put(
-  '/', 
-  doctorFilesMiddleware,        // Multer + ImageKit middleware
-  doctorController.updateDoctor
-);
+// ---------------- PUT ----------------
+router.put('/', doctorFilesMiddleware, doctorController.updateDoctor);
 
-// ---------------- DELETE Routes ----------------
-// Bulk delete via /bulk/:ids
+// ---------------- DELETE ----------------
 router.delete('/bulk/:ids', doctorController.deleteDoctors);
-// Delete via query params or body filter
 router.delete('/', doctorController.deleteDoctors);
 
 module.exports = router;
