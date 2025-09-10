@@ -6,8 +6,8 @@ const doctorSchema = new mongoose.Schema({
   countryCode: { type: String, required: true }, 
   mobile: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  medicalRegNumber: { type: String, required: true }, 
-  designation: { type: String, required: true },
+  medicalRegNumber: { type: String}, 
+  designation: { type: String},
   departmentID: { type: Number, required: true },        // links to Departments.departmentID
   speciality: [{ type: Number }],
   yearsOfExperience: { type: String },
@@ -22,8 +22,6 @@ const doctorSchema = new mongoose.Schema({
   opTimings: { type: [String] },
   gender: { type: String, enum: ['Male', 'Female', 'Others'] },
   profilePicture: { type: String, default: null },
-  profileImageGfs: { type: [String], default: []  }, 
-  introVideoGfs: { type: [String], default: []  }, 
   about: { type: String }
 }, {
   versionKey: false  // disables __v column when POST request is sent

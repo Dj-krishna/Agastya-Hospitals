@@ -26,9 +26,7 @@ const imagekit = new ImageKit({
 const specialityFilesMiddleware = (req, res, next) => {
   const handler = upload.fields([
     { name: "icon", maxCount: 1 },
-    { name: "banner", maxCount: 1 },
-    { name: "iconGfs", maxCount: 3 },
-    { name: "bannerGfs", maxCount: 3 }
+    { name: "banner", maxCount: 10 }
   ]);
 
   handler(req, res, async (err) => {
@@ -43,7 +41,7 @@ const specialityFilesMiddleware = (req, res, next) => {
               fileName: file.originalname,
               folder: `/specialities/${field}`
             });
-            return { ...file, url: uploaded.url };
+            return { url: uploaded.url, fileId: uploaded.fileId };
           })
         );
       }
