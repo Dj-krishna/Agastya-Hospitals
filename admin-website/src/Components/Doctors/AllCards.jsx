@@ -13,7 +13,7 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
     try {
       setLoading(true);
       const data = await fetchDataGet(DOCTORS_API);
-      setCards(data);
+      setCards(data.data);
     } catch (error) {
       console.error("Error fetching doctors:", error);
     } finally {

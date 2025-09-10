@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 const FindDoctor = () => {
   const [doctors, setDoctors] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -14,7 +14,7 @@ const FindDoctor = () => {
     setIsLoading(true);
     try {
       const response = await axios(DOCTORS_API);
-      setDoctors(response.data);
+      setDoctors(response.data.data);
       setIsLoading(false);
     } catch (error) {
       console.log(error);
@@ -59,9 +59,9 @@ const FindDoctor = () => {
   //     available: true,
   //   },
   // ];
-
+  console.log("DOCSSSS:::  ", doctors);
   return (
-    <div className="container mx-auto px-4 pt-5">
+    <div className="container mx-auto px-5 py-5">
       {isLoading ? (
         <div className="text-center">
           <div
@@ -74,9 +74,25 @@ const FindDoctor = () => {
           <p className="text-center">Loading...</p>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto">
-          <div className="row">
-            {doctors.length > 0 ? (
+        <div className="">
+          <div className="row m-0 mx-5">
+            <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+              <select className="booking-form-input">
+                <option>Filter by Specialty</option>
+              </select>
+            </div>
+            <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+              <input
+                type="text"
+                id="searchText"
+                name="searchText"
+                className="booking-form-input"
+                placeholder="Search with Doctor name or Specialty"
+              />
+            </div>
+          </div>
+          <div className="row m-0 mx-5">
+            {doctors.length != 0 ? (
               doctors.map((doctor) => (
                 <div key={doctor.ID} className="col-md-4 col-sm-6 col-xs-12">
                   <div className="card border-none shadow-lg rounded-4 mb-4">
