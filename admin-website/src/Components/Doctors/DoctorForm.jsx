@@ -317,9 +317,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
           delete submitData.departmentName; // Remove the old field
         }
 
-        if (submitData.profilePicture instanceof File) {
-          delete submitData.profilePicture; // Remove file object for now
-        }
+        // Keep profilePicture file object for FormData submission
 
         // Filter out empty array items
         if (submitData.languagesKnown) {
@@ -1032,12 +1030,18 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                             <h6>Preview</h6>
                           </Label>
                           <div className="text-center">
-                            <img
-                              src={URL.createObjectURL(formState.profilePicture)}
-                              alt="Profile Preview"
-                              style={{ width: "50%", height: "auto" }}
-                              className="rounded-3"
-                            />
+                            {formState.profilePicture ? (
+                              <img
+                                src={
+                                  formState.profilePicture instanceof File
+                                    ? URL.createObjectURL(formState.profilePicture)
+                                    : formState.profilePicture // already a URL string
+                                }
+                                alt="Profile Preview"
+                                style={{ width: "50%", height: "auto" }}
+                                className="rounded-3"
+                              />
+                            ) : null}
                           </div>
                         </Card>
                       </Col>

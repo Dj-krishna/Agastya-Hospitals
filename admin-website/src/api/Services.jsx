@@ -145,9 +145,25 @@ export const fetchDoctorById = async (id) => {
 
 export const createDoctor = async (doctorData) => {
   try {
-    const response = await axios.post(DOCTORS_API, doctorData, {
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(doctorData).forEach(key => {
+      if (doctorData[key] !== null && doctorData[key] !== undefined) {
+        if (key === 'profilePicture' && doctorData[key] instanceof File) {
+          formData.append(key, doctorData[key]);
+        } else if (Array.isArray(doctorData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(doctorData[key]));
+        } else {
+          formData.append(key, doctorData[key]);
+        }
+      }
+    });
+
+    const response = await axios.post(DOCTORS_API, formData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
@@ -159,9 +175,30 @@ export const createDoctor = async (doctorData) => {
 export const updateDoctor = async (id, doctorData) => {
   try {
     console.log("doctordataend", doctorData);
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(doctorData).forEach(key => {
+      if (doctorData[key] !== null && doctorData[key] !== undefined) {
+        if (key === 'profilePicture' && doctorData[key] instanceof File) {
+          formData.append(key, doctorData[key]);
+        } else if (Array.isArray(doctorData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(doctorData[key]));
+        } else {
+          formData.append(key, doctorData[key]);
+        }
+      }
+    });
+
     const response = await axios.put(
       `${DOCTORS_API}?doctorID=${id}`, // Use query param instead of path param
-      doctorData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     console.log("DOCTOR response  ", response);
     return response.data;
