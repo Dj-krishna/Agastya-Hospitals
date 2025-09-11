@@ -93,7 +93,9 @@ const Specialities = () => {
       }
     } catch (error) {
       console.error("Error deleting speciality:", error);
-      const errorMessage = error.response?.data?.message || "Failed to delete speciality. Please try again.";
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to delete speciality. Please try again.";
       toast.error(errorMessage);
     }
   };
@@ -117,33 +119,33 @@ const Specialities = () => {
               <TableSkeleton columns={4} rows={10} />
             ) : (
               <Row className="">
-                                 <TableComponent
-                   headers={["Icon", "Name", "Doctor", "Description", "Action"]}
-                   tableBody={
+                <TableComponent
+                  headers={["Icon", "Name", "Doctor", "Description", "Action"]}
+                  tableBody={
                     <tbody>
-                                             {currentData?.length === 0 ? (
-                         <tr>
-                           <td colSpan="5" className="text-center">
-                             No Specialities found
-                           </td>
-                         </tr>
-                       ) : (
-                         currentData?.map((item, index) => (
-                           <tr key={index}>
-                             <td>{item.icon || "N/A"}</td>
-                             <td>{item.specialityName || "N/A"}</td>
-                             <td>{item.doctor || item.doctorID || "N/A"}</td>
-                             <td
-                               width="30%"
-                               style={{
-                                 whiteSpace: "nowrap",
-                                 overflow: "hidden",
-                                 textOverflow: "ellipsis",
-                                 maxWidth: "150px",
-                               }}
-                             >
-                               {item.pageDescription}
-                             </td>
+                      {currentData?.length === 0 ? (
+                        <tr>
+                          <td colSpan="5" className="text-center">
+                            No Specialities found
+                          </td>
+                        </tr>
+                      ) : (
+                        currentData?.map((item, index) => (
+                          <tr key={index}>
+                            <td><img style={{width: "50px"}} src={item.icon} /></td>
+                            <td>{item.specialityName || "N/A"}</td>
+                            <td>{item.doctor || item.doctorID || "N/A"}</td>
+                            <td
+                              width="30%"
+                              style={{
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                maxWidth: "150px",
+                              }}
+                            >
+                              {item.pageDescription}
+                            </td>
                             <td width={"10%"}>
                               <FaPencilAlt
                                 color="#7366ff"
@@ -175,7 +177,7 @@ const Specialities = () => {
           </Container>
         </>
       ) : (
-        <SpecialityForm 
+        <SpecialityForm
           onClose={handleCloseForm}
           initialData={editingSpeciality}
           isEditMode={isEditMode}

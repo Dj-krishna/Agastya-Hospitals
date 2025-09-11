@@ -423,9 +423,11 @@ select.form-select {
   font-weight: 600;
   letter-spacing: 0.5px;
   border-radius: 8px;
+  color: #fff;
 }
 
 .book-btn:hover {
+  color: #fff;
   background: #7a6ad8;
 }
 
@@ -1523,3 +1525,316 @@ footer {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
+
+.text-clamped-one {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  max-width: 100%;
+}
+
+/*====== Margin-right css starts ======*/
+.m-r-0 {
+    margin-right: 0px;
+}
+
+.m-r-5 {
+    margin-right: 5px;
+}
+
+.m-r-10 {
+    margin-right: 10px;
+}
+
+.m-r-15 {
+    margin-right: 15px;
+}
+
+.m-r-20 {
+    margin-right: 20px;
+}
+
+.m-r-25 {
+    margin-right: 25px;
+}
+
+.m-r-30 {
+    margin-right: 30px;
+}
+
+.m-r-35 {
+    margin-right: 35px;
+}
+
+.m-r-40 {
+    margin-right: 40px;
+}
+
+.m-r-45 {
+    margin-right: 45px;
+}
+
+.m-r-50 {
+    margin-right: 50px;
+}
+
+/*====== Margin-right css ends ======*/
+/*====== Border-radius css starts ======*/
+.b-r-0 {
+    border-radius: 0px !important;
+}
+
+.b-r-1 {
+    border-radius: 1px !important;
+}
+
+.b-r-2 {
+    border-radius: 2px !important;
+}
+
+.b-r-3 {
+    border-radius: 3px !important;
+}
+
+.b-r-4 {
+    border-radius: 4px !important;
+}
+
+.b-r-5 {
+    border-radius: 5px !important;
+}
+
+.b-r-6 {
+    border-radius: 6px !important;
+}
+
+.b-r-7 {
+    border-radius: 7px !important;
+}
+
+.b-r-8 {
+    border-radius: 8px !important;
+}
+
+.b-r-9 {
+    border-radius: 9px !important;
+}
+
+.b-r-10 {
+    border-radius: 10px !important;
+}
+
+/*====== Border-radius css ends ======*/
+/*====== Font-size css starts ======*/
+.f-12 {
+    font-size: 12px !important;
+}
+
+.f-14 {
+    font-size: 14px !important;
+}
+
+.f-16 {
+    font-size: 16px !important;
+}
+
+.f-18 {
+    font-size: 18px !important;
+}
+
+.f-20 {
+    font-size: 20px !important;
+}
+
+.f-22 {
+    font-size: 22px !important;
+}
+
+.f-24 {
+    font-size: 24px !important;
+}
+
+.f-26 {
+    font-size: 26px !important;
+}
+
+.f-28 {
+    font-size: 28px !important;
+}
+
+.f-30 {
+    font-size: 30px !important;
+}
+
+.f-32 {
+    font-size: 32px !important;
+}
+
+.f-34 {
+    font-size: 34px !important;
+}
+
+.f-36 {
+    font-size: 36px !important;
+}
+
+.f-38 {
+    font-size: 38px !important;
+}
+
+.f-40 {
+    font-size: 40px !important;
+}
+
+.f-42 {
+    font-size: 42px !important;
+}
+
+.f-44 {
+    font-size: 44px !important;
+}
+
+.f-46 {
+    font-size: 46px !important;
+}
+
+.f-48 {
+    font-size: 48px !important;
+}
+
+.f-50 {
+    font-size: 50px !important;
+}
+
+.f-52 {
+    font-size: 52px !important;
+}
+
+.f-54 {
+    font-size: 54px !important;
+}
+
+.f-56 {
+    font-size: 56px !important;
+}
+
+.f-58 {
+    font-size: 58px !important;
+}
+
+.f-60 {
+    font-size: 60px !important;
+}
+
+.f-62 {
+    font-size: 62px !important;
+}
+
+.f-64 {
+    font-size: 64px !important;
+}
+
+.f-66 {
+    font-size: 66px !important;
+}
+
+.f-68 {
+    font-size: 68px !important;
+}
+
+.f-70 {
+    font-size: 70px !important;
+}
+
+.f-72 {
+    font-size: 72px !important;
+}
+
+.f-74 {
+    font-size: 74px !important;
+}
+
+.f-76 {
+    font-size: 76px !important;
+}
+
+.f-78 {
+    font-size: 78px !important;
+}
+
+.f-80 {
+    font-size: 80px !important;
+}
+
+.f-82 {
+    font-size: 82px !important;
+}
+
+.f-84 {
+    font-size: 84px !important;
+}
+
+.f-86 {
+    font-size: 86px !important;
+}
+
+.f-88 {
+    font-size: 88px !important;
+}
+
+.f-90 {
+    font-size: 90px !important;
+}
+
+.f-92 {
+    font-size: 92px !important;
+}
+
+.f-94 {
+    font-size: 94px !important;
+}
+
+.f-96 {
+    font-size: 96px !important;
+}
+
+.f-98 {
+    font-size: 98px !important;
+}
+
+.f-100 {
+    font-size: 100px !important;
+}
+
+/*====== Font-size css ends ======*/
+/*====== Font-weight css starts ======*/
+.f-w-100 {
+    font-weight: 100;
+}
+
+.f-w-300 {
+    font-weight: 300;
+}
+
+.f-w-500 {
+    font-weight: 500;
+}
+
+.f-w-400 {
+    font-weight: 400;
+}
+
+.f-w-600 {
+    font-weight: 600;
+}
+
+.f-w-700 {
+    font-weight: 700;
+}
+
+.f-w-900 {
+    font-weight: 900;
+}
+
+/*====== Font-weight css ends ======*/
