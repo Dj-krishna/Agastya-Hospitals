@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DOCTORS_API } from "../api/services";
+import { DOCTORS_API, SPECIALITIES_API } from "../api/services";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -11,18 +11,18 @@ const FindDoctor = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
+  const [specialties, setSpecialties] = useState([]);
   const navigate = useNavigate();
-
-  // Redux
   const dispatch = useDispatch();
-  // const { specialties, loading: specialtiesLoading } = useSelector(
-  //   (state) => state.specialty
-  // );
-
-  // Fetch specialties on mount
-  useEffect(() => {
-    dispatch(fetchSpecialties());
-  }, [dispatch]);
+  const fetchSpecialties = async () => {
+    try {
+      const response = await axios.get(SPECIALITIES_API);
+      setSpecialties(response.data);
+    } catch (error) {
+      console.error("Error fetching specialties:", error);
+      setSpecialties([]);
+    }
+  };
 
   const fetchDoctors = async () => {
     setIsLoading(true);
@@ -37,43 +37,22 @@ const FindDoctor = () => {
   };
   useEffect(() => {
     fetchDoctors();
+    fetchSpecialties();
   }, []);
 
-  // const doctors = [
-  //   {
-  //     name: "Dr. Walther White",
-  //     specialty: "Cardiology",
-  //     title: "Head of Cardiology Department",
-  //     affiliation: "University of Florida",
-  //     image: "👨‍⚕️",
-  //     available: true,
-  //   },
-  //   {
-  //     name: "Dr. Elizabeth",
-  //     specialty: "Cardiology",
-  //     title: "Senior Cardiologist",
-  //     affiliation: "University of Colorado",
-  //     image: "👩‍⚕️",
-  //     available: true,
-  //   },
-  //   {
-  //     name: "Dr. Michael Chen",
-  //     specialty: "Neurology",
-  //     title: "Interventional Neurologist",
-  //     affiliation: "Johns Hopkins University",
-  //     image: "👨‍⚕️",
-  //     available: false,
-  //   },
-  //   {
-  //     name: "Dr. Sarah Johnson",
-  //     specialty: "Orthopedics",
-  //     title: "Joint Replacement Specialist",
-  //     affiliation: "Harvard Medical School",
-  //     image: "👩‍⚕️",
-  //     available: true,
-  //   },
-  // ];
-  console.log("DOCSSSS:::  ", doctors);
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesSpecialty =
+      !selectedSpecialty ||
+      (doctor.specialty &&
+        doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase());
+    const matchesSearch =
+      !searchText ||
+      doctor.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+      (doctor.specialty &&
+        doctor.specialty.toLowerCase().includes(searchText.toLowerCase()));
+    return matchesSpecialty && matchesSearch;
+  });
+
   return (
     <div className="container mx-auto px-5 py-5">
       {isLoading ? (
@@ -93,6 +72,11 @@ const FindDoctor = () => {
             <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12">
               <select className="booking-form-input">
                 <option>Filter by Specialty</option>
+                {specialties.map((spec) => (
+                  <option key={spec.specialityID} value={spec.specialityID}>
+                    {spec.specialityName}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
@@ -102,6 +86,8 @@ const FindDoctor = () => {
                 name="searchText"
                 className="booking-form-input"
                 placeholder="Search with Doctor name or Specialty"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
               />
             </div>
           </div>
@@ -112,64 +98,6 @@ const FindDoctor = () => {
                   key={doctor.ID}
                   className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
                 >
-                  {/* <div className="card border-1 shadow-xs rounded-4 mb-4"> */}
-                  {/* <div className="text-center mb-6">
-                      <div className="w-24 h-24 bg-light rounded-full mx-auto mb-4 d-flex items-center justify-center">
-                        <img
-                          style={{ width: "5rem" }}
-                          src={doctor.profilePicture}
-                        />
-                      </div>
-                      <h3 className="fs-4 font-semibold mb-2 text-center">
-                        {doctor.fullName}
-                      </h3>
-                      <p className="text-hospital-blue fw-semibold mb-1 text-center">
-                        {doctor.designation}
-                      </p>
-                      <p className="text-gray-600 text-sm mb-2 text-center">
-                        {doctor.yearsOfExperience} Years of Experience
-                      </p>
-                      <p className="text-gray-500 text-xs text-center">
-                        {doctor.educationQualification[1]}
-                      </p>
-                    </div>
-
-                    <div className="d-flex justify-center mb-4">
-                      <span
-                        className={`fs-6 text-center fw-semibold ${
-                          doctor.opTimings.length > 0
-                            ? "text-success"
-                            : "text-danger"
-                        }`}
-                      >
-                        {doctor.opTimings.length > 0
-                          ? "Available"
-                          : "Not Available"}
-                      </span>
-                    </div>
-
-                    {doctor.opTimings.length > 0 && (
-                      <button
-                        className={`w-full py-2 px-4 rounded-3 text-center font-medium ${
-                          doctor.opTimings.length > 0
-                            ? "bg-info text-white"
-                            : "bg-light fw-500 pe-none"
-                        } transition-colors duration-200 border-1`}
-                        disabled={!doctor.opTimings.length > 0}
-                        onClick={() => navigate("/book-appointment")}
-                      >
-                        {doctor.opTimings.length > 0
-                          ? "Book Appointment"
-                          : "Not Available"}
-                      </button>
-                    )} */}
-                  {/* <div className="d-flex">
-                      <div className="">
-                        <img className='img-thumbnail' src={doctor.profilePicture} />
-                      </div>
-                      <div className=""></div>
-                    </div> */}
-                  {/* </div> */}
                   <div className="card border-1 shadow-xs rounded-4 mb-4 p-2">
                     <div className="row g-0">
                       <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center p-2">
@@ -185,7 +113,9 @@ const FindDoctor = () => {
                             {doctor.fullName}
                           </h5>
                           <p className="mb-1 text-muted small">
-                            {doctor.educationQualification[1]}
+                            {doctor.educationQualification[1]
+                              ? doctor.educationQualification[1]
+                              : "NA"}
                           </p>
                           <p className="text-primary fw-semibold mb-2">
                             {doctor.designation}
@@ -206,18 +136,22 @@ const FindDoctor = () => {
                                 Telugu, English, Hindi
                               </span>
                             </li>
-                            <li className="text-muted mb-1 d-flex align-items-baseline">
+                            <li className="text-muted mb-1">
                               <strong className="me-1">Consultation:</strong>
-                              <span className="text-clamped-one text-dark">
+                              <span className="text-ellipsis-one text-dark">
                                 {doctor.opTimings && doctor.opTimings.length > 0
                                   ? doctor.opTimings.join(", ")
                                   : "Not Available"}
                               </span>
                             </li>
-                            <li className="text-muted mb-1 d-flex align-items-baseline">
+                            <li className="text-muted mb-1">
                               <strong className="me-1">Expertise:</strong>{" "}
-                              <span className="text-dark text-clamped-one">
-                                Liver Intensive Care, Acute Liver Failure…
+                              <span className="text-dark text-ellipsis-one">
+                                <p
+                                  dangerouslySetInnerHTML={{
+                                    __html: doctor.experienceDescription,
+                                  }}
+                                ></p>
                               </span>
                             </li>
                           </ul>

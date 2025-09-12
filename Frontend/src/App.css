@@ -1526,12 +1526,13 @@ footer {
   transition-duration: 200ms;
 }
 
-.text-clamped-one {
+.text-ellipsis-one {
+  display: inline-block;
+  max-width: 60% !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: inline-block;
-  max-width: 100%;
+  vertical-align: bottom;
 }
 
 /*====== Margin-right css starts ======*/
