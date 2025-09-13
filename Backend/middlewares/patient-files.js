@@ -1,7 +1,8 @@
+const express = require("express");
 const multer = require("multer");
 const ImageKit = require("imagekit");
 
-// Multer in-memory storage
+// Multer setup for memory storage
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
@@ -9,7 +10,7 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowed = [
       "image/jpeg", "image/png", "image/webp",
-      "video/mp4", "video/quicktime", "video/webm" // if you allow videos for patients
+      "video/mp4", "video/quicktime", "video/webm"
     ];
     if (!allowed.includes(file.mimetype)) {
       return cb(new Error("Unsupported file type"), false);
@@ -18,40 +19,68 @@ const upload = multer({
   }
 });
 
-// ImageKit setup
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
-// Middleware for patient file uploads
+// ✅ Middleware that handles JSON OR multipart
 const patientFilesMiddleware = (req, res, next) => {
-  const handler = upload.fields([
-    { name: "profilePicture", maxCount: 1 },
-    { name: "profileImageGfs", maxCount: 5 } // adjust maxCount as needed
-  ]);
+  const contentType = req.headers["content-type"] || "";
+
+  // ---- Case 1: Raw JSON ----
+  if (contentType.includes("application/json")) {
+    return express.json()(req, res, (err) => {
+      if (err) {
+        console.error("JSON parse error:", err.message);
+        return res.status(400).json({ error: "Invalid JSON", details: err.message });
+      }
+      // No files in JSON case
+      req.files = {};
+      next();
+    });
+  }
+
+  // ---- Case 2/3: Multipart (with or without files) ----
+  const handler = upload.fields([{ name: "profilePicture", maxCount: 1 }]);
 
   handler(req, res, async (err) => {
-    if (err) return next(err);
+    if (err) {
+      console.error("Multer error:", err.message);
+      return res.status(400).json({
+        error: "File upload error",
+        details: err.message,
+      });
+    }
 
     try {
-      // Upload each file to ImageKit
+      if (!req.files) req.files = {};
+
+      // Upload files to ImageKit
       for (const field in req.files) {
-        req.files[field] = await Promise.all(
-          req.files[field].map(async (file) => {
-            const uploaded = await imagekit.upload({
-              file: file.buffer,
-              fileName: file.originalname,
-              folder: `/patients/${field}`
-            });
-            return { ...file, url: uploaded.url };
-          })
-        );
+        if (req.files[field] && req.files[field].length > 0) {
+          req.files[field] = await Promise.all(
+            req.files[field].map(async (file) => {
+              const uploaded = await imagekit.upload({
+                file: file.buffer,
+                fileName: `${Date.now()}-${file.originalname}`,
+                folder: `/patients/${field}`,
+                useUniqueFileName: true,
+              });
+              return { url: uploaded.url, fileId: uploaded.fileId };
+            })
+          );
+        }
       }
+
       next();
     } catch (error) {
-      next(error);
+      console.error("File upload middleware error:", error);
+      return res.status(500).json({
+        error: "File upload failed",
+        details: error.message,
+      });
     }
   });
 };

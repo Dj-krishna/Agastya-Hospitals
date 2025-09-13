@@ -89,8 +89,7 @@ exports.verifyPatient = async (req, res) => {
           gender: patient.gender,
           address: patient.address,
           countryCode: patient.countryCode,
-          profilePicture: patient.profilePicture || null,
-          profileImageGfs: patient.profileImageGfs || []
+          profilePicture: patient.profilePicture || null
         }
       });
     } else {
@@ -117,9 +116,8 @@ exports.addPatient = async (req, res) => {
     const emailExists = async (email) => await Patient.exists({ email });
 
     // Handle ImageKit files
-    if (req.files) {
-      if (req.files.profilePicture) payload.profilePicture = req.files.profilePicture[0].url;
-      if (req.files.profileImageGfs) payload.profileImageGfs = req.files.profileImageGfs.map(f => f.url);
+    if (req.files && req.files.profilePicture) {
+      payload.profilePicture = req.files.profilePicture[0].url;
     }
 
     // Single insert
@@ -158,9 +156,8 @@ exports.addPatient = async (req, res) => {
       doc.UHID = `AHA${doc.patientID}`;
 
       // Handle ImageKit files for bulk items if sent in form-data arrays (optional)
-      if (req.files) {
-        if (doc.profilePicture) doc.profilePicture = doc.profilePicture;
-        if (doc.profileImageGfs) doc.profileImageGfs = doc.profileImageGfs;
+      if (req.files && req.files.profilePicture) {
+        doc.profilePicture = req.files.profilePicture[0].url;
       }
 
       // Normalize packageIDs if string
@@ -200,12 +197,8 @@ exports.updatePatient = async (req, res) => {
     }
 
     // Handle ImageKit uploads
-    if (req.files) {
-      if (req.files.profilePicture) updateData.profilePicture = req.files.profilePicture[0].url;
-      if (req.files.profileImageGfs) {
-        const existing = Array.isArray(updateData.profileImageGfs) ? updateData.profileImageGfs : [];
-        updateData.profileImageGfs = existing.concat(req.files.profileImageGfs.map(f => f.url));
-      }
+    if (req.files && req.files.profilePicture) {
+      updateData.profilePicture = req.files.profilePicture[0].url;
     }
 
     if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
