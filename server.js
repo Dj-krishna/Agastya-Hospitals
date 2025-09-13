@@ -21,6 +21,8 @@ const doctorSlotRoutes = require('./routes/doctorSlotRoutes');
 const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const blogRoutes = require('./routes/blogRoutes');
+
 
 // Connect to MongoDB
 connectDB();
@@ -42,13 +44,14 @@ app.use(limiter);
 
 // ---------------- ROUTES ----------------
 
-// Doctor routes (multipart handled via multer, no express.json())
+// Routers handle their own file upload middleware internally
 app.use('/api/doctors', doctorRoutes);
+app.use('/api/patients', patientRoutes);
+app.use('/api/specialities', specialityRoutes);
+app.use('/api/blogs', blogRoutes);
 
 // JSON-only routes
 app.use('/api/auth', express.json(), authRoutes);
-app.use('/api/patients', express.json(), patientRoutes);
-app.use('/api/specialities', express.json(), specialityRoutes);
 app.use('/api/health-packages', express.json(), healthPackageRoutes);
 app.use('/api/sub-specialities', express.json(), subSpecialityRoutes);
 app.use('/api/users', express.json(), userRoutes);

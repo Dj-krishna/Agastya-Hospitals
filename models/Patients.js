@@ -17,28 +17,28 @@ const patientSchema = new mongoose.Schema({
   mobile: { type: String},
   altMobile: { type: String }, 
   address: { type: String },
-  profilePicture: { type: String },
+  profilePicture: { type: String, default: null },
   pastHistory: { type: String }, 
   transactions: [
     {
-      date: { type: Date, required: true },
-      amount: { type: Number, required: true },
-      type: { type: String, required: true },
+      date: { type: Date },
+      amount: { type: Number },
+      type: { type: String },
       description: { type: String }
     }
   ],
   labRecords: [
     {
-      testName: { type: String, required: true },
-      result: { type: String, required: true },
-      date: { type: Date, required: true },
+      testName: { type: String },
+      result: { type: String },
+      date: { type: Date },
       description: { type: String }
     }
   ],
   visits: [
     {
-      date: { type: Date, required: true },
-      reason: { type: String, required: true },
+      date: { type: Date },
+      reason: { type: String },
       doctor: { type: String },
       description: { type: String }
     }
