@@ -22,6 +22,7 @@ const moduleRoutes = require('./routes/moduleRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const blogRoutes = require('./routes/blogRoutes');
+const technologyRoutes = require('./routes/technologyRoutes');
 
 
 // Connect to MongoDB
@@ -49,6 +50,7 @@ app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/specialities', specialityRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/technologies', technologyRoutes);
 
 // JSON-only routes
 app.use('/api/auth', express.json(), authRoutes);

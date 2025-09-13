@@ -205,8 +205,6 @@ exports.addDoctor = async (req, res) => {
     // ✅ Handle optional profilePicture
     if (req.files && req.files.profilePicture) {
       normalizedDoc.profilePicture = getFileUrl(req.files.profilePicture);
-    } else {
-      normalizedDoc.profilePicture = null;
     }
 
     const saved = await new Doctor(normalizedDoc).save();
