@@ -112,14 +112,10 @@ exports.addBlog = async (req, res) => {
     // Handle file uploads
     if (req.files && req.files.postThumbnail) {
       normalizedBlog.postThumbnail = getFileUrl(req.files.postThumbnail);
-    } else {
-      normalizedBlog.postThumbnail = null;
     }
 
     if (req.files && req.files.postBanner) {
       normalizedBlog.postBanner = getFileUrl(req.files.postBanner);
-    } else {
-      normalizedBlog.postBanner = null;
     }
 
     const saved = await new Blog(normalizedBlog).save();
