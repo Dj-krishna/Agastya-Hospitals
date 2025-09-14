@@ -98,9 +98,27 @@ export const fetchSpecialityById = async (id) => {
 
 export const createSpeciality = async (specialityData) => {
   try {
-    const response = await axios.post(SPECIALITIES_API, specialityData, {
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(specialityData).forEach(key => {
+      if (specialityData[key] !== null && specialityData[key] !== undefined) {
+        if (key === 'icon' && specialityData[key] instanceof File) {
+          formData.append(key, specialityData[key]);
+        } else if (key === 'banner' && specialityData[key] instanceof File) {
+          formData.append(key, specialityData[key]);
+        } else if (Array.isArray(specialityData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(specialityData[key]));
+        } else {
+          formData.append(key, specialityData[key]);
+        }
+      }
+    });
+
+    const response = await axios.post(SPECIALITIES_API, formData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
@@ -112,9 +130,32 @@ export const createSpeciality = async (specialityData) => {
 
 export const updateSpeciality = async (id, specialityData) => {
   try {
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(specialityData).forEach(key => {
+      if (specialityData[key] !== null && specialityData[key] !== undefined) {
+        if (key === 'icon' && specialityData[key] instanceof File) {
+          formData.append(key, specialityData[key]);
+        } else if (key === 'banner' && specialityData[key] instanceof File) {
+          formData.append(key, specialityData[key]);
+        } else if (Array.isArray(specialityData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(specialityData[key]));
+        } else {
+          formData.append(key, specialityData[key]);
+        }
+      }
+    });
+
     const response = await axios.put(
       `${SPECIALITY_BY_ID_API}?specialityID=${id}`,
-      specialityData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return response.data;
   } catch (error) {

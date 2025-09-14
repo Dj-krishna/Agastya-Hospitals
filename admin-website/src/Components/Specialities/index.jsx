@@ -59,6 +59,17 @@ const Specialities = () => {
       // Handle both doctor and doctorID fields for backward compatibility
       doctor: speciality.doctor || speciality.doctorID,
       doctorID: speciality.doctor || speciality.doctorID,
+      // Ensure all required fields are present
+      specialityName: speciality.specialityName || "",
+      urlSlug: speciality.urlSlug || "",
+      shortDescription: speciality.shortDescription || "",
+      pageDescription: speciality.pageDescription || "",
+      isActive: speciality.isActive !== undefined ? speciality.isActive : true,
+      isNavigationDisplay: speciality.isNavigationDisplay !== undefined ? speciality.isNavigationDisplay : false,
+      icon: Array.isArray(speciality.icon) ? speciality.icon[0] || "" : (speciality.icon || ""),
+      banner: Array.isArray(speciality.banner) ? speciality.banner[0] || "" : (speciality.banner || ""),
+      seoMetaData: speciality.seoMetaData || "",
+      displayOrder: speciality.displayOrder || "",
     };
     setEditingSpeciality(mappedSpeciality);
     setIsEditMode(true);
@@ -132,9 +143,27 @@ const Specialities = () => {
                       ) : (
                         currentData?.map((item, index) => (
                           <tr key={index}>
-                            <td><img style={{width: "50px"}} src={item.icon} /></td>
+                            <td>
+                              {(() => {
+                                const iconUrl = Array.isArray(item.icon) ? item.icon[0] : item.icon;
+                                return iconUrl ? (
+                                  <img 
+                                    style={{width: "50px", height: "50px", objectFit: "cover"}} 
+                                    src={iconUrl} 
+                                    alt={item.specialityName}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'block';
+                                    }}
+                                  />
+                                ) : null;
+                              })()}
+                              <div style={{display: 'none', width: '50px', height: '50px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'}}>
+                                No Icon
+                              </div>
+                            </td>
                             <td>{item.specialityName || "N/A"}</td>
-                            <td>{item.doctor || item.doctorID || "N/A"}</td>
+                            <td>{item.doctorName || item.doctor || item.doctorID || "N/A"}</td>
                             <td
                               width="30%"
                               style={{
@@ -144,7 +173,7 @@ const Specialities = () => {
                                 maxWidth: "150px",
                               }}
                             >
-                              {item.pageDescription}
+                              {item.shortDescription || item.pageDescription || "N/A"}
                             </td>
                             <td width={"10%"}>
                               <FaPencilAlt

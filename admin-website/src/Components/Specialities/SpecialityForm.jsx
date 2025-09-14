@@ -70,12 +70,12 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
         ...initialData,
         // Map the fields to match our form state
         specialityName: initialData.specialityName || "",
-        icon: initialData.icon || "",
+        icon: Array.isArray(initialData.icon) ? initialData.icon[0] || "" : (initialData.icon || ""),
         displayOrder: initialData.displayOrder || "",
         doctor: initialData.doctor || initialData.doctorID || "",
         shortDescription: initialData.shortDescription || "",
         pageDescription: initialData.pageDescription || "",
-        banner: initialData.banner || "",
+        banner: Array.isArray(initialData.banner) ? initialData.banner[0] || "" : (initialData.banner || ""),
         seoMetaData: initialData.seoMetaData || "",
         urlSlug: initialData.urlSlug || "",
         isNavigationDisplay: initialData.isNavigationDisplay !== undefined ? initialData.isNavigationDisplay : true,
@@ -96,12 +96,12 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
 
     const requiredFields = {
       specialityName: "Speciality name is required",
-      icon: "Icon is required",
+      // icon: "Icon is required", // Made optional for now
       // displayOrder: "Display Order is required", // Made optional
       doctor: "Assign Doctor is required",
       shortDescription: "Short description is required",
       pageDescription: "Page description is required",
-      banner: "Page banner is required",
+      // banner: "Page banner is required", // Made optional for now
       // seoMetaData: "SEO metadata is required", // Made optional
       urlSlug: "URL slug is required",
       isNavigationDisplay: "Navigation display setting is required",
@@ -180,15 +180,23 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
 
     if (Object.keys(newErrors).length === 0) {
       try {
-        // Prepare data for API
+        // Prepare data for API - match the API structure from your example
         const submitData = {
-          ...formState,
+          specialityName: formState.specialityName,
+          urlSlug: formState.urlSlug,
+          shortDescription: formState.shortDescription,
+          pageDescription: formState.pageDescription,
+          isActive: formState.isActive,
+          isNavigationDisplay: formState.isNavigationDisplay,
           doctor: parseInt(formState.doctor),
-          // Only include displayOrder if it has a value
+        // Handle file fields - keep File objects for FormData
+        icon: formState.icon instanceof File ? formState.icon : (formState.icon || ""),
+        banner: formState.banner instanceof File ? formState.banner : (formState.banner || ""),
+          // Optional fields
           ...(formState.displayOrder && { displayOrder: parseInt(formState.displayOrder) }),
-          // Handle file fields - convert File objects to strings or use existing values
-          icon: formState.icon instanceof File ? formState.icon.name : formState.icon,
-          banner: formState.banner instanceof File ? formState.banner.name : formState.banner,
+          ...(formState.seoMetaData && { seoMetaData: formState.seoMetaData }),
+          ...(formState.createdBy && { createdBy: formState.createdBy }),
+          ...(formState.updatedBy && { updatedBy: formState.updatedBy }),
         };
 
         let response;
