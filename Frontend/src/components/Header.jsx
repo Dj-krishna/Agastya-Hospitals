@@ -61,11 +61,11 @@ const Header = () => {
 
       {/* Main Navigation */}
       <nav
-        className={`container mx-auto px-2 pt-4 pb-0 main-navigation ${
+        className={`container-fluid mx-auto px-2 pt-4 pb-0 main-navigation ${
           currentPage && currentPage !== "Home" ? "banner" : ""
         }`}
       >
-        <div className="d-flex justify-between items-center position-relative z-3">
+        <div className="container d-flex justify-between items-center position-relative z-3">
           {/* Logo */}
           <div className="d-flex items-center">
             <Link to="/" className="text-2xl font-bold text-hospital-blue">
@@ -95,6 +95,7 @@ const Header = () => {
 
         {/* Banner & Breadcrumb */}
         {currentPage && currentPage !== "Home" && (
+          <div className="container">
           <div className="row">
             <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
               <h2 className="banner-title mt-5">{currentPage}</h2>
@@ -105,6 +106,7 @@ const Header = () => {
                 <span style={{ color: "#000000" }}>{currentPage}</span>
               </div>
             </div>
+          </div>
           </div>
         )}
       </nav>
