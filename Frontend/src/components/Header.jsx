@@ -25,6 +25,7 @@ const Header = () => {
     { path: "/terms-and-conditions", label: "Terms & Conditions" },
     { path: "/free-second-opinion", label: "Free Second Opinion" },
     { path: "/medical-reports", label: "Medical Reports" },
+    { path: "/doctor/profile", label: "Doctor Profile" },
   ];
 
   const allNavItems = [...navItems, ...nonHeaderPaths];
@@ -96,17 +97,17 @@ const Header = () => {
         {/* Banner & Breadcrumb */}
         {currentPage && currentPage !== "Home" && (
           <div className="container">
-          <div className="row">
-            <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
-              <h2 className="banner-title mt-5">{currentPage}</h2>
-            </div>
-            <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
-              <div className="breadcrumb">
-                <Link to="/">Home</Link> <span>/</span>
-                <span style={{ color: "#000000" }}>{currentPage}</span>
+            <div className="row">
+              <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                <h2 className="banner-title mt-5">{currentPage}</h2>
+              </div>
+              <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                <div className="breadcrumb">
+                  <Link to="/">Home</Link> <span>/</span>
+                  <span style={{ color: "#000000" }}>{currentPage}</span>
+                </div>
               </div>
             </div>
-          </div>
           </div>
         )}
       </nav>

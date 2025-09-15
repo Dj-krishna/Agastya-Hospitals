@@ -20,6 +20,7 @@ import FreeSecondOpinionForm from "./pages/FreeSecondOpinionForm";
 import MedicalReports from "./pages/MedicalReports";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import DoctorProfile from "./components/pages/DoctorProfile";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
             element={<FreeSecondOpinionForm />}
           />
           <Route path="/medical-reports" element={<MedicalReports />} />
+          <Route path="/doctor/profile" element={<DoctorProfile />} />
         </Routes>
       </main>
       <Footer />

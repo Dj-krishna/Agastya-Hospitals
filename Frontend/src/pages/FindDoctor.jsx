@@ -50,6 +50,10 @@ const FindDoctor = () => {
     return matchesSearch;
   });
 
+  const gotoProfile = (doctorID) => {
+    navigate("/doctor/profile");
+  };
+
   return (
     <div className="container mx-auto px-5 py-5">
       {isLoading ? (
@@ -202,6 +206,7 @@ const FindDoctor = () => {
                             <button
                               href="#"
                               className="primary-btn-outline rounded-pill f-12 f-w-700"
+                              onClick={() => gotoProfile(doctor.ID)}
                             >
                               View Profile
                             </button>
