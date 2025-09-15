@@ -1,149 +1,113 @@
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchHealthPackages } from "../slices/healthPackages";
+
+const getDiscountedPrice = (pkg) => {
+  if (pkg.discountType === "Fixed") {
+    return pkg.price - pkg.discountAmount;
+  }
+  if (pkg.discountType === "Percentage") {
+    return Math.round(pkg.price * (1 - pkg.discountAmount / 100));
+  }
+  return pkg.price;
+};
+
 const HealthPackages = () => {
-  const packages = [
-    {
-      id: 1,
-      name: "Basic Health Check-up",
-      price: "INR 3,500/-",
-      originalPrice: "INR 5,000/-",
-      discount: "30% OFF",
-      features: [
-        "Complete Blood Count",
-        "Blood Sugar (Fasting)",
-        "Lipid Profile",
-        "Liver Function Test",
-        "Kidney Function Test",
-        "ECG",
-        "Chest X-Ray",
-        "General Physician Consultation",
-      ],
-      popular: false,
-    },
-    {
-      id: 2,
-      name: "Executive Health Check-up Women",
-      price: "INR 7,500/-",
-      originalPrice: "INR 10,000/-",
-      discount: "25% OFF",
-      features: [
-        "Complete Blood Count",
-        "Blood Sugar (Fasting & PP)",
-        "Lipid Profile",
-        "Liver Function Test",
-        "Kidney Function Test",
-        "Thyroid Profile",
-        "ECG",
-        "Chest X-Ray",
-        "Mammography",
-        "Gynecologist Consultation",
-      ],
-      popular: true,
-    },
-    {
-      id: 3,
-      name: "Executive Master Health Checkup",
-      price: "INR 15,500/-",
-      originalPrice: "INR 20,000/-",
-      discount: "22% OFF",
-      features: [
-        "All Basic Tests",
-        "Cardiac Markers",
-        "Cancer Screening",
-        "Bone Density",
-        "Stress Test",
-        "Echo Cardiogram",
-        "Consultation with Specialist",
-        "Nutritional Assessment",
-      ],
-      popular: false,
-    },
-    {
-      id: 4,
-      name: "Senior Citizen Health Package",
-      price: "INR 12,000/-",
-      originalPrice: "INR 16,000/-",
-      discount: "25% OFF",
-      features: [
-        "Comprehensive Health Assessment",
-        "Cardiac Evaluation",
-        "Bone Health Check",
-        "Vision & Hearing Test",
-        "Nutritional Assessment",
-        "Geriatric Consultation",
-        "Home Care Guidance",
-      ],
-      popular: false,
-    },
-  ];
+  const dispatch = useDispatch();
+  const {
+    healthPackages: packages,
+    loading,
+    error,
+  } = useSelector((state) => state);
+
+  useEffect(() => {
+    dispatch(fetchHealthPackages());
+  }, [dispatch]);
 
   return (
-    <div className="container mx-auto p-5">
-      <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
+    <div className="container py-5 px-5">
+      <h1 className="display-5 fw-bold text-center mb-5">
         Explore the Health Packages
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {packages.map((pkg) => (
-          <div
-            key={pkg.id}
-            className={`bg-white p-8 rounded-lg shadow-lg border-2 ${
-              pkg.popular ? "border-hospital-blue" : "border-gray-200"
-            } relative`}
-          >
-            {pkg.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-hospital-blue text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Most Popular
-                </span>
-              </div>
-            )}
+      {loading && (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading health packages...</span>
+          </div>
+        </div>
+      )}
 
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-              {pkg.name}
-            </h3>
+      {error && (
+        <div className="alert alert-danger text-center" role="alert">
+          Failed to load health packages.
+        </div>
+      )}
 
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-2">
-                <span className="text-3xl font-bold text-hospital-blue">
-                  {pkg.price}
-                </span>
-                <span className="text-lg text-gray-500 line-through">
-                  {pkg.originalPrice}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
-                  {pkg.discount}
-                </span>
+      <div className="row g-4 mx-5">
+        {packages.packages?.map((pkg) => (
+          <div className="col-12 col-md-6 col-lg-4" key={pkg._id}>
+            <div className="card h-100 shadow-sm border-1 p-3 rounded-4">
+              <img
+                src={pkg.photo}
+                alt={pkg.packageName}
+                className="card-img-top rounded-2"
+                style={{ height: 200, objectFit: "cover" }}
+              />
+              <div className="card-body d-flex flex-column">
+                <h5 className="card-title fw-bold">{pkg.packageName}</h5>
+                <div className="mb-2">
+                  <span className="fs-4 fw-bold text-primary">
+                    ₹{getDiscountedPrice(pkg)}
+                  </span>
+                  <span className="text-muted text-decoration-line-through ms-2">
+                    ₹{pkg.price}
+                  </span>
+                  <span className="badge bg-success ms-2">
+                    {pkg.discountType === "Fixed"
+                      ? `₹${pkg.discountAmount} OFF`
+                      : `${pkg.discountAmount}% OFF`}
+                  </span>
+                </div>
+                <div className="mb-1 small">
+                  <strong>Total Lab Tests:</strong> {pkg.totalLabTests}
+                </div>
+                <div className="mb-1 small">
+                  <strong>Ideal For:</strong> {pkg.idealFor} &nbsp;|&nbsp;
+                  <strong>Age Group:</strong> {pkg.ageGroup}
+                </div>
+                <div className="mb-1 small">
+                  <strong>Description:</strong> {pkg.description}
+                </div>
+                <div className="mb-1 small">
+                  <strong>Guidelines:</strong> {pkg.guidelines}
+                </div>
+                <div className="mb-2">
+                  <strong className="small">Covered Tests:</strong>
+                  <ul
+                    className="small ps-3 mb-0"
+                    style={{ maxHeight: 80, overflowY: "auto" }}
+                  >
+                    {pkg.coveredTests.map((test, idx) => (
+                      <li key={idx}>{test}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-auto">
+                  <button className="btn btn-primary w-100">Book Now</button>
+                </div>
               </div>
             </div>
-
-            <ul className="space-y-3 mb-8">
-              {pkg.features.map((feature, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="text-green-500 mr-3 mt-1">✓</span>
-                  <span className="text-gray-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button className="primary-btn">Book Now</button>
           </div>
         ))}
       </div>
 
-      {/* <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Need a custom package? Contact us for personalized health check-up plans.
-          </p>
-          <button className="btn-secondary">
-            Contact Us
-          </button>
-        </div> */}
-
-      <div className="col-lg-12 text-center pt-3 m-5">
-        <p className="paragraph-16 text-center">
+      <div className="text-center pt-4 mt-5">
+        <p className="mb-2">
           Need a custom package? Contact us for personalized health check-up
           plans.
         </p>
-        <button className="primary-btn mb-5 mt-2">Contact US</button>
+        <button className="btn btn-outline-primary">Contact Us</button>
       </div>
     </div>
   );

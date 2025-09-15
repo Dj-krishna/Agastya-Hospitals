@@ -70,7 +70,7 @@ const FindDoctor = () => {
       ) : (
         <div className="">
           <div className="row m-0 mx-5">
-            <div className="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+            <div className="col-lg-6 col-md-6 col-sm-12 col-xs-12">
               <div
                 className="d-flex booking-form-input justify-content-between"
                 style={{ cursor: "pointer" }}
@@ -126,7 +126,7 @@ const FindDoctor = () => {
                 ))}
               </select> */}
             </div>
-            <div className="col-lg-7 col-md-7 col-sm-12 col-xs-12">
+            <div className="col-lg-6 col-md-6 col-sm-12 col-xs-12">
               <input
                 type="text"
                 id="searchText"
