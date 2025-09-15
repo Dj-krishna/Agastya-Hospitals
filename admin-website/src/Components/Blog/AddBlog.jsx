@@ -197,8 +197,6 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
           }
         });
 
-        // TODO: Replace with your API call for create/update blog
-        // Example:
         formData["dateOfPost"] = formatDateForAPI(new Date());
         console.log(formData);
         let response;
