@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import BlogCards from "./pages/BlogCards";
 const BlogSection = () => {
   const [blogData, setBlogData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,25 +59,7 @@ const BlogSection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-8">
-          {blogs.map((blog) => (
-            <div key={blog.id} className="blog-card medical-news">
-              <div className="h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                <span className="text-6xl">{blog.image}</span>
-              </div>
-              <div className="blog-meta">
-                <span>{blog.category}</span>
-                <span>{blog.date}</span>
-              </div>
-              <h3>
-                <a href="#">{blog.title}</a>
-              </h3>
-              <p className="excerpt"> {blog.excerpt}</p>
-              <a href="#">Read the article →</a>
-            </div>
-          ))}
-        </div>
-
+        <BlogCards />
         <div className="text-center mt-12">
           <button className="btn-primary">View All Blogs</button>
         </div>

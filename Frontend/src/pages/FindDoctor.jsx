@@ -51,7 +51,7 @@ const FindDoctor = () => {
   });
 
   const gotoProfile = (doctorID) => {
-    navigate("/doctor/profile");
+    navigate("/doctor/profile", { state: { doctorID } });
   };
 
   return (
@@ -206,7 +206,7 @@ const FindDoctor = () => {
                             <button
                               href="#"
                               className="primary-btn-outline rounded-pill f-12 f-w-700"
-                              onClick={() => gotoProfile(doctor.ID)}
+                              onClick={() => gotoProfile(doctor.doctorID)}
                             >
                               View Profile
                             </button>
