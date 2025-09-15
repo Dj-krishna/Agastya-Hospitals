@@ -10,7 +10,11 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowed = [
       "image/jpeg", "image/png", "image/webp",
-      "video/mp4", "video/quicktime", "video/webm"
+      "video/mp4", "video/quicktime", "video/webm",
+      // common document types for medical records
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ];
     if (!allowed.includes(file.mimetype)) {
       return cb(new Error("Unsupported file type"), false);
@@ -43,7 +47,10 @@ const patientFilesMiddleware = (req, res, next) => {
   }
 
   // ---- Case 2/3: Multipart (with or without files) ----
-  const handler = upload.fields([{ name: "profilePicture", maxCount: 1 }]);
+  const handler = upload.fields([
+    { name: "profilePicture", maxCount: 1 },
+    { name: "medicalRecords", maxCount: 20 }
+  ]);
 
   handler(req, res, async (err) => {
     if (err) {
