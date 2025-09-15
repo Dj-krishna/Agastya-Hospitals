@@ -3,7 +3,7 @@ import { DOCTORS_API, SPECIALITIES_API } from "../api/services";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchSpecialties } from "../slices/specialtySlice";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 //Frontend\src\slices\specialtySlice.js
 
 const FindDoctor = () => {
@@ -12,6 +12,7 @@ const FindDoctor = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [specialties, setSpecialties] = useState([]);
+  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const fetchSpecialties = async () => {
@@ -41,16 +42,12 @@ const FindDoctor = () => {
   }, []);
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSpecialty =
-      !selectedSpecialty ||
-      (doctor.specialty &&
-        doctor.specialty.toLowerCase() === selectedSpecialty.toLowerCase());
     const matchesSearch =
       !searchText ||
       doctor.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
       (doctor.specialty &&
         doctor.specialty.toLowerCase().includes(searchText.toLowerCase()));
-    return matchesSpecialty && matchesSearch;
+    return matchesSearch;
   });
 
   return (
@@ -69,17 +66,63 @@ const FindDoctor = () => {
       ) : (
         <div className="">
           <div className="row m-0 mx-5">
-            <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12">
-              <select className="booking-form-input">
+            <div className="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+              <div
+                className="d-flex booking-form-input justify-content-between"
+                style={{ cursor: "pointer" }}
+                onClick={() => setShowSpecialtyDropdown((prev) => !prev)}
+              >
+                <span className="">Filter by Speciality</span>
+                <span>
+                  {!showSpecialtyDropdown ? (
+                    <FaChevronDown className="text-muted" />
+                  ) : (
+                    <FaChevronUp className="text-muted" />
+                  )}
+                </span>
+              </div>
+              <div>
+                {showSpecialtyDropdown && (
+                  <div
+                    className="border rounded shadow-sm position-absolute bg-white"
+                    style={{ zIndex: 1000, cursor: "pointer" }}
+                  >
+                    <div
+                      className="p-2 hover-bg-light-gray"
+                      onClick={() => {
+                        setSelectedSpecialty("");
+                        setSearchText("");
+                        setShowSpecialtyDropdown(false);
+                      }}
+                    >
+                      Clear Filter
+                    </div>
+                    {specialties.map((spec) => (
+                      <div
+                        key={spec.specialityID}
+                        className="p-2 hover-bg-light-gray"
+                        onClick={() => {
+                          setSelectedSpecialty(spec.specialityName);
+                          setSearchText(spec.specialityName);
+                          setShowSpecialtyDropdown(false);
+                        }}
+                      >
+                        {spec.specialityName}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* <select className="booking-form-input">
                 <option>Filter by Specialty</option>
                 {specialties.map((spec) => (
                   <option key={spec.specialityID} value={spec.specialityID}>
                     {spec.specialityName}
                   </option>
                 ))}
-              </select>
+              </select> */}
             </div>
-            <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+            <div className="col-lg-7 col-md-7 col-sm-12 col-xs-12">
               <input
                 type="text"
                 id="searchText"
@@ -92,8 +135,8 @@ const FindDoctor = () => {
             </div>
           </div>
           <div className="row m-0 mx-5 mt-3">
-            {doctors.length != 0 ? (
-              doctors.map((doctor) => (
+            {filteredDoctors.length != 0 ? (
+              filteredDoctors.map((doctor) => (
                 <div
                   key={doctor.ID}
                   className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
@@ -109,34 +152,34 @@ const FindDoctor = () => {
                       </div>
                       <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12 pr-0">
                         <div className="card-body">
-                          <h5 className="card-title fw-bold mb-1">
+                          <h5 className="card-title fw-bold mb-1 f-26">
                             {doctor.fullName}
                           </h5>
-                          <p className="mb-1 text-muted small">
+                          <p className="mb-1 text-dark f-12 f-w-600">
                             {doctor.educationQualification[1]
                               ? doctor.educationQualification[1]
                               : "NA"}
                           </p>
-                          <p className="text-primary fw-semibold mb-2">
+                          <p className="text-primary f-12 f-w-700 mb-2">
                             {doctor.designation}
                           </p>
                           <ul
                             className="mb-3 small"
                             style={{ listStyle: "inside" }}
                           >
-                            <li className="text-muted mb-1">
+                            <li className="text-muted mb-1 f-12">
                               <strong>Experience:</strong>{" "}
                               <span className="text-dark">
                                 {doctor.yearsOfExperience} Years
                               </span>
                             </li>
-                            <li className="text-muted mb-1">
+                            <li className="text-muted mb-1 f-12">
                               <strong>Speaks:</strong>{" "}
                               <span className="text-dark">
                                 Telugu, English, Hindi
                               </span>
                             </li>
-                            <li className="text-muted mb-1">
+                            <li className="text-muted mb-1 f-12">
                               <strong className="me-1">Consultation:</strong>
                               <span className="text-ellipsis-one text-dark">
                                 {doctor.opTimings && doctor.opTimings.length > 0
@@ -144,7 +187,7 @@ const FindDoctor = () => {
                                   : "Not Available"}
                               </span>
                             </li>
-                            <li className="text-muted mb-1">
+                            <li className="text-muted mb-1 f-12">
                               <strong className="me-1">Expertise:</strong>{" "}
                               <span className="text-dark text-ellipsis-one">
                                 <p

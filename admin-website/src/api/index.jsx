@@ -17,6 +17,10 @@ export const UPDATE_PATIENT = `${baseUrl}/${api}/patients`;
 export const SLOTS_API = `${baseUrl}/${api}/doctor-slots`;
 export const APPOINTMENTS_API = `${baseUrl}/${api}/appointments`;
 export const UPDATE_APPOINTMENT_API = `${baseUrl}/${api}/appointments`;
+export const BLOGS_API = `${baseUrl}/${api}/blogs`;
+export const CREATE_BLOGS_API = `${baseUrl}/${api}/blogs`;
+export const UPDATE_BLOGS_API = `${baseUrl}/${api}/blogs`;
+export const DELETE_BLOGS_API = `${baseUrl}/${api}/blogs`;
 
 export const TaskApi = `${api}/task.json`;
 export const BookmarkApi = `${api}/bookmark.json`;

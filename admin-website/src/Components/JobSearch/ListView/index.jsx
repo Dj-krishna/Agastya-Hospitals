@@ -11,7 +11,7 @@ const ListView = () => {
       <Container fluid={true}>
         <Row className='mb-5'>
           <Sidebar />
-          <ListCard colClass='col-xl-9 xl-60 box-col-8' />
+          <ListCard colclassName='col-xl-9 xl-60 box-col-8' />
         </Row>
       </Container>
     </Fragment>

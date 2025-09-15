@@ -57,8 +57,8 @@ class DragCalendar extends Component {
     Swal.fire({
       title: eventClick.event.title,
       html:
-        `<div class="table-responsive">
-      <table class="table">
+        `<div className="table-responsive">
+      <table className="table">
       <tbody>
       <tr >
       <td>Title</td>

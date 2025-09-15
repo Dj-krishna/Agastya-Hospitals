@@ -41,7 +41,7 @@ const TechnologySection = () => {
   return (
     <section className="py-16 bg-white">
       <div className="container mx-auto px-4">
-        <div class="text-start mb-12">
+        <div className="text-start mb-12">
           <h2 className="main-title mb-12">Our Expert Doctors For The Patients</h2>
         </div>
       </div>

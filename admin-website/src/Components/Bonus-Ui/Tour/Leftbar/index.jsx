@@ -21,11 +21,11 @@ const LeftbarProfile = ({ colClass }) => {
     <Fragment>
       <div className="default-according style-1 faq-accordion job-accordion">
         <Row>
-          <AboutMe colClass="col-xl-12" />
-          <Followers colClass={colClass} />
-          <Followings colClass={colClass} />
-          <LatestPhotos colClass={colClass} />
-          <Friends colClass={colClass} />
+          <AboutMe colclassName="col-xl-12" />
+          <Followers colclassName={colClass} />
+          <Followings colclassName={colClass} />
+          <LatestPhotos colclassName={colClass} />
+          <Friends colclassName={colClass} />
         </Row>
       </div>
     </Fragment>

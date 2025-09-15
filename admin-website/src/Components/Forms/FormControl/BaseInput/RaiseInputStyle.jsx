@@ -64,7 +64,7 @@ const RaiseInputStyleClass = () => {
                             </Col>
                         </Row>
                     </CardBody>
-                    <FooterCard footerClass="text-end" />
+                    <FooterCard footerclassName="text-end" />
                 </Form>
             </Card>
         </Fragment>

@@ -40,36 +40,36 @@ const About = () => {
 
       {/* stats-card d-flex justify-content-between align-items-center flex-wrap gap-0 */}
 
-      <div class="row stats-container">
-        <div class="col-lg-3 stats-section">
+      <div className="row stats-container">
+        <div className="col-lg-3 stats-section">
           <h6>Happy Patients</h6>
-          <div class="stat-number">10,000+</div>
+          <div className="stat-number">10,000+</div>
         </div>
 
-        <div class="col-lg-3 stats-section">
+        <div className="col-lg-3 stats-section">
           <h6>Surgeries Performed</h6>
-          <div class="stat-number">400+</div>
+          <div className="stat-number">400+</div>
         </div>
 
-        <div class="col-lg-3 stats-section">
+        <div className="col-lg-3 stats-section">
           <h6>Specialities</h6>
-          <div class="stat-number">15+</div>
+          <div className="stat-number">15+</div>
         </div>
 
-        <div class="col-lg-3 stats-section">
+        <div className="col-lg-3 stats-section">
           <h6>Strong Clinical Team</h6>
-          <div class="stat-number">50+</div>
+          <div className="stat-number">50+</div>
         </div>
       </div>
 
-      <div class="container my-5">
-        <div class="second-opinion-section">
-          <div class="second-opinion-content">
-            <h3 class="second-opinion-title">Looking for a Second Opinion?</h3>
-            <h2 class="second-opinion-highlight">
+      <div className="container my-5">
+        <div className="second-opinion-section">
+          <div className="second-opinion-content">
+            <h3 className="second-opinion-title">Looking for a Second Opinion?</h3>
+            <h2 className="second-opinion-highlight">
               Contact Us for a Free Second Opinion!
             </h2>
-            <p class="mt-3">
+            <p className="mt-3">
               At [Hospital Name], we understand that making informed decisions
               about your health can be challenging. Whether you’re facing a new
               diagnosis, considering treatment options, or just need reassurance
@@ -77,7 +77,7 @@ const About = () => {
               team of specialists offers comprehensive evaluations to ensure you
               feel confident in your healthcare choices.
             </p>
-            <a href="#" class="second-opinion-btn mt-3">
+            <a href="#" className="second-opinion-btn mt-3">
               <span>➔</span> Get Your Free Second Opinion
             </a>
           </div>
@@ -87,7 +87,7 @@ const About = () => {
                 "https://res.cloudinary.com/sdk28cdn/image/upload/v1756301087/agastya/free-second-opinion-doctor-portrait.png"
               }
               alt="Doctor"
-              class="doctor-img"
+              className="doctor-img"
             />
           </div>
         </div>

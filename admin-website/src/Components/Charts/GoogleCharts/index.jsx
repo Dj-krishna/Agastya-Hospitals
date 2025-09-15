@@ -32,7 +32,7 @@ const GoogleCharts = () => {
           <PieChartClass data={chartData.googleChart.GoogleBasicbarChart} title={BasicBarChart} />
           <PieChartClass data={chartData.googleChart.GoogleMaterialDesignChart} title={MaterialDesign} />
           <PieChart6Class data={chartData.googleChart.GoogleGhantChart} title={GanttChart} />
-          <PieChartClass data={chartData.googleChart.GoogleLineChart} title={LineChart} colClass='col-sm-12' />
+          <PieChartClass data={chartData.googleChart.GoogleLineChart} title={LineChart} colclassName='col-sm-12' />
           <ComboChartClass data={chartData.googleChart.GoogleComboChart} title={ComboChart} />
           <PieChartClass data={chartData.googleChart.GoogleBarChart2} title={BarChart2} />
           <PieChartClass data={chartData.googleChart.GoogleTreeChart} title={WordTree} />

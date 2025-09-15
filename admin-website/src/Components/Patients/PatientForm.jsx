@@ -171,48 +171,6 @@ const PatientForm = ({ onClose, formType, patientData }) => {
     }
   };
 
-  // const onSubmit = async (e, formState) => {
-  //   e.preventDefault();
-  //   setIsSubmitted(true);
-  //   let isValid = true;
-  //   const errors = {};
-  //   Object.keys(formData).forEach((field) => {
-  //     const errorMsg = validateField(field, formData[field]);
-  //     if (errorMsg) {
-  //       errors[field] = errorMsg;
-  //       isValid = false;
-  //     }
-  //   });
-  //   if (formData.dob) {
-  //     const dobError = validateField("dob", formData.dob);
-  //     if (dobError) {
-  //       errors.dob = dobError;
-  //       isValid = false;
-  //     }
-  //   }
-  //   setFormErrors(errors);
-  //   if (!isValid) {
-  //     return;
-  //   }
-
-  //   try {
-  //     if (formType === "Edit") {
-  //       await axios.post(
-  //         "https://agastya-hospitals-0bfo.onrender.com/api/patients",
-  //         formData
-  //       );
-  //     } else {
-  //       await axios.put(
-  //         `https://agastya-hospitals-0bfo.onrender.com/api/patients?patientID=${formData.patientID}`,
-  //         formData
-  //       );
-  //     }
-  //     onClose();
-  //   } catch (error) {
-  //     console.error("Error submitting form:", error);
-  //   }
-  // };
-
   return (
     <>
       <Breadcrumbs

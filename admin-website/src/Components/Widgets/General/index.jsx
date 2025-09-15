@@ -29,7 +29,7 @@ const GeneralComponent = () => {
         <Row>
           {/* {CurrenciesWidgets.map((item, i) => (
             <Col key={i} sm='4' xxl='2'>
-              <CurrencyWidget mainClass='widget-currency' data={item} />
+              <CurrencyWidget mainclassName='widget-currency' data={item} />
             </Col>
           ))}
           {RadialProgressWidgetDataWidgetPage.map((item, i) => (
@@ -46,7 +46,7 @@ const GeneralComponent = () => {
             <Row>
               {CourseBoxData.map((item, i) => (
                 <Col sm='12' key={i}>
-                  <CourseBox mainClass='widget-course' data={item} />
+                  <CourseBox mainclassName='widget-course' data={item} />
                 </Col>
               ))}
             </Row>
@@ -73,14 +73,14 @@ const GeneralComponent = () => {
             <Row className='g-sm-3 height-equal-2 widget-charts'>
               {SmallWidgetsData.map((data, i) => (
                 <Col sm='6' key={i}>
-                  <SmallWidgets mainClass='mb-sm-0' data={data} />
+                  <SmallWidgets mainclassName='mb-sm-0' data={data} />
                 </Col>
               ))}
               <Col sm='6'>
                 <Widgets2 data={Widgets2DataWidgets} />
               </Col>
               <Col sm='6'>
-                <Widgets2 chartClass='profit-chart' data={Widgets2Data2Widgets} />
+                <Widgets2 chartclassName='profit-chart' data={Widgets2Data2Widgets} />
               </Col>
             </Row>
           </Col>

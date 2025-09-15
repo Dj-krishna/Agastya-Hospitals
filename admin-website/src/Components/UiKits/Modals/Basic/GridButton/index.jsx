@@ -10,7 +10,7 @@ const GridModal = () => {
   return (
     <Fragment>
       <Btn attrBtn={{ color: 'primary', onClick: toggle }} >{UsingTheGrid}</Btn>
-      <CommonModal isOpen={modal} title={ModalTitle} toggler={toggle} bodyClass="grid-showcase" >
+      <CommonModal isOpen={modal} title={ModalTitle} toggler={toggle} bodyclassName="grid-showcase" >
         <Container fluid={true} className="bd-example-row">
           <Row>
             <Col md="4"><span>{'.col-md-4'}</span></Col>

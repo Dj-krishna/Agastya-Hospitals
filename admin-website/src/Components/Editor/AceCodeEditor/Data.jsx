@@ -21,17 +21,17 @@ export const Javadata = `
 
 export const HtmlData = `
     <!--Page header start-->
-    <div class="page-header">
+    <div className="page-header">
         <Row>
             <Col xl="6">
                 <H3>Ace Text editor</H3>
                 <small>Cuba Admin panel</small>
             </Col>
             <Col xl="6">
-                <OL class="breadcrumb pull-right">
-                    <LI class="breadcrumb-item"></LI>
-                    <LI class="breadcrumb-item">Editor </LI>
-                    <LI class="breadcrumb-item active">Ace Text editor</LI>
+                <OL className="breadcrumb pull-right">
+                    <LI className="breadcrumb-item"></LI>
+                    <LI className="breadcrumb-item">Editor </LI>
+                    <LI className="breadcrumb-item active">Ace Text editor</LI>
                 </OL>
             </Col>
         <Row>

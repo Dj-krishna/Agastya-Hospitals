@@ -55,10 +55,10 @@ const RightBar = () => {
           </Collapse>
         </Card>
       </Col>
-      <Followers colClass={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
-      <Followings colClass={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
-      <LatestPhotoss colClass={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
-      <Friendss colClass={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
+      <Followers colclassName={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
+      <Followings colclassName={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
+      <LatestPhotoss colclassName={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
+      <Friendss colclassName={"col-xl-12 col-sm-6 xl-50 box-col-6"} />
       <Col xl="12 xl-50 box-col-6">
         <Card className="image-sec">
           <Media className="img-fluid" src={timeline4} alt="" />

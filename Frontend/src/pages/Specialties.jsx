@@ -49,7 +49,7 @@ const Specialties = () => {
                   <div className="text-4xl mb-4">
                     {/* <img src={specialty.icon} alt={specialty.name} /> */}
                     <svg
-                      class="bd-placeholder-img rounded-4"
+                      className="bd-placeholder-img rounded-4"
                       width="40"
                       height="40"
                       xmlns="http://www.w3.org/2000/svg"
