@@ -22,7 +22,7 @@ const buildPackageFilter = (query) => {
       filter[key] = Number(value);
     } else if (['discountType', 'packageName', 'createdBy', 'updatedBy'].includes(key)) {
       filter[key] = { $regex: value, $options: 'i' };
-    } else if (key === 'allTestNames') {
+    } else if (key === 'coveredTests') {
       filter[key] = { $in: value.split(',').map(s => s.trim()) };
     }
   }
@@ -68,10 +68,53 @@ exports.addHealthPackage = async (req, res) => {
   try {
     const payload = req.body;
 
+    // Handle uploaded photo (ImageKit middleware places urls in req.files.photo[0].url)
+    if (req.files && req.files.photo && req.files.photo[0] && req.files.photo[0].url) {
+      if (Array.isArray(payload)) {
+        payload.forEach(p => { p.photo = req.files.photo[0].url; });
+      } else {
+        payload.photo = req.files.photo[0].url;
+      }
+    }
+
     const getNextPackageID = async () => await getNextSequence('packageID');
+
+    // Normalize coveredTests if provided as comma-separated string
+    const normalizeCoveredTests = (value) => {
+      if (Array.isArray(value)) {
+        const trimmed = value
+          .map(s => typeof s === 'string' ? s.trim() : s)
+          .filter(v => typeof v === 'string' && v.length > 0);
+        return Array.from(new Set(trimmed));
+      }
+      if (typeof value === 'string') {
+        const str = value.trim();
+        // If it's a JSON array string, parse it
+        if (str.startsWith('[') && str.endsWith(']')) {
+          try {
+            const parsed = JSON.parse(str);
+            if (Array.isArray(parsed)) {
+              const trimmed = parsed
+                .map(s => typeof s === 'string' ? s.trim() : s)
+                .filter(v => typeof v === 'string' && v.length > 0);
+              return Array.from(new Set(trimmed));
+            }
+          } catch (_) {
+            // fall back to comma split
+          }
+        }
+        // Fallback: comma-separated list
+        const parts = str.split(',').map(s => s.trim()).filter(Boolean);
+        return Array.from(new Set(parts));
+      }
+      return value;
+    };
 
     // Single insert
     if (!Array.isArray(payload)) {
+      if (payload.coveredTests !== undefined) {
+        payload.coveredTests = normalizeCoveredTests(payload.coveredTests);
+      }
       if (!payload.packageID) payload.packageID = await getNextPackageID();
       if (!payload.discountPrice) calculateDiscountPrice(payload);
 
@@ -83,6 +126,9 @@ exports.addHealthPackage = async (req, res) => {
     // Bulk insert
     const toInsert = [];
     for (const pack of payload) {
+      if (pack.coveredTests !== undefined) {
+        pack.coveredTests = normalizeCoveredTests(pack.coveredTests);
+      }
       if (!pack.packageID) pack.packageID = await getNextPackageID();
       if (!pack.discountPrice) calculateDiscountPrice(pack);
       toInsert.push(pack);
@@ -98,9 +144,42 @@ exports.addHealthPackage = async (req, res) => {
 // UPDATE by filter
 exports.updateHealthPackage = async (req, res) => {
   const filter = req.query;
-  const updateData = req.body;
+  const updateData = { ...req.body };
   if (!Object.keys(filter).length)
     return res.status(400).json({ error: 'No filter provided' });
+  // Pull in uploaded photo if present
+  if (req.files && req.files.photo && req.files.photo[0] && req.files.photo[0].url) {
+    updateData.photo = req.files.photo[0].url;
+  }
+
+  // Normalize coveredTests if given as comma-separated string
+  if (updateData.coveredTests !== undefined) {
+    const normalizeArray = (arr) => Array.from(new Set(
+      arr
+        .map(s => typeof s === 'string' ? s.trim() : s)
+        .filter(v => typeof v === 'string' && v.length > 0)
+    ));
+    if (Array.isArray(updateData.coveredTests)) {
+      updateData.coveredTests = normalizeArray(updateData.coveredTests);
+    } else if (typeof updateData.coveredTests === 'string') {
+      const str = updateData.coveredTests.trim();
+      if (str.startsWith('[') && str.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(str);
+          if (Array.isArray(parsed)) {
+            updateData.coveredTests = normalizeArray(parsed);
+          } else {
+            updateData.coveredTests = normalizeArray(str.split(','));
+          }
+        } catch (_) {
+          updateData.coveredTests = normalizeArray(str.split(','));
+        }
+      } else {
+        updateData.coveredTests = normalizeArray(str.split(','));
+      }
+    }
+  }
+
   if (!Object.keys(updateData).length)
     return res.status(400).json({ error: 'No update data provided' });
 
