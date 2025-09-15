@@ -119,6 +119,11 @@ exports.addPatient = async (req, res) => {
     if (req.files && req.files.profilePicture) {
       payload.profilePicture = req.files.profilePicture[0].url;
     }
+    if (req.files && req.files.medicalRecords) {
+      payload.medicalRecords = (payload.medicalRecords && Array.isArray(payload.medicalRecords))
+        ? [...payload.medicalRecords, ...req.files.medicalRecords.map(f => f.url)]
+        : req.files.medicalRecords.map(f => f.url);
+    }
 
     // Single insert
     if (!Array.isArray(payload)) {
@@ -200,10 +205,23 @@ exports.updatePatient = async (req, res) => {
     if (req.files && req.files.profilePicture) {
       updateData.profilePicture = req.files.profilePicture[0].url;
     }
+    const uploadedMedicalRecordUrls = (req.files && req.files.medicalRecords)
+      ? req.files.medicalRecords.map(f => f.url)
+      : [];
 
-    if (!Object.keys(updateData).length) return res.status(400).json({ error: 'No update data provided' });
+    if (!Object.keys(updateData).length && uploadedMedicalRecordUrls.length === 0) {
+      return res.status(400).json({ error: 'No update data provided' });
+    }
 
-    const result = await Patient.updateMany(filter, { $set: updateData });
+    const updateOps = {};
+    if (Object.keys(updateData).length) {
+      updateOps.$set = updateData;
+    }
+    if (uploadedMedicalRecordUrls.length > 0) {
+      updateOps.$push = { medicalRecords: { $each: uploadedMedicalRecordUrls } };
+    }
+
+    const result = await Patient.updateMany(filter, updateOps);
     if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching patients found to update' });
 
     const updatedPatients = await Patient.find(filter);
