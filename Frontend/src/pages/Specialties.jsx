@@ -30,9 +30,12 @@ const Specialties = () => {
         <div className="row g-4 mx-5">
           {specialties.data?.length > 0 ? (
             specialties.data.map((specialty) => (
-              <div key={specialty._id} className="col-12 col-md-6 col-lg-4">
-                <div className="card h-100 shadow border-0 rounded-4 specialty-card">
-                  <div className="card-body d-flex flex-column align-items-center">
+              <div
+                key={specialty._id}
+                className="col-12 col-sm-6 col-md-3 col-lg-3"
+              >
+                <div className="card h-100 shadow border-1 rounded-4 specialty-card p-3">
+                  <div className="card-body d-flex flex-column align-items-center p-0">
                     <div className="mb-3">
                       {specialty.icon ||
                       (specialty.banner && specialty.banner.length > 0) ? (
@@ -41,8 +44,8 @@ const Specialties = () => {
                           alt={specialty.specialityName}
                           className="rounded-circle border border-2"
                           style={{
-                            width: 70,
-                            height: 70,
+                            width: 50,
+                            height: 50,
                             objectFit: "cover",
                             background: "#f5f5f5",
                           }}
@@ -50,8 +53,8 @@ const Specialties = () => {
                       ) : (
                         <svg
                           className="bd-placeholder-img rounded-circle"
-                          width="70"
-                          height="70"
+                          width="50"
+                          height="50"
                           xmlns="http://www.w3.org/2000/svg"
                           role="img"
                           aria-label="Specialty icon"
@@ -79,15 +82,21 @@ const Specialties = () => {
                       {specialty.specialityName}
                     </h5>
                     <p
-                      className="text-muted text-center mb-2"
+                      className="text-muted text-center mb-2 f-12"
                       style={{ minHeight: 40 }}
                     >
                       {specialty.shortDescription}
                     </p>
                     <div className="mb-2 text-center small text-secondary">
-                      <strong>Lead Doctor:</strong> {specialty.doctorName ? specialty.doctorName : "---"}
+                      <strong>Doctor:</strong>
+                      <p className="text-center">
+                        {specialty.doctorName ? specialty.doctorName : "---"}
+                      </p>
                     </div>
-                    <div className="mb-2 text-center small text-secondary">
+                    <div className="mt-auto w-100 d-flex justify-content-between align-items-center">
+                      <a href="#" className="f-12 text-info">
+                        Learn more
+                      </a>
                       <span
                         className={`badge ${
                           specialty.isActive ? "bg-success" : "bg-secondary"
@@ -95,22 +104,20 @@ const Specialties = () => {
                       >
                         {specialty.isActive ? "Active" : "Inactive"}
                       </span>
-                    </div>
-                    <div className="mt-auto w-100 text-center">
-                      <Link
+                      {/* <Link
                         to={`/specialties/${specialty.urlSlug}`}
                         className="btn book-btn f-12 rounded-4"
                       >
                         Learn More
-                      </Link>
+                      </Link> */}
                     </div>
                   </div>
-                  <div className="card-footer bg-white border-0 text-center small text-muted">
+                  {/* <div className="card-footer bg-white border-0 text-center small text-muted">
                     <span>
                       <i className="bi bi-people me-1"></i>
                       {specialty.doctor ? specialty.doctor : "No"} Doctors
                     </span>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             ))

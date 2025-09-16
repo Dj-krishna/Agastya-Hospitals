@@ -1,4 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchSpecialties } from "../slices/specialtySlice";
 
 const Footer = () => {
   const navigate = useNavigate();
@@ -6,6 +9,14 @@ const Footer = () => {
     navigate(path);
     window.scrollTo({ top: 0, behavior: "smooth" }); // scroll smoothly to top
   };
+  const dispatch = useDispatch();
+  const { specialties, loading: isLoading } = useSelector(
+    (state) => state.specialties
+  );
+
+  useEffect(() => {
+    dispatch(fetchSpecialties());
+  }, [dispatch]);
   return (
     <footer>
       <div className="footer-main container">
@@ -14,6 +25,19 @@ const Footer = () => {
             <div className="widget">
               <h3>Specialities</h3>
               <ul>
+                {specialties.data?.map((specialty) => (
+                  <li key={specialty._id}>
+                    <a
+                      onClick={() =>
+                        handleNavigation(`/specialties`)
+                      }
+                    >
+                      {specialty.specialityName}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {/* <ul>
                 <li>
                   <a href="#">Anaesthesia & Pain Management</a>
                 </li>
@@ -41,7 +65,7 @@ const Footer = () => {
                 <li>
                   <a href="#">Neuro Sciences</a>
                 </li>
-              </ul>
+              </ul> */}
             </div>
           </div>
 
