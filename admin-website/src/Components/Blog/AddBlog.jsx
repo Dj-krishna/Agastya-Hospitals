@@ -229,7 +229,7 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
   return (
     <>
       <Breadcrumbs
-        mainTitle={isEditMode ? "Edit Doctor" : "Add Doctor"}
+        mainTitle={isEditMode ? "Edit Blog" : "Add Blog"}
         buttonTitle={"Cancel"}
         btnColor={"secondary"}
         onClick={onClose}

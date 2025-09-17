@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpecialties } from "../slices/specialtySlice";
-import { Link } from "react-router-dom";
 
 const Specialties = () => {
   const dispatch = useDispatch();

@@ -5,9 +5,20 @@ import TechnologiesForm from "./TechnologiesForm";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTechnologies } from "../../slices/technologiesSlice";
 import { FaPencilAlt, FaTrashAlt } from "react-icons/fa";
+import { TECHNOLOGIES_API } from "../../api";
+import axios from "axios";
+import { toasterConfig } from "../../utils";
+import ConfirmationAlert from "../Common/Component/ConfirmationAlert";
+import TableComponent from "../Common/Component/TableComponent";
 
 const Technologies = () => {
   const [showTechForm, setShowTechForm] = useState(false);
+  const [techData, setTechData] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [techId, setTechId] = useState("");
+  const [searchText, setSearchText] = useState("");
+
   const dispatch = useDispatch();
   const { technologies, loading, error } = useSelector((state) => {
     console.log("STATE::: ", state);
@@ -19,74 +30,115 @@ const Technologies = () => {
     dispatch(fetchTechnologies());
   }, [dispatch]);
 
-  console.log("TECHNOLOGIES DATA ", technologies.items);
+  const editTechnology = (data) => {
+    setTechData(data);
+    setIsEditMode(true);
+    setShowTechForm(true);
+  };
 
+  const deleteTechData = async (id) => {
+    try {
+      const response = await axios.delete(
+        `${TECHNOLOGIES_API}?technologyID=${id}`
+      );
+      if (response) {
+        dispatch(fetchTechnologies());
+        toasterConfig("success", "Technology is deleted successfully");
+        setIsDeleteConfirmOpen(false);
+      }
+    } catch (error) {
+      console.error("Error deleting technology:", error);
+    }
+  };
+  const filteredTechnologies = technologies.items.data?.length >0
+    ? technologies.items.data.filter(
+        (tech) =>
+          tech.technologyName
+            .toLowerCase()
+            .includes(searchText.toLowerCase()) ||
+          tech.speciality.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : [];
   return (
     <Fragment>
       <Breadcrumbs
         mainTitle={showTechForm ? "Add Technology" : "Technologies"}
         buttonTitle={showTechForm ? "Cancel" : "Add Technology"}
-        onClick={() => setShowTechForm(!showTechForm)}
+        onClick={() => {
+          setShowTechForm(showTechForm ? false : true);
+          setIsEditMode(false);
+          setTechData(null);
+        }}
+        btnColor={showTechForm ? "danger" : "primary"}
       />
 
       {!showTechForm ? (
         <Container fluid={true}>
           <Row className="widget-grid">
-            {technologies.items.data?.map((tech) => (
-              <Col lg="4" md="4" sm="6" xs="12" key={tech._id}>
-                <Card>
-                  <img
-                    src={tech.icon}
-                    className="card-img-top p-2 rounded-4 border-1"
-                    alt="Blog"
-                    style={{ height: "150px", objectFit: "cover" }}
-                  />
-                  <CardBody>
-                    <h5
-                      className="card-title"
-                      style={{
-                        display: "inline-block",
-                        maxWidth: "100%",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        verticalAlign: "bottom",
-                      }}
-                      title={tech.technologyName}
-                    >
-                      {tech.technologyName}
-                    </h5>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <p className="text-muted f-12">{tech.speciality}</p>
-                      <div className="d-flex justify-content-end align-items-center">
-                        <FaPencilAlt
-                          color="#7366ff"
-                          //onClick={() => handleEditSpeciality(item)}
-                          className="me-2 text-primary cursor-pointer"
-                          title="Edit Speciality"
-                        />
-                        &nbsp;&nbsp;<span className="text-muted">|</span>
-                        &nbsp;&nbsp;
-                        <FaTrashAlt
-                          //onClick={() => handleDeleteSpeciality(item)}
-                          className="text-danger cursor-pointer"
-                          title="Delete Speciality"
-                        />
-                      </div>
-                    </div>
-                  </CardBody>
-                </Card>
-              </Col>
-            ))}
+            <Col lg="12" md="12" sm="12" xs="12">
+              <TableComponent
+                isSearch={true}
+                searchText={searchText}
+                onSearch={(e) => setSearchText(e.target.value)}
+                headers={["Icon", "Name", "Speciality", "Action"]}
+                tableBody={
+                  <tbody>
+                    {filteredTechnologies?.map((tech) => (
+                      <tr key={tech.technologyID}>
+                        <td>
+                          <img
+                            src={tech.icon}
+                            alt={tech.technologyName}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                            }}
+                          />
+                        </td>
+                        <td>{tech.technologyName}</td>
+                        <td>{tech.speciality}</td>
+                        <td>
+                          <div className="d-flex  align-items-center">
+                            <FaPencilAlt
+                              color="#7366ff"
+                              onClick={() => editTechnology(tech)}
+                              className="me-2 text-primary cursor-pointer"
+                              title="Edit Technology"
+                            />
+                            &nbsp;&nbsp;<span className="text-muted">|</span>
+                            &nbsp;&nbsp;
+                            <FaTrashAlt
+                              onClick={() => {
+                                setTechId(tech.technologyID);
+                                setIsDeleteConfirmOpen(true);
+                              }}
+                              className="text-danger cursor-pointer"
+                              title="Delete Technology"
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                }
+              />
+            </Col>
           </Row>
         </Container>
       ) : (
         <TechnologiesForm
-        // editingUserRole={editingUserRole}
-        // isEditMode={isEditMode}
-        // onClose={handleCloseForm}
+          initialData={techData}
+          isEditMode={isEditMode}
+          onClose={() => setShowTechForm(false)}
         />
       )}
+      <ConfirmationAlert
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        handleConfirm={() => deleteTechData(techId)}
+      />
     </Fragment>
   );
 };
