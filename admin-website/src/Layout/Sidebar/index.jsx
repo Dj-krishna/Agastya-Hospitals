@@ -114,7 +114,7 @@ const Sidebar = (props) => {
         <SidebarIcon />
         <SidebarLogo />
         {/* sidebartoogle={sidebartoogle} */}
-        <SidebarMenu setMainMenu={setMainMenu} props={props} setNavActive={setNavActive} activeclassName={activeClass} width={width} />
+        <SidebarMenu setMainMenu={setMainMenu} props={props} setNavActive={setNavActive} activeClass={activeClass} width={width} />
       </div>
     </Fragment>
   );

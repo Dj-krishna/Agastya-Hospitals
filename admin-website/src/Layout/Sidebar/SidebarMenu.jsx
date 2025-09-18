@@ -69,7 +69,7 @@ const SidebarMenu = ({
             props={props}
             sidebartoogle={sidebartoogle}
             setNavActive={setNavActive}
-            activeclassName={activeClass}
+            activeClass={activeClass}
             toggleIcon={toggleIcon}
           />
         </ul>
