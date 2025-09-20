@@ -1,6 +1,6 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Breadcrumbs, Btn } from "../../AbstractElements";
-import { Button, Container, Row } from "reactstrap";
+import { Button, Col, Container, Row } from "reactstrap";
 import SpecialityForm from "./SpecialityForm";
 import TableComponent from "../Common/Component/TableComponent";
 import { FaEdit, FaPencilAlt, FaTrash, FaTrashAlt } from "react-icons/fa";
@@ -17,7 +17,7 @@ const Specialities = () => {
   const [showSpecialityForm, setSpecialityForm] = useState(false);
   const [specialities, setSpecialities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
   const [editingSpeciality, setEditingSpeciality] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -39,19 +39,6 @@ const Specialities = () => {
     fetchSpecialities();
   }, []);
 
-  const totalPages = Math.ceil(specialities.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentData = specialities.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
   const handleEditSpeciality = (speciality) => {
     // Map the data to match the form structure
     const mappedSpeciality = {
@@ -65,9 +52,16 @@ const Specialities = () => {
       shortDescription: speciality.shortDescription || "",
       pageDescription: speciality.pageDescription || "",
       isActive: speciality.isActive !== undefined ? speciality.isActive : true,
-      isNavigationDisplay: speciality.isNavigationDisplay !== undefined ? speciality.isNavigationDisplay : false,
-      icon: Array.isArray(speciality.icon) ? speciality.icon[0] || "" : (speciality.icon || ""),
-      banner: Array.isArray(speciality.banner) ? speciality.banner[0] || "" : (speciality.banner || ""),
+      isNavigationDisplay:
+        speciality.isNavigationDisplay !== undefined
+          ? speciality.isNavigationDisplay
+          : false,
+      icon: Array.isArray(speciality.icon)
+        ? speciality.icon[0] || ""
+        : speciality.icon || "",
+      banner: Array.isArray(speciality.banner)
+        ? speciality.banner[0] || ""
+        : speciality.banner || "",
       seoMetaData: speciality.seoMetaData || "",
       displayOrder: speciality.displayOrder || "",
     };
@@ -111,6 +105,15 @@ const Specialities = () => {
     }
   };
 
+  const filteredSpecialities = specialities?.length
+    ? specialities.filter(
+        (spec) =>
+          spec.specialityName
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+      )
+    : [];
+
   return (
     <Fragment>
       {!showSpecialityForm ? (
@@ -130,77 +133,93 @@ const Specialities = () => {
               <TableSkeleton columns={4} rows={10} />
             ) : (
               <Row className="">
-                <TableComponent
-                  headers={["Icon", "Name", "Doctor", "Description", "Action"]}
-                  tableBody={
-                    <tbody>
-                      {currentData?.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="text-center">
-                            No Specialities found
-                          </td>
-                        </tr>
-                      ) : (
-                        currentData?.map((item, index) => (
-                          <tr key={index}>
-                            <td>
-                              {(() => {
-                                const iconUrl = Array.isArray(item.icon) ? item.icon[0] : item.icon;
-                                return iconUrl ? (
-                                  <img 
-                                    style={{width: "50px", height: "50px", objectFit: "cover"}} 
-                                    src={iconUrl} 
-                                    alt={item.specialityName}
-                                    onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.nextSibling.style.display = 'block';
-                                    }}
-                                  />
-                                ) : null;
-                              })()}
-                              <div style={{display: 'none', width: '50px', height: '50px', backgroundColor: '#f8f9fa', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'}}>
-                                No Icon
-                              </div>
-                            </td>
-                            <td>{item.specialityName || "N/A"}</td>
-                            <td>{item.doctorName || item.doctor || item.doctorID || "N/A"}</td>
-                            <td
-                              width="30%"
-                              style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                maxWidth: "150px",
-                              }}
-                            >
-                              {item.shortDescription || item.pageDescription || "N/A"}
-                            </td>
-                            <td width={"10%"}>
-                              <FaPencilAlt
-                                color="#7366ff"
-                                onClick={() => handleEditSpeciality(item)}
-                                className="me-2 text-primary cursor-pointer"
-                                title="Edit Speciality"
-                              />
-                              &nbsp;&nbsp;<span className="text-muted">|</span>
-                              &nbsp;&nbsp;
-                              <FaTrashAlt
-                                onClick={() => handleDeleteSpeciality(item)}
-                                className="text-danger cursor-pointer"
-                                title="Delete Speciality"
-                              />
+                <Col md={12} sm={12} xs={12} lg={12}>
+                  <TableComponent
+                    isSearch={true}
+                    searchText={searchText}
+                    onSearch={(e) => setSearchText(e.target.value)}
+                    headers={[
+                      "Icon",
+                      "Name",
+                      "Doctor",
+                      "Description",
+                      "Action",
+                    ]}
+                    tableBody={
+                      <tbody>
+                        {filteredSpecialities?.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="text-center">
+                              No Specialities found
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  }
-                />
-                <PaginationComponent
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  handlePageChange={handlePageChange}
-                />
+                        ) : (
+                          filteredSpecialities?.map((item, index) => (
+                            <tr key={index}>
+                              <td>
+                                {item.icon ? (
+                                  <img
+                                    style={{
+                                      width: "30px",
+                                      height: "30px",
+                                      objectFit: "cover",
+                                    }}
+                                    src={
+                                      Array.isArray(item.icon)
+                                        ? item.icon[0]
+                                        : item.icon
+                                    }
+                                    alt={item.specialityName}
+                                  />
+                                ) : (
+                                  "No Icon"
+                                )}
+                              </td>
+                              <td>{item.specialityName || "N/A"}</td>
+                              <td>
+                                {item.doctorName ||
+                                  item.doctor ||
+                                  item.doctorID ||
+                                  "N/A"}
+                              </td>
+                              <td
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  maxWidth: "150px",
+                                }}
+                                title={
+                                  item.shortDescription || item.pageDescription
+                                }
+                              >
+                                {item.shortDescription ||
+                                  item.pageDescription ||
+                                  "N/A"}
+                              </td>
+                              <td>
+                                <FaPencilAlt
+                                  color="#7366ff"
+                                  onClick={() => handleEditSpeciality(item)}
+                                  className="me-2 text-primary cursor-pointer"
+                                  title="Edit Speciality"
+                                />
+                                &nbsp;&nbsp;
+                                <span className="text-muted">|</span>
+                                &nbsp;&nbsp;
+                                <FaTrashAlt
+                                  onClick={() => handleDeleteSpeciality(item)}
+                                  className="text-danger cursor-pointer"
+                                  title="Delete Speciality"
+                                />
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    }
+                  />
+                </Col>
               </Row>
             )}
           </Container>

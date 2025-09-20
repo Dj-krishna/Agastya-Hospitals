@@ -18,6 +18,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchDoctors } from "../../slices/doctorsSlice";
 import { createSpeciality, updateSpeciality } from "../../api/Services";
 import { toast } from "react-toastify";
+import { FaTrashAlt } from "react-icons/fa";
 
 const initialFormState = {
   specialityName: "",
@@ -49,7 +50,11 @@ const initialFormErrors = {
   isActive: "",
 };
 
-const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => {
+const SpecialityForm = ({
+  onClose,
+  initialData = null,
+  isEditMode = false,
+}) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -70,16 +75,24 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
         ...initialData,
         // Map the fields to match our form state
         specialityName: initialData.specialityName || "",
-        icon: Array.isArray(initialData.icon) ? initialData.icon[0] || "" : (initialData.icon || ""),
+        icon: Array.isArray(initialData.icon)
+          ? initialData.icon[0] || ""
+          : initialData.icon || "",
         displayOrder: initialData.displayOrder || "",
         doctor: initialData.doctor || initialData.doctorID || "",
         shortDescription: initialData.shortDescription || "",
         pageDescription: initialData.pageDescription || "",
-        banner: Array.isArray(initialData.banner) ? initialData.banner[0] || "" : (initialData.banner || ""),
+        banner: Array.isArray(initialData.banner)
+          ? initialData.banner[0] || ""
+          : initialData.banner || "",
         seoMetaData: initialData.seoMetaData || "",
         urlSlug: initialData.urlSlug || "",
-        isNavigationDisplay: initialData.isNavigationDisplay !== undefined ? initialData.isNavigationDisplay : true,
-        isActive: initialData.isActive !== undefined ? initialData.isActive : true,
+        isNavigationDisplay:
+          initialData.isNavigationDisplay !== undefined
+            ? initialData.isNavigationDisplay
+            : true,
+        isActive:
+          initialData.isActive !== undefined ? initialData.isActive : true,
         createdBy: initialData.createdBy || "admin",
         updatedBy: initialData.updatedBy || "admin",
       });
@@ -117,19 +130,19 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    
+
     let fieldValue;
     if (type === "file") {
-      fieldValue = files[0] || null;
+      fieldValue = files[0];
     } else {
       fieldValue = value;
     }
-    
+
     setFormState((prevState) => ({
       ...prevState,
       [name]: fieldValue,
     }));
-    
+
     if (isSubmitted) {
       const error = validateAllFields(name, fieldValue);
       setFormErrors((prevErrors) => ({
@@ -189,11 +202,19 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
           isActive: formState.isActive,
           isNavigationDisplay: formState.isNavigationDisplay,
           doctor: parseInt(formState.doctor),
-        // Handle file fields - keep File objects for FormData
-        icon: formState.icon instanceof File ? formState.icon : (formState.icon || ""),
-        banner: formState.banner instanceof File ? formState.banner : (formState.banner || ""),
+          // Handle file fields - keep File objects for FormData
+          icon:
+            formState.icon instanceof File
+              ? formState.icon
+              : formState.icon || "",
+          banner:
+            formState.banner instanceof File
+              ? formState.banner
+              : formState.banner || "",
           // Optional fields
-          ...(formState.displayOrder && { displayOrder: parseInt(formState.displayOrder) }),
+          ...(formState.displayOrder && {
+            displayOrder: parseInt(formState.displayOrder),
+          }),
           ...(formState.seoMetaData && { seoMetaData: formState.seoMetaData }),
           ...(formState.createdBy && { createdBy: formState.createdBy }),
           ...(formState.updatedBy && { updatedBy: formState.updatedBy }),
@@ -202,7 +223,10 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
         let response;
         if (isEditMode && initialData?.specialityID) {
           // Update existing speciality
-          response = await updateSpeciality(initialData.specialityID, submitData);
+          response = await updateSpeciality(
+            initialData.specialityID,
+            submitData
+          );
           toast.success("Speciality updated successfully!");
         } else {
           // Create new speciality
@@ -214,7 +238,9 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
         onClose(); // Close the form after successful submission
       } catch (error) {
         console.error("Error submitting form:", error);
-        const errorMessage = error.response?.data?.message || "Failed to save speciality. Please try again.";
+        const errorMessage =
+          error.response?.data?.message ||
+          "Failed to save speciality. Please try again.";
         toast.error(errorMessage);
       } finally {
         setIsSubmitting(false);
@@ -258,24 +284,53 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
                       />
                       <ValidationAlert error={formErrors.specialityName} />
                     </Col>
-                                         <Col md="6 mb-3">
-                       <Label className="form-label" for="icon">
-                         Icon
-                       </Label>
-                       <Input
-                         type="file"
-                         name="icon"
-                         id="icon"
-                         onChange={handleChange}
-                         placeholder="Enter icon"
-                         invalid={!!formErrors.icon}
-                       />
-                       {formState.icon && !(formState.icon instanceof File) && (
-                         <small className="text-muted">Current: {formState.icon}</small>
-                       )}
-                       <small className="text-info">Note: Only file names are stored. For actual file uploads, implement file upload service.</small>
-                       <ValidationAlert error={formErrors.icon} />
-                     </Col>
+                    <Col md="6 mb-3">
+                      <Label className="form-label" for="upload_icon">
+                        Icon
+                      </Label>
+                      {!formState.icon ? (
+                        <Input
+                          type="file"
+                          name="icon"
+                          id="upload_icon"
+                          onChange={handleChange}
+                          placeholder="Enter icon"
+                          invalid={!!formErrors.icon}
+                        />
+                      ) : (
+                        <div>
+                          <img
+                            src={formState.icon}
+                            height={"60px"}
+                            width={"60px"}
+                          />
+                          <span
+                            onClick={() => {
+                              setFormState((prev) => ({ ...prev, icon: "" }));
+                              setFormErrors((prev) => ({ ...prev, icon: "" }));
+                            }}
+                            style={{
+                              cursor: "pointer",
+                              position: "relative",
+                              top: "-29px",
+                              left: "-12px",
+                              background: "red",
+                              color: "white",
+                              borderRadius: "50%",
+                              padding: "2px 7px",
+                            }}
+                            className="cursor-pointer"
+                          >
+                            X
+                          </span>
+                        </div>
+                      )}
+                      <small className="text-info">
+                        Note: Only file names are stored. For actual file
+                        uploads, implement file upload service.
+                      </small>
+                      <ValidationAlert error={formErrors.icon} />
+                    </Col>
                     <Col md="6 mb-3">
                       <Label className="form-label" for="displayOrder">
                         Display Order (in Home page)
@@ -350,24 +405,30 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
                   </Row>
 
                   <Row>
-                                         <Col md="6 mb-3">
-                       <Label className="form-label" for="banner">
-                         Page Banner
-                       </Label>
-                       <Input
-                         type="file"
-                         name="banner"
-                         id="banner"
-                         onChange={handleChange}
-                         placeholder="Enter Page Banner"
-                         invalid={!!formErrors.banner}
-                       />
-                       {formState.banner && !(formState.banner instanceof File) && (
-                         <small className="text-muted">Current: {formState.banner}</small>
-                       )}
-                       <small className="text-info">Note: Only file names are stored. For actual file uploads, implement file upload service.</small>
-                       <ValidationAlert error={formErrors.banner} />
-                     </Col>
+                    <Col md="6 mb-3">
+                      <Label className="form-label" for="banner">
+                        Page Banner
+                      </Label>
+                      <Input
+                        type="file"
+                        name="banner"
+                        id="banner"
+                        onChange={handleChange}
+                        placeholder="Enter Page Banner"
+                        invalid={!!formErrors.banner}
+                      />
+                      {formState.banner &&
+                        !(formState.banner instanceof File) && (
+                          <small className="text-muted">
+                            Current: {formState.banner}
+                          </small>
+                        )}
+                      <small className="text-info">
+                        Note: Only file names are stored. For actual file
+                        uploads, implement file upload service.
+                      </small>
+                      <ValidationAlert error={formErrors.banner} />
+                    </Col>
                     {/* {formState.pageBanner && (
                       <Col md="4 mb-3">
                         <Card className="shadow-lg p-4">
@@ -441,7 +502,12 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
                         id="isActive"
                         className="form-control digits"
                         value={formState.isActive ? "Active" : "Inactive"}
-                        onChange={(e) => setFormState(prev => ({ ...prev, isActive: e.target.value === "Active" }))}
+                        onChange={(e) =>
+                          setFormState((prev) => ({
+                            ...prev,
+                            isActive: e.target.value === "Active",
+                          }))
+                        }
                         invalid={!!formErrors.isActive}
                       >
                         <option value="Active">Active</option>
@@ -456,7 +522,11 @@ const SpecialityForm = ({ onClose, initialData = null, isEditMode = false }) => 
                     disabled={isSubmitting}
                     className="w-100"
                   >
-                    {isSubmitting ? "Saving..." : isEditMode ? "Update Speciality" : "Create Speciality"}
+                    {isSubmitting
+                      ? "Saving..."
+                      : isEditMode
+                      ? "Update Speciality"
+                      : "Create Speciality"}
                   </Button>
                 </Form>
               </CardBody>
