@@ -27,15 +27,12 @@ const Blog = () => {
     loading,
     error,
   } = useSelector((state) => {
-    console.log(state);
     return state.blogs.blogs;
   });
 
   useEffect(() => {
     dispatch(fetchBlogs());
   }, [dispatch]);
-
-  console.log("BLOGS DATA ", blogs);
 
   const editBlog = (data) => {
     setBlogDataToEdit(data);

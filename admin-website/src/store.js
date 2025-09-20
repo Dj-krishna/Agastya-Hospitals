@@ -5,6 +5,7 @@ import patientReducer from "./slices/patientSlice";
 import blogReducer from "./slices/blogSlice";
 import technologiesReducer from "./slices/technologiesSlice";
 import specialtyReducer from "./slices/specialtySlice";
+import departmentReducer from "./slices/departmentSlice";
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     blogs: blogReducer,
     technologies: technologiesReducer,
     specialties: specialtyReducer,
+    departments: departmentReducer,
   },
 });
 

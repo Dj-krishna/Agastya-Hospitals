@@ -79,7 +79,7 @@ const SidebarMenuItems = ({
                   onClick={(event) => {
                     event.preventDefault();
                     setNavActive(menuItem);
-                    setActiveTab(menuItem.title);
+                    // setActiveTab(menuItem.title);
                     activeClass(menuItem.active);
                   }}
                 >

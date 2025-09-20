@@ -6,6 +6,7 @@ import SidebarLogo from "./SidebarLogo";
 import SidebarMenu from "./SidebarMenu";
 
 const Sidebar = (props) => {
+  const [activePath, setActivePath] = useState(window.location.pathname);
   const customizer = useContext(CustomContext);
   const { toggleIcon } = useContext(CustomContext);
   const id = window.location.pathname.split("/").pop();
@@ -19,9 +20,11 @@ const Sidebar = (props) => {
 
   const handleScroll = () => {
     if (window.scrollY > 400) {
-      document.querySelector(".sidebar-main").className = "sidebar-main hovered";
+      document.querySelector(".sidebar-main").className =
+        "sidebar-main hovered";
     } else {
-      if (document.getElementById("sidebar-main")) document.querySelector(".sidebar-main").className = "sidebar-main";
+      if (document.getElementById("sidebar-main"))
+        document.querySelector(".sidebar-main").className = "sidebar-main";
     }
   };
 
@@ -69,6 +72,7 @@ const Sidebar = (props) => {
   };
 
   const setNavActive = (item) => {
+    setActivePath(item.path);
     MENUITEMS.map((menuItems) => {
       menuItems.Items.filter((Items) => {
         if (Items !== item) {
@@ -109,12 +113,23 @@ const Sidebar = (props) => {
         className="bg-overlay1"
         onClick={() => {
           closeOverlay();
-        }}></div>
-      <div className={`sidebar-wrapper ${toggleIcon ? "close_icon" : ""}`} sidebar-layout="stroke-svg">
+        }}
+      ></div>
+      <div
+        className={`sidebar-wrapper ${toggleIcon ? "close_icon" : ""}`}
+        sidebar-layout="stroke-svg"
+      >
         <SidebarIcon />
         <SidebarLogo />
         {/* sidebartoogle={sidebartoogle} */}
-        <SidebarMenu setMainMenu={setMainMenu} props={props} setNavActive={setNavActive} activeClass={activeClass} width={width} />
+        <SidebarMenu
+          setMainMenu={setMainMenu}
+          props={props}
+          setNavActive={setNavActive}
+          activeClass={activeClass}
+          activePath={activePath}
+          width={width}
+        />
       </div>
     </Fragment>
   );

@@ -30,8 +30,6 @@ const AppointmentsTable = ({ appointments, flowType, title }) => {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
 
-  console.log("AppointmentsTable appointments:", appointments);
-
   const handleStatusChange = (status) => {
     setSelectedStatuses((prev) =>
       prev.includes(status)

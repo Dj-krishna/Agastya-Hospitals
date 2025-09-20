@@ -11,6 +11,7 @@ const ModelComponent = ({
   submitBtnText,
   closeBtnText,
   bodyClass,
+  onSubmit
 }) => {
   return (
     <Modal isOpen={isOpen} toggle={toggler} size={size} centered>
@@ -21,7 +22,7 @@ const ModelComponent = ({
           {closeBtnText}
         </Btn>}
         {submitBtnText && (
-          <Btn attrBtn={{ color: "primary", onClick: toggler, type: "submit" }}>
+          <Btn attrBtn={{ color: "primary", onClick: onSubmit, type: "submit" }}>
             {submitBtnText}
           </Btn>
         )}

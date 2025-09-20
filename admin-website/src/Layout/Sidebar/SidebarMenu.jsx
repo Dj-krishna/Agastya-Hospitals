@@ -9,6 +9,7 @@ const SidebarMenu = ({
   sidebartoogle,
   setNavActive,
   activeClass,
+  activePath,
   width,
 }) => {
   const { customizer, toggleIcon } = useContext(CustomizerContext);
@@ -70,6 +71,7 @@ const SidebarMenu = ({
             sidebartoogle={sidebartoogle}
             setNavActive={setNavActive}
             activeClass={activeClass}
+            activePath={activePath}
             toggleIcon={toggleIcon}
           />
         </ul>
