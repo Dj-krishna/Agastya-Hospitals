@@ -10,6 +10,7 @@ import {
   SPECIALITIES_API,
   SPECIALITY_BY_ID_API,
   APPOINTMENTS_API,
+  PATIENTS_API
 } from "./index";
 
 // Add request interceptor to include auth token
@@ -354,4 +355,30 @@ export const appointmentsCount = async (date) => {
       (appointment) => appointment.status === "cancelled"
     ).length,
   };
+};
+
+// Medical Records Upload API function
+export const uploadMedicalRecords = async (patientID, files) => {
+  try {
+    const formData = new FormData();
+    
+    // Append all files to FormData
+    files.forEach((file) => {
+      formData.append('medicalRecords', file);
+    });
+
+    const response = await axios.put(
+      `${PATIENTS_API}?patientID=${patientID}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error uploading medical records:", error);
+    throw error;
+  }
 };

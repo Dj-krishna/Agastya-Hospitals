@@ -9,14 +9,20 @@ import {
   Form,
   Input,
   Row,
+  Spinner,
+  Alert,
 } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPatients } from "../../slices/patientSlice";
+import { uploadMedicalRecords } from "../../api/Services";
+import { toast } from "react-toastify";
 
 const UploadForm = ({ onClose }) => {
   const [patientName, setPatientName] = useState("");
-  const [record, setRecord] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [patientData, setPatientData] = useState({});
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const dispatch = useDispatch();
   const {
     data: patients,
@@ -37,6 +43,80 @@ const UploadForm = ({ onClose }) => {
     );
     setPatientData(selectedPatient);
     setPatientName(e.target.value);
+    setUploadError(""); // Clear any previous errors
+  };
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles((prevFiles) => {
+      // Prevent duplicates by name (optional)
+      const existingNames = prevFiles.map(f => f.name + f.lastModified);
+      const newFiles = files.filter(f => !existingNames.includes(f.name + f.lastModified));
+      return [...prevFiles, ...newFiles];
+    });
+    setUploadError(""); // Clear any previous errors
+  };
+
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
+  const handleDeleteMedicalRecord = (index) => {
+    // Remove from UI immediately
+    setPatientData((prev) => ({
+      ...prev,
+      medicalRecords: prev.medicalRecords.filter((_, i) => i !== index),
+    }));
+    // TODO: Call backend API to delete the file from server/storage
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!patientData.patientID) {
+      setUploadError("Please select a patient");
+      return;
+    }
+    
+    if (selectedFiles.length === 0) {
+      setUploadError("Please select at least one file to upload");
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError("");
+
+    try {
+      const response = await uploadMedicalRecords(patientData.patientID, selectedFiles);
+      
+      if (response.updatedCount > 0) {
+        toast.success(`Successfully uploaded ${selectedFiles.length} medical record(s) for ${patientData.fullName}`);
+        
+        // Reset form
+        setSelectedFiles([]);
+        setPatientName("");
+        setPatientData({});
+        
+        // Reset file input
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        
+        // Close the form after successful upload
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        throw new Error("No records were updated");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadError(error.response?.data?.message || "Failed to upload medical records. Please try again.");
+      toast.error("Failed to upload medical records");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   function hasValues(patientData) {
@@ -54,7 +134,12 @@ const UploadForm = ({ onClose }) => {
         onClick={onClose}
       />
       <Container fluid={true}>
-        <Form>
+        <Form onSubmit={handleSubmit}>
+          {uploadError && (
+            <Alert color="danger" className="mb-3">
+              {uploadError}
+            </Alert>
+          )}
           <Row>
             <Col sm="6">
               <Card>
@@ -67,6 +152,7 @@ const UploadForm = ({ onClose }) => {
                     name="patientSelect"
                     value={patientName}
                     onChange={handlePatientChange}
+                    disabled={isUploading}
                   >
                     <option value="">Select a Patient</option>
                     {patients.length > 0 &&
@@ -84,13 +170,57 @@ const UploadForm = ({ onClose }) => {
               <Card>
                 <CardBody>
                   <h6 className="b-b-light pb-2">Upload Medical Records</h6>
+                  {patientData.medicalRecords && patientData.medicalRecords.length > 0 && (
+                    <div className="mb-2">
+                      <small className="text-muted">Existing Medical Records:</small>
+                      <ul className="list-unstyled mt-1">
+                        {patientData.medicalRecords.map((url, idx) => (
+                          <li key={idx} className="text-truncate d-flex align-items-center">
+                            <a href={url} target="_blank" rel="noopener noreferrer">
+                              <small className="text-primary">{url.split('/').pop()}</small>
+                            </a>
+                            <Button
+                              close
+                              aria-label="Delete"
+                              onClick={() => handleDeleteMedicalRecord(idx)}
+                              style={{ marginLeft: 8 }}
+                              disabled={isUploading}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <Input
                     type="file"
                     className="mt-3"
                     name="medicalRecords"
                     accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                    onChange={(e) => setRecord(e.target.files[0])}
+                    multiple
+                    onChange={handleFileChange}
+                    disabled={isUploading}
                   />
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-2">
+                      <small className="text-muted">
+                        Selected {selectedFiles.length} file(s):
+                      </small>
+                      <ul className="list-unstyled mt-1">
+                        {selectedFiles.map((file, index) => (
+                          <li key={index} className="text-truncate">
+                            <small className="text-info">• {file.name}</small>
+                            <Button
+                              close
+                              aria-label="Remove"
+                              onClick={() => handleRemoveFile(index)}
+                              style={{ marginLeft: 8 }}
+                              disabled={isUploading}
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardBody>
               </Card>
             </Col>
@@ -137,12 +267,16 @@ const UploadForm = ({ onClose }) => {
               <Button
                 color="primary"
                 type="submit"
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log("Form submitted with patient data:", patientData);
-                }}
+                disabled={isUploading || !patientData.patientID || selectedFiles.length === 0}
               >
-                Save
+                {isUploading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  "Save"
+                )}
               </Button>
             </Col>
           </Row>
