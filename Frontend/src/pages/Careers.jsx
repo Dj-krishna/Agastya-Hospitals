@@ -42,7 +42,7 @@ const Careers = () => {
   ];
 
   return (
-    <div className="container mx-auto p-5">
+    <div className="container py-5">
       {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Careers at Agastya Hospitals
         </h1> */}

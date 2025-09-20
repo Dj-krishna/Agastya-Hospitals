@@ -25,7 +25,7 @@ const Blog = () => {
   console.log("BLOGS DATA ", blogs);
 
   return (
-    <div className="container p-5">
+    <div className="container py-5">
       {loading ? (
         <div className="text-center">
           <div

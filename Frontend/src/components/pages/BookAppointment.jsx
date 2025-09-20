@@ -728,7 +728,7 @@ const BookAppointment = () => {
                     Hyderabad, Telangana 500074
                   </li>
                   <li style={{ listStyle: "none" }}>
-                    <a href="#" className="directions-btn">
+                    <a href="https://maps.app.goo.gl/SdLVBpmTThWkM9w89" target="_blank" className="directions-btn">
                       View Directions
                     </a>
                   </li>

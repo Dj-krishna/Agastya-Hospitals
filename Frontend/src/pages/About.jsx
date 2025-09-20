@@ -13,12 +13,18 @@ const About = () => {
       <div className="row">
         <div className="col-lg-8 mx-auto text-center">
           <div className="video-container">
-            <img src={"https://placehold.co/800x400/EEE/31343C"} />
+            <video width="768" height="400" autoplay>
+              <source src="https://res.cloudinary.com/sdk28cdn/video/upload/v1758219748/agastya/agastya-hospital-video.mp4" type="video/mp4"></source>
+              <source src="https://res.cloudinary.com/sdk28cdn/video/upload/v1758220909/agastya/agastya-hospital-video-m.webm" type="video/ogg"></source>
+            Your browser does not support the video tag.
+            </video>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto aboutus-text">
+    <div className="row">
+      <div className="col-lg-8 m-auto">
+          <div className="aboutus-text">
         <div className="bg-white p-8">
           <p>
             Agastya Hospitals, is a 150 bedded hospital located on converge of 5
@@ -37,6 +43,47 @@ const About = () => {
           </p>
         </div>
       </div>
+      </div>
+    </div>
+
+
+    <div className="row">
+      <div className="row">
+        <div className="col-lg-12 text-center mb-12">
+          <h2 className="main-title-center">Key Features</h2>
+        </div>
+      </div>
+
+      <div className="row keyfeatures">
+        <div className="col-lg-3 coloumn">
+          <div className="keyfeatures-card top-curve">
+              <h4>Quality Care</h4>
+              <p>Our continuous search for best practices in healthcare has lead to our superior quality and performance. We have emerged as ‘leaders in the field’ with our rare and complex procedures</p>
+          </div>
+        </div>
+
+        <div className="col-lg-3 coloumn">
+          <div className="keyfeatures-card bottom-curve">
+              <h4>Technology</h4>
+              <p>Our continuous search for best practices in healthcare has lead to our superior quality and performance. We have emerged as ‘leaders in the field’ with our rare and complex procedures</p>
+          </div>
+        </div>
+
+        <div className="col-lg-3 coloumn">
+          <div className="keyfeatures-card top-curve">
+              <h4>Faclities</h4>
+              <p>Our continuous search for best practices in healthcare has lead to our superior quality and performance. We have emerged as ‘leaders in the field’ with our rare and complex procedures</p>
+          </div>
+        </div>
+
+        <div className="col-lg-3 coloumn">
+          <div className="keyfeatures-card bottom-curve">
+              <h4>Team</h4>
+              <p>Our continuous search for best practices in healthcare has lead to our superior quality and performance. We have emerged as ‘leaders in the field’ with our rare and complex procedures</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
       {/* stats-card d-flex justify-content-between align-items-center flex-wrap gap-0 */}
 

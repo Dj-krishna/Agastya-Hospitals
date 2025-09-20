@@ -21,7 +21,7 @@ const BlogCards = () => {
 
   console.log("BLOGS DATA ", blogs);
   return (
-    <div className="row mx-5">
+    <div className="row">
       <div className="col-lg-12">
         <div className="blog-list">
           {blogs?.map((blog) => (

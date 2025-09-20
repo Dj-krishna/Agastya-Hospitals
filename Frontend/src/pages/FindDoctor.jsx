@@ -55,7 +55,7 @@ const FindDoctor = () => {
   };
 
   return (
-    <div className="container mx-auto px-5 py-5">
+    <div className="container py-5">
       {isLoading ? (
         <div className="text-center">
           <div
@@ -69,10 +69,10 @@ const FindDoctor = () => {
         </div>
       ) : (
         <div className="">
-          <div className="row m-0 mx-5">
-            <div className="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+          <div className="row">
+            <div className="col-lg-4 col-md-6 col-sm-12 col-xs-12">
               <div
-                className="d-flex booking-form-input justify-content-between"
+                className="finddoctor-input"
                 style={{ cursor: "pointer" }}
                 onClick={() => setShowSpecialtyDropdown((prev) => !prev)}
               >
@@ -126,7 +126,7 @@ const FindDoctor = () => {
                 ))}
               </select> */}
             </div>
-            <div className="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+            <div className="col-lg-8 col-md-6 col-sm-12 col-xs-12">
               <input
                 type="text"
                 id="searchText"
@@ -138,62 +138,62 @@ const FindDoctor = () => {
               />
             </div>
           </div>
-          <div className="row m-0 mx-5 mt-3">
+          <div className="row mt-3">
             {filteredDoctors.length != 0 ? (
               filteredDoctors.map((doctor) => (
                 <div
                   key={doctor.ID}
                   className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
                 >
-                  <div className="card border-1 shadow-xs rounded-4 mb-4 p-2">
+                  <div className="doctor-card">
                     <div className="row g-0">
-                      <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center p-2">
+                      <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12 doctor-photo">
                         <img
                           src={doctor.profilePicture}
                           className="img-fluid rounded-3"
                           alt="Doctor"
                         />
                       </div>
-                      <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12 pr-0">
-                        <div className="card-body">
-                          <h5 className="card-title fw-bold mb-1 f-26">
+                      <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
+                        <div className="doctor-info">
+                          <h5 className="name">
                             {doctor.fullName}
                           </h5>
-                          <p className="mb-1 text-dark f-12 f-w-600">
+                          <p className="qualification">
                             {doctor.educationQualification[1]
                               ? doctor.educationQualification[1]
                               : "NA"}
                           </p>
-                          <p className="text-primary f-12 f-w-700 mb-2">
+                          <p className="designation">
                             {doctor.designation}
                           </p>
                           <ul
-                            className="mb-3 small"
+                            className="detailsgrid"
                             style={{ listStyle: "inside" }}
                           >
-                            <li className="text-muted mb-1 f-12">
-                              <strong>Experience:</strong>{" "}
-                              <span className="text-dark">
+                            <li>
+                              <span className="label">Experience:</span>{" "}
+                              <span className="information">
                                 {doctor.yearsOfExperience} Years
                               </span>
                             </li>
-                            <li className="text-muted mb-1 f-12">
-                              <strong>Speaks:</strong>{" "}
-                              <span className="text-dark">
+                            <li>
+                              <span className="label">Speaks:</span>{" "}
+                              <span className="information">
                                 Telugu, English, Hindi
                               </span>
                             </li>
-                            <li className="text-muted mb-1 f-12">
-                              <strong className="me-1">Consultation:</strong>
-                              <span className="text-ellipsis-one text-dark">
+                            <li>
+                              <span className="label">Consultation:</span>{" "}
+                              <span className="information text-ellipsis-one">
                                 {doctor.opTimings && doctor.opTimings.length > 0
                                   ? doctor.opTimings.join(", ")
                                   : "Not Available"}
                               </span>
                             </li>
-                            <li className="text-muted mb-1 f-12">
-                              <strong className="me-1">Expertise:</strong>{" "}
-                              <span className="text-dark text-ellipsis-one">
+                            <li>
+                              <span className="label">Expertise:</span>{" "}
+                              <span className="information text-ellipsis-one">
                                 <p
                                   dangerouslySetInnerHTML={{
                                     __html: doctor.experienceDescription,
@@ -202,24 +202,25 @@ const FindDoctor = () => {
                               </span>
                             </li>
                           </ul>
-                          <div className="d-flex flex-wrap gap-2">
-                            <button
-                              href="#"
-                              className="primary-btn-outline rounded-pill f-12 f-w-700"
-                              onClick={() => gotoProfile(doctor.doctorID)}
-                            >
-                              View Profile
-                            </button>
-                            <button
-                              className="rounded-pill px-3 book-btn f-12"
-                              onClick={() => navigate("/book-appointment")}
-                            >
-                              Book Appointment
-                            </button>
-                          </div>
+                         
                         </div>
                       </div>
                     </div>
+                     <div className="d-flex justify-end">
+                        <button
+                          href="#"
+                          className="ctabtn viewprofile"
+                          onClick={() => gotoProfile(doctor.doctorID)}
+                        >
+                          View Profile
+                        </button>
+                        <button
+                          className="ctabtn bookappointment"
+                          onClick={() => navigate("/book-appointment")}
+                        >
+                         <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758389743/agastya/circlearrow.svg" /></span> Book Appointment
+                        </button>
+                      </div>
                   </div>
                 </div>
               ))

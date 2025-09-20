@@ -1,15 +1,14 @@
 const OutstandingCareSection = () => {
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
+    <section className="outstanding-care">
+      {/* <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
+          
           <div>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">
               We're known for outstanding Care
             </h2>
-            
-            {/* Surgeons Image */}
+          
             <div className="mb-8">
               <div className="w-64 h-64 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full mx-auto lg:mx-0 flex items-center justify-center">
                 <div className="text-center">
@@ -53,7 +52,7 @@ const OutstandingCareSection = () => {
               </button>
             </div>
 
-            {/* Accreditation */}
+        
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Accreditation & Recognition</h3>
               <div className="flex space-x-4">
@@ -67,7 +66,7 @@ const OutstandingCareSection = () => {
             </div>
           </div>
 
-          {/* Right Content - Statistics */}
+          
           <div className="bg-white p-8 rounded-lg shadow-lg">
             <div className="grid grid-cols-2 gap-8">
               <div className="text-center">
@@ -88,11 +87,39 @@ const OutstandingCareSection = () => {
               </div>
             </div>
             
-            {/* Separator lines */}
-            {/* <div className="hidden md:block">
-              <div className="absolute top-1/2 left-0 w-full h-px bg-gray-300 transform -translate-y-1/2"></div>
-              <div className="absolute top-0 left-1/2 w-px h-full bg-gray-300 transform -translate-x-1/2"></div>
-            </div> */}
+           
+          </div>
+        </div>
+      </div> */}
+
+      <div className="container">
+        <div className="row">
+          <div className="col-lg-6">
+            <div className="left-section">
+              <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1756662699/agastya/about-agastya.png" alt="Outstanding Care"></img>
+              <div className="d-flex mt-5 mx-auto justify-center">
+                <a href="#" className="video"><img height={24} src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758302379/agastya/video-icon.svg"></img> Watch Video</a>
+                <a href="#" className="locateus"><img height={24} src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758302379/agastya/map-icon.svg"></img> Locate Us</a>
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-6">
+            <div className="right-section">
+              <h2 className="main-title">We're known for outstanding Care</h2>
+              <p className="paragraph-18 mb-5">
+                Agastya Hospitals, is a 150 bedded hospital located on converge of 5 most important routes of twin cities, situated at Omakar Nagar, Nagarjuna Sagar Road, L B Nagar, Hyderabad. The project was conceived by 4 of the most enterprising Medical Professionals of the City.
+              </p>
+
+              <ul className="list-items">
+                <li>Highly qualified team of doctors and specialists</li>
+                <li>State-of-the-art facilities and cutting-edge technology</li>
+                <li>Commitment to affordable and accessible for all</li>
+              </ul>
+            </div>
+            <div className="accreditation">
+                <div className="background"></div>
+                <div className="accreds"><p className="paragraph-22 p-3 f-w-700">Accreditation <br/>& Recognition</p><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1756662699/agastya/accreditation-recognition.png"></img></div>
+            </div>
           </div>
         </div>
       </div>

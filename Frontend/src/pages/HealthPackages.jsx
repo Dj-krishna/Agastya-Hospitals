@@ -132,7 +132,7 @@ const HealthPackages = () => {
   }, [dispatch]);
 
   return (
-    <div className="container py-5 px-5">
+    <div className="container py-5">
       <h1 className="display-5 fw-bold text-center mb-5">
         Explore the Health Packages
       </h1>

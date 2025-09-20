@@ -27,15 +27,14 @@ const TestimonialsSection = () => {
   ]
 
   return (
-    <section className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Proven Care. Trusted Results.
+    <section className="py-16">
+      <div className="container-fluid mx-auto px-4">
+        <div className="container mb-3">
+          <h2 className="main-title-alt">
+            Proven Care. Trusted Results. Thousands have chosen
+            <span>our center and experienced life-changing care.</span>
           </h2>
-          <p className="text-xl text-gray-600">
-            Thousands have chosen our center and experienced life-changing care.
-          </p>
+           
         </div>
 
         <div className="relative">
@@ -52,31 +51,35 @@ const TestimonialsSection = () => {
             {testimonials.map((testimonial) => (
               <div
                 key={testimonial.id}
-                className="flex-shrink-0 w-96 bg-white p-8 rounded-lg shadow-lg"
+                className="testimonial-card"
               >
                 <div className="text-6xl text-gray-200 mb-4">"</div>
-                <p className="text-gray-700 mb-6 leading-relaxed">
+                <p>
                   {testimonial.text}
                 </p>
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-sm text-gray-500">{testimonial.date}</span>
-                  {testimonial.hasVideo && (
-                    <button className="btn-primary text-sm">
-                      Watch Video
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gray-300 rounded-full mr-4 flex items-center justify-center">
-                    <span className="text-gray-600 font-semibold">
-                      {testimonial.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="font-semibold text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.location}</div>
-                  </div>
-                </div>
+                 <span className="date">{testimonial.date}</span>
+                <div className="testimonial-footer">
+                      <div className="flex items-center">
+                        <div className="w-12 h-12 bg-gray-300 rounded-full mr-4 flex items-center justify-center">
+                          <span className="text-gray-600 font-semibold">
+                            {testimonial.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-gray-900">{testimonial.name}</div>
+                          <div className="text-sm text-gray-600">{testimonial.location}</div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                      
+                        {testimonial.hasVideo && (
+                          <button className="video-btn">
+                            Watch Video
+                          </button>
+                        )}
+                      </div>
+
+                   </div>
               </div>
             ))}
           </div>

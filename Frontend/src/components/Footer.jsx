@@ -24,7 +24,7 @@ const Footer = () => {
           <div className="col-lg-3 col-md-6 col-sm-12">
             <div className="widget">
               <h3>Specialities</h3>
-              <ul>
+              {/* <ul>
                 {specialties.data?.map((specialty) => (
                   <li key={specialty._id}>
                     <a
@@ -36,8 +36,8 @@ const Footer = () => {
                     </a>
                   </li>
                 ))}
-              </ul>
-              {/* <ul>
+              </ul> */}
+              <ul>
                 <li>
                   <a href="#">Anaesthesia & Pain Management</a>
                 </li>
@@ -65,7 +65,7 @@ const Footer = () => {
                 <li>
                   <a href="#">Neuro Sciences</a>
                 </li>
-              </ul> */}
+              </ul>  
             </div>
           </div>
 
