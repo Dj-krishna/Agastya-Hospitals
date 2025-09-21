@@ -189,12 +189,15 @@ const HealthPackagesForm = ({ onClose }) => {
   };
 
   const validateQuillField = (fieldName, value) => {
-    const stripped = value.replace(/<[^>]+>/g, "").trim();
+    const stripped = value.editor
+      .getData()
+      .replace(/<[^>]+>/g, "")
+      .trim();
     return stripped === "" ? "This field is required" : "";
   };
 
   const handleQuillChange = (field, value) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
+    setFormState((prev) => ({ ...prev, [field]: value.editor.getData() }));
     if (isSubmitted) {
       const errMsg = validateQuillField(field, value);
       setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
@@ -202,8 +205,8 @@ const HealthPackagesForm = ({ onClose }) => {
   };
 
   const handleQuillBlur = (field) => {
-    const errMsg = validateQuillField(field, formState[field]);
-    setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
+    // const errMsg = validateQuillField(field, formState[field]);
+    // setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
   };
 
   const handleSubmit = (e, data) => {

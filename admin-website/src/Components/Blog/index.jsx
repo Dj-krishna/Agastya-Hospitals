@@ -12,6 +12,7 @@ import { deleteBlog, fetchBlogs } from "../../slices/blogSlice";
 import ConfirmationAlert from "../Common/Component/ConfirmationAlert";
 import { set } from "date-fns";
 import { toasterConfig } from "../../utils";
+import Swal from "sweetalert2";
 
 const Blog = () => {
   const [showAddBlog, setShowAddBlog] = useState(false);
@@ -40,17 +41,46 @@ const Blog = () => {
     setShowAddBlog(true);
   };
 
+  // const deleteBlogData = async (id) => {
+  //   try {
+  //     const response = await axios.delete(`${BLOGS_API}?blogID=${id}`);
+  //     if (response) {
+  //       dispatch(fetchBlogs());
+  //       toasterConfig("success", "Blog deleted successfully");
+  //       setIsDeleteConfirmOpen(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error deleting blog:", error);
+  //   }
+  // };
+
   const deleteBlogData = async (id) => {
-    try {
-      const response = await axios.delete(`${BLOGS_API}?blogID=${id}`);
-      if (response) {
-        dispatch(fetchBlogs());
-        toasterConfig("success", "Blog deleted successfully");
-        setIsDeleteConfirmOpen(false);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this patient?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#fc4438",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.delete(`${BLOGS_API}?blogID=${id}`);
+          if (response) {
+            toasterConfig(
+              "success",
+              response.data?.message || "Deleted successfully"
+            );
+            dispatch(fetchBlogs()); // Refresh the list
+          } else {
+            toasterConfig("error", "Something went wrong");
+          }
+        } catch (error) {
+          toasterConfig("error", "Something went wrong");
+        }
       }
-    } catch (error) {
-      console.error("Error deleting blog:", error);
-    }
+    });
   };
 
   return (
@@ -129,9 +159,7 @@ const Blog = () => {
                               <Button
                                 color="secondary"
                                 onClick={() => {
-                                  setBlogId(blog.blogID);
-                                  setBlogTitle(blog.title);
-                                  setIsDeleteConfirmOpen(true);
+                                  deleteBlogData(blog.blogID);
                                 }}
                               >
                                 Delete
