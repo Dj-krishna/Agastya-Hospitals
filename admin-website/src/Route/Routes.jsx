@@ -6,8 +6,6 @@ import Departments from "../Components/Departments";
 import Appointments from "../Components/Appointments";
 import Technologies from "../Components/Technologies";
 import HealthPackages from "../Components/HealthPackages";
-import Enquiries from "../Components/Enquiries";
-import CMSComponent from "../Components/CMS";
 import Blog from "../Components/Blog";
 import RolesPermissions from "../Components/RolesPermissions";
 import Settings from "../Components/Settings";
@@ -28,8 +26,6 @@ export const routes = [
   { path: `/appointments`, Component: <Appointments /> },
   { path: `/technologies`, Component: <Technologies /> },
   { path: `/health-packages`, Component: <HealthPackages /> },
-  { path: `/enquiries`, Component: <Enquiries /> },
-  { path: `/cms`, Component: <CMSComponent /> },
   { path: `/blog`, Component: <Blog /> },
   { path: `/roles-permissions`, Component: <RolesPermissions /> },
   { path: `/settings`, Component: <Settings /> },

@@ -147,17 +147,6 @@ function MainApp() {
             </Nav.Link>
             <Nav.Link
               as={Link}
-              to="/enquiries"
-              className={`d-flex align-items-center sidebar-link ${
-                tabActive === "Enquiries" ? "active" : ""
-              }`}
-              onClick={() => handleTabClick("Enquiries")}
-            >
-              <FaRegBookmark className="me-2" />
-              {sidebarOpen && "Enquiries"}
-            </Nav.Link>
-            <Nav.Link
-              as={Link}
               to="/blog"
               className={`d-flex align-items-center sidebar-link ${
                 tabActive === "Blog" ? "active" : ""
@@ -166,17 +155,6 @@ function MainApp() {
             >
               <FaPhone className="me-2" />
               {sidebarOpen && "Blog"}
-            </Nav.Link>
-            <Nav.Link
-              as={Link}
-              to="/cms"
-              className={`d-flex align-items-center sidebar-link ${
-                tabActive === "CMS" ? "active" : ""
-              }`}
-              onClick={() => handleTabClick("CMS")}
-            >
-              <FaTasks className="me-2" />
-              {sidebarOpen && "CMS"}
             </Nav.Link>
             <Nav.Link
               as={Link}
