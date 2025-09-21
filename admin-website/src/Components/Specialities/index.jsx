@@ -9,8 +9,10 @@ import { deleteSpeciality } from "../../api/Services";
 import { SPECIALITIES_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import TableSkeleton from "../Common/Component/TableSkeleton";
-import PaginationComponent from "../Common/Component/PaginationComponent";
 import { toast } from "react-toastify";
+import { toasterConfig } from "../../utils";
+import axios from "axios";
+import { useDispatch } from "react-redux";
 
 const ITEMS_PER_PAGE = 7;
 const Specialities = () => {
@@ -20,6 +22,8 @@ const Specialities = () => {
   const [searchText, setSearchText] = useState("");
   const [editingSpeciality, setEditingSpeciality] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  const dispatch = useDispatch();
 
   const fetchSpecialities = async () => {
     try {
@@ -106,11 +110,8 @@ const Specialities = () => {
   };
 
   const filteredSpecialities = specialities?.length
-    ? specialities.filter(
-        (spec) =>
-          spec.specialityName
-            .toLowerCase()
-            .includes(searchText.toLowerCase())
+    ? specialities.filter((spec) =>
+        spec.specialityName.toLowerCase().includes(searchText.toLowerCase())
       )
     : [];
 

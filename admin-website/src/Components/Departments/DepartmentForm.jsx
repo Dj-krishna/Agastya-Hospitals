@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -15,10 +15,55 @@ import {
 } from "reactstrap";
 import ModelComponent from "../Common/Component/ModelComponent";
 import ValidationAlert from "../Common/Component/ValidationAlert";
+import { useDispatch } from "react-redux";
+import {
+  createDepartment,
+  fetchDepartments,
+  updateDepartment,
+} from "../../slices/departmentSlice";
+import { toasterConfig } from "../../utils";
+
 const initialFormState = { departmentName: "" };
 const DepartmentForm = ({ isEditMode, onClose, initialData, isOpen }) => {
-  const [formState, setFormState] = useState(initialData || initialFormState);
+  const [formState, setFormState] = useState(initialFormState);
   const [error, setError] = useState("");
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    setFormState(initialData);
+  }, [initialData]);
+
+  const addDepartment = async (data) => {
+    try {
+      const response = await dispatch(createDepartment(data));
+      if (response.payload.inserted.length > 0) {
+        dispatch(fetchDepartments());
+        onClose();
+        toasterConfig("success", "Department add successfully!");
+      }
+    } catch {
+      onClose();
+      toasterConfig("error", "Something wrong!");
+    }
+  };
+  const handleUpdateDepartment = async (departID, data) => {
+    try {
+      const response = await dispatch(
+        updateDepartment({
+          id: departID,
+          departmentData: { departmentName: data.departmentName },
+        })
+      );
+      if (response.payload.message) {
+        onClose();
+        dispatch(fetchDepartments());
+        toasterConfig("success", "Department updated successfully!");
+      }
+    } catch {
+      onClose();
+      toasterConfig("error", "Something wrong!");
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,6 +72,12 @@ const DepartmentForm = ({ isEditMode, onClose, initialData, isOpen }) => {
       return;
     }
     setError("");
+    if (isEditMode) {
+      handleUpdateDepartment(initialData.departmentID, formState);
+    } else {
+      addDepartment(formState);
+    }
+    setFormState({});
   };
 
   return (
@@ -34,9 +85,9 @@ const DepartmentForm = ({ isEditMode, onClose, initialData, isOpen }) => {
       isOpen={isOpen}
       title={isEditMode ? "Edit Department" : "Add Department"}
       toggler={onClose}
-      submitBtnText={isEditMode ? "Update Department" : "Add Department"}
+      //   submitBtnText={isEditMode ? "Update Department" : "Add Department"}
       closeBtnText={"Cancel"}
-      onSubmit={handleSubmit}
+      //   onSubmit={handleSubmit}
       size="md"
       bodyClass="p-0"
       children={
@@ -48,7 +99,7 @@ const DepartmentForm = ({ isEditMode, onClose, initialData, isOpen }) => {
                   <Row>
                     <Col md="12" className="mb-3">
                       <Label className="form-label" for="departmentName">
-                        Department Name *
+                        Department Name
                       </Label>
                       <Input
                         type="text"
@@ -65,6 +116,15 @@ const DepartmentForm = ({ isEditMode, onClose, initialData, isOpen }) => {
                         invalid={error ? true : false}
                       />
                       <ValidationAlert message={error} />
+                    </Col>
+                    <Col md={12} className="d-flex justify-end">
+                      <Button type="button" onClick={onClose}>
+                        Cancel
+                      </Button>
+                      &nbsp;&nbsp;&nbsp;
+                      <Button type="submit" color="primary">
+                        Submit
+                      </Button>
                     </Col>
                   </Row>
                 </Form>

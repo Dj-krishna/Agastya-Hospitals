@@ -12,15 +12,13 @@ import axios from "axios";
 import { UPDATE_PATIENT } from "../../api";
 import { toasterConfig } from "../../utils";
 import Swal from "sweetalert2";
-import PaginationComponent from "../Common/Component/PaginationComponent";
 
-const ITEMS_PER_PAGE = 7;
 const Patients = () => {
   const [showPatientsForm, setShowPatientsForm] = useState(false);
   const [formType, setFormType] = useState("Create");
   const [viewPatientDetails, setViewPatientDetails] = useState(false);
   const [patientData, setPatientData] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
 
   const dispatch = useDispatch();
   const {
@@ -49,16 +47,6 @@ const Patients = () => {
   useEffect(() => {
     dispatch(fetchPatients());
   }, [dispatch]);
-
-  const totalPages = Math.ceil(patients.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentData = patients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
 
   const deletePatient = async (id) => {
     Swal.fire({
@@ -91,6 +79,16 @@ const Patients = () => {
     });
   };
 
+  const filteredPatients = patients?.length
+    ? patients.filter(
+        (patient) =>
+          patient.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+          patient.UHID.toLowerCase().includes(searchText.toLowerCase()) ||
+          patient.email.toLowerCase().includes(searchText.toLowerCase()) ||
+          patient.mobile.toLowerCase().includes(searchText.toLowerCase())
+      )
+    : [];
+
   return (
     <>
       <Fragment>
@@ -121,9 +119,12 @@ const Patients = () => {
                         "Email",
                         "Action",
                       ]}
+                      isSearch={true}
+                      searchText={searchText}
+                      onSearch={(e) => setSearchText(e.target.value)}
                       tableBody={
                         <tbody>
-                          {patients.map((data, index) => (
+                          {filteredPatients.map((data, index) => (
                             <tr key={index}>
                               <td>{data.UHID}</td>
                               <td>{data.fullName}</td>
@@ -160,11 +161,6 @@ const Patients = () => {
                       }
                     />
                   )}
-                  <PaginationComponent
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    handlePageChange={handlePageChange}
-                  />
                 </Row>
               ) : (
                 <PatientDetails patientDetails={patientData} />

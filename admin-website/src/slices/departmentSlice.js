@@ -18,7 +18,9 @@ export const createDepartment = createAsyncThunk(
   "departments/create",
   async (departmentData, { rejectWithValue }) => {
     try {
-      const response = await axios.post(DEPARTMENTS_API, departmentData);
+      const response = await axios.post(DEPARTMENTS_API, [
+        { departmentName: departmentData.departmentName },
+      ]);
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -45,8 +47,10 @@ export const deleteDepartment = createAsyncThunk(
   "departments/delete",
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`${DEPARTMENTS_API}?departmentID=${id}`);
-      return id;
+      const response = await axios.delete(
+        `${DEPARTMENTS_API}?departmentID=${id}`
+      );
+      return response;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }

@@ -9,6 +9,7 @@ import UploadForm from "./UploadForm";
 import { toast } from "react-toastify";
 import TableSkeleton from "../Common/Component/TableSkeleton";
 import PaginationComponent from "../Common/Component/PaginationComponent";
+import { FaPenAlt, FaPencilAlt } from "react-icons/fa";
 
 const ITEMS_PER_PAGE = 7;
 const MedicalRecords = () => {
@@ -18,10 +19,14 @@ const MedicalRecords = () => {
   const [loading, setLoading] = useState(true);
   const [openUploadForm, setOpenUploadForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editRecordData, setEditRecordData] = useState(false);
+  const [patientID, setPatientID] = useState("");
 
   const handleViewDetails = (data) => {
     setPatientData(data);
-    setViewPatientDetails(!viewPatientDetails);
+    setPatientID(data.patientID);
+    setEditRecordData(true);
+    setOpenUploadForm(true);
   };
 
   const fetchPatients = async () => {
@@ -89,33 +94,30 @@ const MedicalRecords = () => {
                       ]}
                       tableBody={
                         <tbody>
-                          {currentData.map((data, index) => (
+                          {patients.map((data, index) => (
                             <tr key={index}>
                               <td>{data.patientID}</td>
                               <td>{data.fullName}</td>
                               <td>{data.mobile}</td>
                               <td>{data.email}</td>
                               <td>
-                                <Button
-                                  color="success"
-                                  outline
-                                  className=""
-                                  size="sm"
+                                <FaPencilAlt
+                                  color="#7366ff"
                                   onClick={() => handleViewDetails(data)}
-                                >
-                                  View
-                                </Button>
+                                  className="me-2 text-primary cursor-pointer"
+                                  title="Edit Medical Records"
+                                />
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       }
                     />
-                    <PaginationComponent
+                    {/* <PaginationComponent
                       currentPage={currentPage}
                       totalPages={totalPages}
                       handlePageChange={handlePageChange}
-                    />
+                    /> */}
                   </>
                 ) : (
                   <PatientDetails patientDetails={patientData} />
@@ -125,7 +127,10 @@ const MedicalRecords = () => {
           </Container>
         </>
       ) : (
-        <UploadForm onClose={() => setOpenUploadForm(false)} />
+        <UploadForm
+          onClose={() => setOpenUploadForm(false)}
+          patientID={patientID}
+        />
       )}
     </Fragment>
   );

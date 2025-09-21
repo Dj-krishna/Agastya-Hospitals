@@ -48,6 +48,35 @@ const HealthPackages = () => {
     }
   };
 
+  // const handleDeleteDepartment = async (id) => {
+  //     Swal.fire({
+  //       title: "Are you sure?",
+  //       text: "Do you want to delete this departnet?",
+  //       icon: "warning",
+  //       showCancelButton: true,
+  //       confirmButtonColor: "#fc4438",
+  //       cancelButtonColor: "#6c757d",
+  //       confirmButtonText: "Yes, delete it!",
+  //     }).then(async (result) => {
+  //       if (result.isConfirmed) {
+  //         try {
+  //           const response = await dispatch(deleteDepartment(id)); //await deleteSpeciality(id);
+  //           if (response) {
+  //             toasterConfig(
+  //               "success",
+  //               response.data?.message || "Deleted successfully"
+  //             );
+  //             dispatch(fetchDepartments()); // fetchSpecialities(); // Refresh the list
+  //           } else {
+  //             toasterConfig("error", "Something went wrong");
+  //           }
+  //         } catch (error) {
+  //           toasterConfig("error", "Something went wrong");
+  //         }
+  //       }
+  //     });
+  //   };
+
   return (
     <Fragment>
       {!showHealthPackageForm ? (

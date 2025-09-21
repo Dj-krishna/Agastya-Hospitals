@@ -17,7 +17,7 @@ import { fetchPatients } from "../../slices/patientSlice";
 import { uploadMedicalRecords } from "../../api/Services";
 import { toast } from "react-toastify";
 
-const UploadForm = ({ onClose }) => {
+const UploadForm = ({ onClose, patientID }) => {
   const [patientName, setPatientName] = useState("");
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [patientData, setPatientData] = useState({});
@@ -36,10 +36,18 @@ const UploadForm = ({ onClose }) => {
     dispatch(fetchPatients());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (patientID) {
+      let patient = patients.filter((p) => p.patientID === patientID)[0];
+      setPatientData(patient || {});
+      setPatientName(patientID);
+    }
+  }, [patientID]);
+
   const handlePatientChange = (e) => {
-    const value = e.target.value.split(" ");
+    const value = e.target.value;
     const selectedPatient = patients.find(
-      (patient) => String(patient.patientID) === value[0]
+      (patient) => String(patient.patientID) === value
     );
     setPatientData(selectedPatient);
     setPatientName(e.target.value);
@@ -50,8 +58,10 @@ const UploadForm = ({ onClose }) => {
     const files = Array.from(e.target.files);
     setSelectedFiles((prevFiles) => {
       // Prevent duplicates by name (optional)
-      const existingNames = prevFiles.map(f => f.name + f.lastModified);
-      const newFiles = files.filter(f => !existingNames.includes(f.name + f.lastModified));
+      const existingNames = prevFiles.map((f) => f.name + f.lastModified);
+      const newFiles = files.filter(
+        (f) => !existingNames.includes(f.name + f.lastModified)
+      );
       return [...prevFiles, ...newFiles];
     });
     setUploadError(""); // Clear any previous errors
@@ -72,12 +82,12 @@ const UploadForm = ({ onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!patientData.patientID) {
       setUploadError("Please select a patient");
       return;
     }
-    
+
     if (selectedFiles.length === 0) {
       setUploadError("Please select at least one file to upload");
       return;
@@ -87,22 +97,27 @@ const UploadForm = ({ onClose }) => {
     setUploadError("");
 
     try {
-      const response = await uploadMedicalRecords(patientData.patientID, selectedFiles);
-      
+      const response = await uploadMedicalRecords(
+        patientData.patientID,
+        selectedFiles
+      );
+
       if (response.updatedCount > 0) {
-        toast.success(`Successfully uploaded ${selectedFiles.length} medical record(s) for ${patientData.fullName}`);
-        
+        toast.success(
+          `Successfully uploaded ${selectedFiles.length} medical record(s) for ${patientData.fullName}`
+        );
+
         // Reset form
         setSelectedFiles([]);
         setPatientName("");
         setPatientData({});
-        
+
         // Reset file input
         const fileInput = document.querySelector('input[type="file"]');
         if (fileInput) {
-          fileInput.value = '';
+          fileInput.value = "";
         }
-        
+
         // Close the form after successful upload
         setTimeout(() => {
           onClose();
@@ -112,7 +127,10 @@ const UploadForm = ({ onClose }) => {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(error.response?.data?.message || "Failed to upload medical records. Please try again.");
+      setUploadError(
+        error.response?.data?.message ||
+          "Failed to upload medical records. Please try again."
+      );
       toast.error("Failed to upload medical records");
     } finally {
       setIsUploading(false);
@@ -159,7 +177,7 @@ const UploadForm = ({ onClose }) => {
                       patients.map((patient) => (
                         <option
                           key={patient.patientID}
-                          value={patient.patientID + " " + patient.fullName}
+                          value={patient.patientID}
                         >
                           {patient.patientID} - {patient.fullName}
                         </option>
@@ -170,27 +188,39 @@ const UploadForm = ({ onClose }) => {
               <Card>
                 <CardBody>
                   <h6 className="b-b-light pb-2">Upload Medical Records</h6>
-                  {patientData.medicalRecords && patientData.medicalRecords.length > 0 && (
-                    <div className="mb-2">
-                      <small className="text-muted">Existing Medical Records:</small>
-                      <ul className="list-unstyled mt-1">
-                        {patientData.medicalRecords.map((url, idx) => (
-                          <li key={idx} className="text-truncate d-flex align-items-center">
-                            <a href={url} target="_blank" rel="noopener noreferrer">
-                              <small className="text-primary">{url.split('/').pop()}</small>
-                            </a>
-                            <Button
-                              close
-                              aria-label="Delete"
-                              onClick={() => handleDeleteMedicalRecord(idx)}
-                              style={{ marginLeft: 8 }}
-                              disabled={isUploading}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {patientData.medicalRecords &&
+                    patientData.medicalRecords.length > 0 && (
+                      <div className="mb-2">
+                        <small className="text-muted">
+                          Existing Medical Records:
+                        </small>
+                        <ul className="list-unstyled mt-1">
+                          {patientData.medicalRecords.map((url, idx) => (
+                            <li
+                              key={idx}
+                              className="text-truncate d-flex align-items-center"
+                            >
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <small className="text-primary">
+                                  {url.split("/").pop()}
+                                </small>
+                              </a>
+                              <Button
+                                close
+                                aria-label="Delete"
+                                onClick={() => handleDeleteMedicalRecord(idx)}
+                                style={{ marginLeft: 8 }}
+                                disabled={isUploading}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   <Input
                     type="file"
                     className="mt-3"
@@ -267,7 +297,11 @@ const UploadForm = ({ onClose }) => {
               <Button
                 color="primary"
                 type="submit"
-                disabled={isUploading || !patientData.patientID || selectedFiles.length === 0}
+                disabled={
+                  isUploading ||
+                  !patientData.patientID ||
+                  selectedFiles.length === 0
+                }
               >
                 {isUploading ? (
                   <>

@@ -11,22 +11,27 @@ const ModelComponent = ({
   submitBtnText,
   closeBtnText,
   bodyClass,
-  onSubmit
+  onSubmit,
 }) => {
   return (
     <Modal isOpen={isOpen} toggle={toggler} size={size} centered>
       <ModalHeader toggle={toggler}>{title}</ModalHeader>
       <ModalBody className={bodyClass ? bodyClass : ""}>{children}</ModalBody>
-      <ModalFooter>
-        {closeBtnText && <Btn attrBtn={{ color: "secondary", onClick: toggler, type: "button" }}>
-          {closeBtnText}
-        </Btn>}
-        {submitBtnText && (
-          <Btn attrBtn={{ color: "primary", onClick: onSubmit, type: "submit" }}>
+      {closeBtnText && submitBtnText && (
+        <ModalFooter>
+          <Btn
+            attrBtn={{ color: "secondary", onClick: toggler, type: "button" }}
+          >
+            {closeBtnText}
+          </Btn>
+
+          <Btn
+            attrBtn={{ color: "primary", onClick: onSubmit, type: "submit" }}
+          >
             {submitBtnText}
           </Btn>
-        )}
-      </ModalFooter>
+        </ModalFooter>
+      )}
     </Modal>
   );
 };
