@@ -10,7 +10,7 @@ const Header = () => {
     { path: "/about", label: "About Us" },
     { path: "/specialties", label: "Specialties" },
     { path: "/find-doctor", label: "Find a Doctor" },
-    { path: "/patient", label: "Patient" },
+    { path: "/international-patient", label: "Patient" },
     { path: "/blog", label: "Blog" },
     { path: "/health-packages", label: "Health Packages" },
     { path: "/careers", label: "Careers" },
@@ -26,6 +26,10 @@ const Header = () => {
     { path: "/free-second-opinion", label: "Free Second Opinion" },
     { path: "/medical-reports", label: "Medical Reports" },
     { path: "/doctor/profile", label: "Doctor Profile" },
+    { path: "/leadership-team", label: "Leadership Team" },
+    { path: "/achievements", label: "Achievements" },
+    { path: "/awards-recognition", label: "Awards & Recognition" },
+    { path: "/gallery", label: "Gallery" },
   ];
 
   const allNavItems = [...navItems, ...nonHeaderPaths];
@@ -47,7 +51,8 @@ const Header = () => {
           </div>
           <div className="d-flex items-center space-x-4">
             <Link to="/patient" className="patientlogin">
-              <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392814/agastya/patient-login.svg" />Patient Login
+              <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392814/agastya/patient-login.svg" />
+              Patient Login
             </Link>
             <button
               className="bookappointment d-flex items-center space-x-1"

@@ -21,6 +21,11 @@ import MedicalReports from "./pages/MedicalReports";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DoctorProfile from "./components/pages/DoctorProfile";
+import Leadership from "./pages/Leadership";
+import Achievements from "./pages/Achievements";
+import AwardsAndRecongnition from "./pages/AwardsAndRecongnition";
+import Gallery from "./pages/Gallery";
+import InternationalPatient from "./pages/InternationalPatient";
 
 function App() {
   return (
@@ -51,6 +56,17 @@ function App() {
           />
           <Route path="/medical-reports" element={<MedicalReports />} />
           <Route path="/doctor/profile" element={<DoctorProfile />} />
+          <Route path="/leadership-team" element={<Leadership />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route
+            path="/awards-recognition"
+            element={<AwardsAndRecongnition />}
+          />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route
+            path="/international-patient"
+            element={<InternationalPatient />}
+          />
         </Routes>
       </main>
       <Footer />
