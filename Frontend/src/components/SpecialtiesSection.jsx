@@ -63,13 +63,14 @@ const SpecialtiesSection = () => {
               key={specialty.id}
               className={`flex-shrink-0 specialty-card-home ${
                 specialty.active
-                  ? 'specialty-card-home-active text-white border-hospital-blue'
+                  ? 'bg-white text-gray-700 border-gray-200 hover:border-hospital-blue'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-hospital-blue'
               }`}
             >
+              {/* specialty-card-home-active text-white border-hospital-blue / text-blue-100*/}
               <div className="text-4xl mb-4">{specialty.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{specialty.name}</h3>
-              <p className={`text-sm ${specialty.active ? 'text-blue-100' : 'text-gray-600'}`}>
+              <p className={`text-sm ${specialty.active ? 'text-gray-600' : 'text-gray-600'}`}>
                 {specialty.description}
               </p>
             </div>

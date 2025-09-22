@@ -47,7 +47,7 @@ const Header = () => {
           </div>
           <div className="d-flex items-center space-x-4">
             <Link to="/patient" className="patientlogin">
-              Patient Login
+              <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392814/agastya/patient-login.svg" />Patient Login
             </Link>
             <button
               className="bookappointment d-flex items-center space-x-1"

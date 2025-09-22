@@ -70,29 +70,29 @@ const HeroSection = () => {
                 className="quicklink"
                 onClick={() => navigate("/book-appointment")}
               >
-                Book a Doctor's <br />
-                Appointment
+                <span>Book a Doctor's <br /> Appointment</span>
+                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
               </a>
               <a
                 onClick={() => navigate("/health-packages")}
                 className="quicklink"
               >
-                Explore Our <br />
-                Health Packages
+                <span>Explore Our <br />Health Packages</span>
+                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
               </a>
               <a
                 onClick={() => navigate("/medical-reports")}
                 className="quicklink"
               >
-                View Your <br />
-                Medical Reports
+                <span>View Your <br />Medical Reports</span>
+                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
               </a>
               <a
                 onClick={() => navigate("/free-second-opinion")}
                 className="quicklink"
               >
-                Get a Free <br />
-                Second Opinion
+                <span>Get a Free <br />Second Opinion</span>
+                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
               </a>
             </div>
           </div>

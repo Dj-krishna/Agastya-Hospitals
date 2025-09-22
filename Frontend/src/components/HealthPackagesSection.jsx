@@ -45,6 +45,99 @@ const HealthPackagesSection = () => {
   ]
 
   return (
+  <div>
+
+
+<section className="healthpackage-section">
+  <div className="container-fluid m-0 ps-0">
+    <div className="row align-items-center m-0">
+      
+       
+      <div className="col-lg-6 mb-4 mb-lg-0 px-0">
+        <div className="health-img">
+          <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1756662700/agastya/agastya-health-packages.png" alt="Health Check-up" className="img-fluid" />
+        </div>
+      </div>
+      
+       
+      <div className="col-lg-6 p-0">
+        <div className="package-bg-color">
+          <div class="row">
+            <div class="col-lg-12 text-start my-4">
+              <h2 class="main-title">Our Popular Health Check-up Packages</h2>
+            </div>
+          </div>
+          
+          <div class="row g-4">
+          
+            <div className="col-md-5">
+              <div className="package-card">
+                <span className="discount-badge">25% Off</span>
+                <h5 className="packagename">Executive Health Check - Women</h5>
+                <p className="tests-covered">Tests Covered: 24</p>
+                <ul className="tests-list">
+                  <li>Laboratory Tests</li>
+                  <li>Radiology Tests</li>
+                  <li>Laboratory Tests</li>
+                </ul>
+                <div className="price-container">
+                  <span className="price">INR 7,500/-</span>
+                  <span className="old-price">INR 9,500/-</span>
+                </div>
+                <button className="packagebook-btn mt-3">Book Now</button>
+              </div>
+            </div>
+
+      
+           <div className="col-md-5">
+              <div className="package-card">
+                <span className="discount-badge">25% Off</span>
+                <h5 className="packagename">Executive Health Check - Women</h5>
+                <p className="tests-covered">Tests Covered: 24</p>
+                <ul className="tests-list">
+                  <li>Laboratory Tests</li>
+                  <li>Radiology Tests</li>
+                  <li>Laboratory Tests</li>
+                </ul>
+                <div className="price-container">
+                  <span className="price">INR 7,500/-</span>
+                  <span className="old-price">INR 9,500/-</span>
+                </div>
+                <button className="packagebook-btn mt-3">Book Now</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
     <section className="py-16 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
@@ -118,6 +211,7 @@ const HealthPackagesSection = () => {
         </div>
       </div>
     </section>
+    </div>
   )
 }
 
