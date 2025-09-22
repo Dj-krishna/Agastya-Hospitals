@@ -10,8 +10,14 @@ const buildSpecialityFilter = (query) => {
     let value = query[key];
 
     // Handle booleans and numbers
-    if (key === 'specialityID' || key === 'doctor' || key === 'displayOrder') {
+    if (key === 'specialityID' || key === 'displayOrder') {
       filter[key] = Number(value);
+    } else if (key === 'doctor') {
+      // Accepts single doctorID or comma-separated
+      const doctorArr = Array.isArray(value)
+        ? value.map(Number)
+        : String(value).split(',').map(v => Number(v));
+      filter[key] = { $in: doctorArr };
     } else if (key === 'isActive' || key === 'isNavigationDisplay') {
       filter[key] = value === 'true';
     } else {
@@ -28,8 +34,14 @@ exports.getSpecialities = async (req, res) => {
     const specialities = await Speciality.find(filter).sort({ displayOrder: 1 });
     if (!specialities.length) return res.status(404).json({ message: 'No specialities found.' });
 
-    // Attach doctorName if doctor present
-    const doctorIDs = [...new Set(specialities.map(s => s.doctor).filter(Boolean))];
+    // Gather unique doctorIDs from all arrays
+    const doctorIDs = [
+      ...new Set(
+        specialities
+          .flatMap(s => Array.isArray(s.doctor) ? s.doctor : (s.doctor ? [s.doctor] : []))
+          .filter(Boolean)
+      )
+    ];
     let doctorMap = new Map();
     if (doctorIDs.length) {
       const doctors = await Doctor.find(
@@ -39,10 +51,13 @@ exports.getSpecialities = async (req, res) => {
       doctorMap = new Map(doctors.map(d => [d.doctorID, d.fullName]));
     }
 
-    const enriched = specialities.map(s => ({
-      ...s.toObject(),
-      doctorName: doctorMap.get(s.doctor)
-    }));
+    const enriched = specialities.map(s => {
+      const docArr = Array.isArray(s.doctor) ? s.doctor : (s.doctor ? [s.doctor] : []);
+      return {
+        ...s.toObject(),
+        doctorNames: docArr.map(docId => doctorMap.get(docId) || null)
+      };
+    });
 
     if (req.query.specialityID) {
       res.json(enriched[0]);
@@ -68,8 +83,20 @@ exports.getSpecialityList = async (req, res) => {
 // ADD new speciality
 exports.addSpeciality = async (req, res) => {
   try {
-    // Start with req.body; ensure it's an object
     const payload = req.body || {};
+
+    // If doctor is string (from form-data) parse it to array of numbers
+    const normalizeDoctorField = (doc) => {
+      if (typeof doc.doctor === 'string') {
+        try {
+          const parsed = JSON.parse(doc.doctor);
+          if (Array.isArray(parsed)) return parsed.map(id => Number(id));
+        } catch (e) {
+          return doc.doctor.split(',').map(id => Number(id.trim()));
+        }
+      }
+      return doc.doctor;
+    };
 
     // Attach uploaded file URLs from ImageKit middleware
     if (req.files) {
@@ -77,8 +104,11 @@ exports.addSpeciality = async (req, res) => {
       if (req.files.banner) payload.banner = req.files.banner.map(f => f.url);
     }
 
-    // Validate required field
-    if (!payload.doctor) return res.status(400).json({ error: 'doctor is required' });
+    // Validate doctor as array of at least one ID
+    const isBulk = Array.isArray(payload) && payload.length > 0;
+    const validateDoctorField = doc =>
+      Array.isArray(doc.doctor) && doc.doctor.length > 0 &&
+      doc.doctor.every(id => typeof id === 'number' || typeof id === 'string');
 
     // Helper to generate URL slug
     const generateSlug = (name) => {
@@ -88,11 +118,12 @@ exports.addSpeciality = async (req, res) => {
         .replace(/^-+|-+$/g, '');
     };
 
-    // Check if bulk insert
-    const isBulk = Array.isArray(payload) && payload.length > 0;
-
     if (!isBulk) {
-      // Single insert
+      payload.doctor = normalizeDoctorField(payload);
+
+      if (!validateDoctorField(payload)) {
+        return res.status(400).json({ error: 'doctor (array) is required and cannot be empty' });
+      }
       if (!payload.specialityID) payload.specialityID = await getNextSequence('specialityID');
       if (!payload.urlSlug && payload.specialityName) payload.urlSlug = generateSlug(payload.specialityName);
 
@@ -100,14 +131,14 @@ exports.addSpeciality = async (req, res) => {
       const saved = await doc.save();
       return res.status(201).json(saved);
     } else {
-      // Bulk insert
       const insertedDocs = [];
       for (let sp of payload) {
-        if (!sp.doctor) continue;
+        sp.doctor = normalizeDoctorField(sp);
+
+        if (!validateDoctorField(sp)) continue;
         if (!sp.specialityID) sp.specialityID = await getNextSequence('specialityID');
         if (!sp.urlSlug && sp.specialityName) sp.urlSlug = generateSlug(sp.specialityName);
 
-        // Attach files if present in req.files for this entry (optional)
         if (req.files) {
           if (req.files.icon) sp.icon = req.files.icon[0].url;
           if (req.files.banner) sp.banner = req.files.banner.map(f => f.url);
@@ -117,11 +148,12 @@ exports.addSpeciality = async (req, res) => {
         const saved = await doc.save();
         insertedDocs.push(saved);
       }
+      if (!insertedDocs.length) {
+        return res.status(400).json({ error: 'No valid entry with doctor array provided' });
+      }
       return res.status(201).json(insertedDocs);
     }
-
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -130,18 +162,28 @@ exports.addSpeciality = async (req, res) => {
 exports.updateSpeciality = async (req, res) => {
   const filter = buildSpecialityFilter(req.query);
   const updateData = req.body || {};
-  
+
+  // Normalize doctor field if string
+  if (updateData.doctor) {
+    if (typeof updateData.doctor === 'string') {
+      try {
+        const parsed = JSON.parse(updateData.doctor);
+        if (Array.isArray(parsed)) {
+          updateData.doctor = parsed.map(id => Number(id));
+        }
+      } catch (e) {
+        updateData.doctor = updateData.doctor.split(',').map(id => Number(id.trim()));
+      }
+    }
+  }
+
   if (!Object.keys(filter).length) {
     return res.status(400).json({ error: 'No filter provided' });
   }
-  
-  // Check both body and files
   if (Object.keys(updateData).length === 0 && (!req.files || Object.keys(req.files).length === 0)) {
     return res.status(400).json({ error: 'No update data provided' });
   }
-  
   try {
-    // Handle uploaded files via ImageKit
     if (req.files) {
       if (req.files.icon) updateData.icon = req.files.icon[0].url;
       if (req.files.banner) {
@@ -149,7 +191,6 @@ exports.updateSpeciality = async (req, res) => {
         updateData.banner = existingBanner.concat(req.files.banner.map(f => f.url));
       }
     }
-
     const result = await Speciality.updateMany(filter, { $set: updateData });
     if (result.modifiedCount === 0) return res.status(404).json({ message: 'No matching specialities found to update' });
     const updated = await Speciality.find(filter);
@@ -158,6 +199,7 @@ exports.updateSpeciality = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // DELETE specialities
 exports.deleteSpecialities = async (req, res) => {
