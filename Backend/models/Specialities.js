@@ -7,7 +7,7 @@ const specialitySchema = new mongoose.Schema({
   icon: { type: String },                         // single icon image
   banner: { type: [String] },                       // single banner image
   displayOrder: { type: Number },                // order on home page
-  doctor: { type: Number },  // single doctorID
+  doctor: [{ type: Number }],  // single doctorID
   shortDescription: { type: String },
   pageDescription: { type: String },
   seoMetaData: { type: String, default: function() { return this.specialityName; } },                // keywords, meta, etc.
