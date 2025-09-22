@@ -1,4 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -32,7 +33,14 @@ const Header = () => {
     { path: "/gallery", label: "Gallery" },
   ];
 
-  const allNavItems = [...navItems, ...nonHeaderPaths];
+  const aboutDropdown = [
+    { path: "/leadership-team", label: "Leadership Team" },
+    { path: "/achievements", label: "Achievements" },
+    { path: "/awards-recognition", label: "Awards & Recognition" },
+    { path: "/gallery", label: "Gallery" },
+  ];
+
+  const allNavItems = [...navItems, ...nonHeaderPaths, ...aboutDropdown];
 
   // Derive page title from pathname
   const currentPage =
@@ -85,15 +93,39 @@ const Header = () => {
           {/* Navigation Links */}
           <ul className="d-flex items-center space-x-8">
             {navItems.map(({ path, label }) => (
-              <li key={path}>
+              <li
+                key={path}
+                className={`nav-item position-relative ${
+                  label === "About Us" ? "dropdown" : ""
+                }`}
+              >
                 <Link
                   to={path}
-                  className={`hover:text-blue-600 ${
+                  className={`hover:text-blue-600 inline-flex align-items-center ${
                     pathname === path ? "font-semibold text-blue-700" : ""
                   }`}
                 >
-                  {label}
+                  <span>{label}</span>
+                  {label === "About Us" && (
+                    <>
+                      &nbsp;&nbsp;
+                      <span>
+                        <FaChevronDown className="text-muted" />
+                      </span>
+                    </>
+                  )}
                 </Link>
+                {label === "About Us" && (
+                  <ul className="dropdown-menu shadow">
+                    {aboutDropdown.map((item) => (
+                      <li key={item.path}>
+                        <Link to={item.path} className="dropdown-item">
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
