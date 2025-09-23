@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { DOCTORS_API, SPECIALITIES_API } from "../api/services";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import Select from "react-select";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
-//Frontend\src\slices\specialtySlice.js
 
 const FindDoctor = () => {
   const [doctors, setDoctors] = useState([]);
@@ -13,8 +12,10 @@ const FindDoctor = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [specialties, setSpecialties] = useState([]);
   const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
+  const [query, setQuery] = useState("");
+
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+
   const fetchSpecialties = async () => {
     try {
       const response = await axios.get(SPECIALITIES_API);
@@ -41,13 +42,22 @@ const FindDoctor = () => {
     fetchSpecialties();
   }, []);
 
+  const specialtyOptions = specialties.map((s) => ({
+    value: s.specialityID,
+    label: s.specialityName,
+  }));
+
+  // Filter doctors
   const filteredDoctors = doctors.filter((doctor) => {
-    const matchesSearch =
-      !searchText ||
-      doctor.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
-      (doctor.specialty &&
-        doctor.specialty.toLowerCase().includes(searchText.toLowerCase()));
-    return matchesSearch;
+    const matchesSpecialty = selectedSpecialty
+      ? doctor.speciality.includes(selectedSpecialty.value)
+      : true;
+
+    const matchesName = searchText
+      ? doctor.fullName.toLowerCase().includes(searchText.toLowerCase())
+      : true;
+
+    return matchesSpecialty && matchesName;
   });
 
   const gotoProfile = (doctorID) => {
@@ -71,7 +81,7 @@ const FindDoctor = () => {
         <div className="">
           <div className="row">
             <div className="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-              <div
+              {/* <div
                 className="finddoctor-input"
                 style={{ cursor: "pointer" }}
                 onClick={() => setShowSpecialtyDropdown((prev) => !prev)}
@@ -116,7 +126,7 @@ const FindDoctor = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </div> */}
               {/* <select className="booking-form-input">
                 <option>Filter by Specialty</option>
                 {specialties.map((spec) => (
@@ -125,6 +135,38 @@ const FindDoctor = () => {
                   </option>
                 ))}
               </select> */}
+              <Select
+                options={[...specialtyOptions].sort((a, b) =>
+                  a.label.localeCompare(b.label)
+                )}
+                value={selectedSpecialty}
+                onChange={setSelectedSpecialty}
+                isClearable
+                placeholder="Filter by Specialty"
+                styles={{
+                  control: (provided) => ({
+                    ...provided,
+                    padding: "6px 10px",
+                    borderRadius: "8px",
+                    marginBottom: "15px",
+                    border: "1px solid #ddd",
+                    fontSize: "14px",
+                    boxShadow: "none", // remove default blue shadow
+                    "&:hover": {
+                      border: "1px solid #aaa",
+                    },
+                  }),
+                  valueContainer: (provided) => ({
+                    ...provided,
+                    padding: 0, // prevents double padding
+                  }),
+                  input: (provided) => ({
+                    ...provided,
+                    margin: 0,
+                    padding: 0,
+                  }),
+                }}
+              />
             </div>
             <div className="col-lg-8 col-md-6 col-sm-12 col-xs-12">
               <input
@@ -134,7 +176,9 @@ const FindDoctor = () => {
                 className="booking-form-input"
                 placeholder="Search with Doctor name or Specialty"
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                }}
               />
             </div>
           </div>
@@ -156,17 +200,13 @@ const FindDoctor = () => {
                       </div>
                       <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
                         <div className="doctor-info">
-                          <h5 className="name">
-                            {doctor.fullName}
-                          </h5>
+                          <h5 className="name">{doctor.fullName}</h5>
                           <p className="qualification">
                             {doctor.educationQualification[1]
                               ? doctor.educationQualification[1]
                               : "NA"}
                           </p>
-                          <p className="designation">
-                            {doctor.designation}
-                          </p>
+                          <p className="designation">{doctor.designation}</p>
                           <ul
                             className="detailsgrid"
                             style={{ listStyle: "inside" }}
@@ -202,25 +242,27 @@ const FindDoctor = () => {
                               </span>
                             </li>
                           </ul>
-                         
                         </div>
                       </div>
                     </div>
-                     <div className="d-flex justify-end">
-                        <button
-                          href="#"
-                          className="ctabtn viewprofile"
-                          onClick={() => gotoProfile(doctor.doctorID)}
-                        >
-                          View Profile
-                        </button>
-                        <button
-                          className="ctabtn bookappointment"
-                          onClick={() => navigate("/book-appointment")}
-                        >
-                         <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758389743/agastya/circlearrow.svg" /></span> Book Appointment
-                        </button>
-                      </div>
+                    <div className="d-flex justify-end">
+                      <button
+                        href="#"
+                        className="ctabtn viewprofile"
+                        onClick={() => gotoProfile(doctor.doctorID)}
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        className="ctabtn bookappointment"
+                        onClick={() => navigate("/book-appointment")}
+                      >
+                        <span>
+                          <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758389743/agastya/circlearrow.svg" />
+                        </span>{" "}
+                        Book Appointment
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
