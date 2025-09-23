@@ -81,60 +81,6 @@ const FindDoctor = () => {
         <div className="">
           <div className="row">
             <div className="col-lg-4 col-md-6 col-sm-12 col-xs-12">
-              {/* <div
-                className="finddoctor-input"
-                style={{ cursor: "pointer" }}
-                onClick={() => setShowSpecialtyDropdown((prev) => !prev)}
-              >
-                <span className="">Filter by Speciality</span>
-                <span>
-                  {!showSpecialtyDropdown ? (
-                    <FaChevronDown className="text-muted" />
-                  ) : (
-                    <FaChevronUp className="text-muted" />
-                  )}
-                </span>
-              </div>
-              <div>
-                {showSpecialtyDropdown && (
-                  <div
-                    className="border rounded shadow-sm position-absolute bg-white"
-                    style={{ zIndex: 1000, cursor: "pointer" }}
-                  >
-                    <div
-                      className="p-2 hover-bg-light-gray"
-                      onClick={() => {
-                        setSelectedSpecialty("");
-                        setSearchText("");
-                        setShowSpecialtyDropdown(false);
-                      }}
-                    >
-                      Clear Filter
-                    </div>
-                    {specialties.map((spec) => (
-                      <div
-                        key={spec.specialityID}
-                        className="p-2 hover-bg-light-gray"
-                        onClick={() => {
-                          setSelectedSpecialty(spec.specialityName);
-                          setSearchText(spec.specialityName);
-                          setShowSpecialtyDropdown(false);
-                        }}
-                      >
-                        {spec.specialityName}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div> */}
-              {/* <select className="booking-form-input">
-                <option>Filter by Specialty</option>
-                {specialties.map((spec) => (
-                  <option key={spec.specialityID} value={spec.specialityID}>
-                    {spec.specialityName}
-                  </option>
-                ))}
-              </select> */}
               <Select
                 options={[...specialtyOptions].sort((a, b) =>
                   a.label.localeCompare(b.label)
@@ -151,19 +97,28 @@ const FindDoctor = () => {
                     marginBottom: "15px",
                     border: "1px solid #ddd",
                     fontSize: "14px",
-                    boxShadow: "none", // remove default blue shadow
+                    boxShadow: "none",
                     "&:hover": {
                       border: "1px solid #aaa",
                     },
                   }),
                   valueContainer: (provided) => ({
                     ...provided,
-                    padding: 0, // prevents double padding
+                    padding: 0,
                   }),
                   input: (provided) => ({
                     ...provided,
                     margin: 0,
                     padding: 0,
+                  }),
+                  menu: (provided) => ({
+                    ...provided,
+                    borderRadius: "8px",
+                    marginTop: "5px",
+                    border: "1px solid #ddd",
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+                    fontSize: "14px",
+                    zIndex: 9999,
                   }),
                 }}
               />
