@@ -18,7 +18,6 @@ const DoctorProfile = () => {
     try {
       const response = await axios.get(`${DOCTORS_API}/?doctorID=${doctorID}`);
       if (response.data) {
-        console.log("DOCTOR PROFILE ", response.data.data);
         setDoctorProfile(response.data.data);
         setLoading(false);
       }

@@ -26,6 +26,7 @@ import Achievements from "./pages/Achievements";
 import AwardsAndRecongnition from "./pages/AwardsAndRecongnition";
 import Gallery from "./pages/Gallery";
 import InternationalPatient from "./pages/InternationalPatient";
+import { routes } from "./AppRoutes";
 
 function App() {
   return (
@@ -33,40 +34,9 @@ function App() {
       <Header />
       <main className="flex-grow">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/specialties" element={<Specialties />} />
-          <Route path="/find-doctor" element={<FindDoctor />} />
-          <Route path="/patient" element={<Patient />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/health-packages" element={<HealthPackages />} />
-          <Route path="/careers" element={<Careers />} />
-          <Route path="/book-appointment" element={<BookAppointment />} />
-          <Route path="/patient-care" element={<PatientCare />} />
-          <Route path="/news-and-updates" element={<NewsAndUpdates />} />
-          <Route path="/contact-us" element={<ContactUs />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route
-            path="/terms-and-conditions"
-            element={<TermsAndConditions />}
-          />
-          <Route
-            path="/free-second-opinion"
-            element={<FreeSecondOpinionForm />}
-          />
-          <Route path="/medical-reports" element={<MedicalReports />} />
-          <Route path="/doctor/profile" element={<DoctorProfile />} />
-          <Route path="/leadership-team" element={<Leadership />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route
-            path="/awards-recognition"
-            element={<AwardsAndRecongnition />}
-          />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route
-            path="/international-patient"
-            element={<InternationalPatient />}
-          />
+          {routes.map(({ path, component: Component }, i) => (
+            <Route key={path} path={path} element={<Component />} />
+          ))}
         </Routes>
       </main>
       <Footer />

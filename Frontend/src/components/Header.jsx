@@ -31,6 +31,7 @@ const Header = () => {
     { path: "/achievements", label: "Achievements" },
     { path: "/awards-recognition", label: "Awards & Recognition" },
     { path: "/gallery", label: "Gallery" },
+    { path: "/blog-details", label: "Blog Details" },
   ];
 
   const aboutDropdown = [

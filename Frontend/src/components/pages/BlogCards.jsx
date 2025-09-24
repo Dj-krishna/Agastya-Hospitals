@@ -3,8 +3,10 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBlogs } from "../../slices/blogSlice";
+import { useNavigate } from "react-router-dom";
 
 const BlogCards = () => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const {
     data: blogs,
@@ -19,7 +21,10 @@ const BlogCards = () => {
     dispatch(fetchBlogs());
   }, [dispatch]);
 
-  console.log("BLOGS DATA ", blogs);
+  const gotoBlogDetails = (blogData) => {
+    navigate("/blog-details", { state: { blogData } });
+  };
+
   return (
     <div className="row">
       <div className="col-lg-12">
@@ -38,11 +43,14 @@ const BlogCards = () => {
                 <span>{blog.category}</span>
                 <span>{format(new Date(blog.dateOfPost), "dd-MMM-yyyy")}</span>
               </div>
-              <h3 className="mb-5">
-                <a href="#">{blog.title}</a>
+              <h3 className="mb-5 cursor-pointer">
+                <a onClick={() => gotoBlogDetails(blog)}>{blog.title}</a>
               </h3>
               {/* <p className="excerpt"> {blog.excerpt}</p> */}
-              <a href="#" className="text-primary f-12">
+              <a
+                onClick={() => gotoBlogDetails(blog)}
+                className="text-primary f-12 cursor-pointer"
+              >
                 Read the article →
               </a>
             </div>

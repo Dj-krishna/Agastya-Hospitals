@@ -1,6 +1,4 @@
 import { useEffect } from "react";
-import { useState } from "react";
-import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBlogs } from "../slices/blogSlice";
 import BlogCards from "../components/pages/BlogCards";
@@ -22,7 +20,6 @@ const Blog = () => {
     dispatch(fetchBlogs());
   }, [dispatch]);
 
-  console.log("BLOGS DATA ", blogs);
 
   return (
     <div className="container py-5">

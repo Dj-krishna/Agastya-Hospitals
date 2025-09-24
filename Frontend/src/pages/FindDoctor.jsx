@@ -54,7 +54,8 @@ const FindDoctor = () => {
       : true;
 
     const matchesName = searchText
-      ? doctor.fullName.toLowerCase().includes(searchText.toLowerCase())
+      ? doctor.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+        doctor.speciality.includes(searchText)
       : true;
 
     return matchesSpecialty && matchesName;
@@ -151,6 +152,7 @@ const FindDoctor = () => {
                           src={doctor.profilePicture}
                           className="img-fluid rounded-3"
                           alt="Doctor"
+                          style={{ height: "14rem" }}
                         />
                       </div>
                       <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12">
