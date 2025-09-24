@@ -10,7 +10,8 @@ import {
   SPECIALITIES_API,
   SPECIALITY_BY_ID_API,
   APPOINTMENTS_API,
-  PATIENTS_API
+  PATIENTS_API,
+  HEALTH_PACKAGES_API,
 } from "./index";
 
 // Add request interceptor to include auth token
@@ -347,7 +348,6 @@ export const fetchSpecialities = async () => {
 };
 
 export const appointmentsCount = async (date) => {
-  const dateParam = date ? `?date=${date}` : "";
   const response = await axios.get(APPOINTMENTS_API);
   return {
     totalAppointments: response.data.count,
@@ -379,6 +379,16 @@ export const uploadMedicalRecords = async (patientID, files) => {
     return response.data;
   } catch (error) {
     console.error("Error uploading medical records:", error);
+    throw error;
+  }
+};
+
+export const deleteHealthPackage = async (id) => {
+  try {
+    const response = await axios.delete(`${HEALTH_PACKAGES_API}?packageID=${id}`);
+    return response.data.message;
+  } catch (error) {
+    console.error("Error deleting user role:", error);
     throw error;
   }
 };
