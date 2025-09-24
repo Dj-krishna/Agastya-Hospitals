@@ -6,15 +6,13 @@ import TableComponent from "../Common/Component/TableComponent";
 import { FaPencilAlt, FaPencilRuler, FaTrashAlt } from "react-icons/fa";
 import { fetchDataGet } from "../../api/Services";
 import { HEALTH_PACKAGES_API } from "../../api";
-import PaginationComponent from "../Common/Component/PaginationComponent";
 import TableSkeleton from "../Common/Component/TableSkeleton";
-const ITEMS_PER_PAGE = 7;
 
 const HealthPackages = () => {
   const [showHealthPackageForm, setShowHealthPackageForm] = useState(false);
   const [healthPackageData, setHealthPackageData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
 
   const fetchHealthPackages = async () => {
     try {
@@ -33,19 +31,6 @@ const HealthPackages = () => {
 
   const handleAddHealthPackage = () => {
     setShowHealthPackageForm(!showHealthPackageForm);
-  };
-
-  const totalPages = Math.ceil(healthPackageData.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentData = healthPackageData.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
-  const handlePageChange = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
   };
 
   // const handleDeleteDepartment = async (id) => {
@@ -77,6 +62,10 @@ const HealthPackages = () => {
   //     });
   //   };
 
+  const filteredPackages = healthPackageData.filter((data) =>
+    data.packageName.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <Fragment>
       {!showHealthPackageForm ? (
@@ -92,6 +81,9 @@ const HealthPackages = () => {
                 <TableSkeleton />
               ) : (
                 <TableComponent
+                  isSearch={true}
+                  searchText={searchText}
+                  onSearch={(e) => setSearchText(e.target.value)}
                   headers={[
                     "Package Name",
                     "Price",
@@ -102,34 +94,35 @@ const HealthPackages = () => {
                   ]}
                   tableBody={
                     <tbody>
-                      {currentData.map((data, index) => (
-                        <tr key={index}>
-                          <td>{data.packageName}</td>
-                          <td>Rs. {data.price}/-</td>
-                          <td>{data.discountType}</td>
-                          <td>
-                            {data.discountType === "Percentage" ? "" : "Rs. "}
-                            {data.discountAmount}
-                            {data.discountType === "Percentage" ? "%" : "/-"}
-                          </td>
-                          <td>Rs. {data.discountPrice}/-</td>
-                          <td>
-                            <FaPencilAlt color="#7366ff" />
-                            &nbsp;&nbsp;<span className="text-muted">|</span>
-                            &nbsp;&nbsp;
-                            <FaTrashAlt color="#fc4438" />
-                          </td>
+                      {filteredPackages.length > 0 ? (
+                        filteredPackages.map((data, index) => (
+                          <tr key={index}>
+                            <td>{data.packageName}</td>
+                            <td>Rs. {data.price}/-</td>
+                            <td>{data.discountType}</td>
+                            <td>
+                              {data.discountType === "Percentage" ? "" : "Rs. "}
+                              {data.discountAmount}
+                              {data.discountType === "Percentage" ? "%" : "/-"}
+                            </td>
+                            <td>Rs. {data.discountPrice}/-</td>
+                            <td>
+                              <FaPencilAlt color="#7366ff" />
+                              &nbsp;&nbsp;<span className="text-muted">|</span>
+                              &nbsp;&nbsp;
+                              <FaTrashAlt color="#fc4438" />
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} className="text-center">No data found...</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   }
                 />
               )}
-              <PaginationComponent
-                currentPage={currentPage}
-                totalPages={totalPages}
-                handlePageChange={handlePageChange}
-              />
             </Row>
           </Container>
         </>
