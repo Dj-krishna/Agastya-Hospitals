@@ -50,11 +50,12 @@ const FreeSecondOpinionForm = () => {
   return (
     <div className="container p-5">
       <div className="row">
-        <div className="col-lg-6 mx-auto">
-          <p className="mb-6">
+        <div className="col-lg-5">
+          
+          {/* <p className="mb-6">
             Fill out the form below and our specialists will review your case
             and get back to you as soon as possible.
-          </p>
+          </p> */}
           {submitted ? (
             <div className="bg-green-100 text-green-700 p-4 rounded mb-4">
               Thank you for submitting your request! Our team will contact you
@@ -63,14 +64,17 @@ const FreeSecondOpinionForm = () => {
           ) : (
             <form
               onSubmit={handleSubmit}
-              className="space-y-5 bg-white p-6 rounded shadow"
+              className="booking-form-container"
             >
-              <div>
-                <label className="block font-medium mb-1" htmlFor="name">
+              <div className="booking-form-group">
+                 <h2 className="booking-form-title">
+                Book a Doctor’s Appointment
+              </h2>
+                <label className="booking-form-label" htmlFor="name">
                   Full Name
                 </label>
                 <input
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="booking-form-input"
                   type="text"
                   id="name"
                   name="name"
@@ -81,12 +85,12 @@ const FreeSecondOpinionForm = () => {
                   <span className="text-red-600 text-xs">{errors.name}</span>
                 )}
               </div>
-              <div>
-                <label className="block font-medium mb-1" htmlFor="email">
+              <div className="booking-form-group">
+                <label className="booking-form-label" htmlFor="email">
                   Email
                 </label>
                 <input
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="booking-form-input"
                   type="email"
                   id="email"
                   name="email"
@@ -97,12 +101,12 @@ const FreeSecondOpinionForm = () => {
                   <span className="text-red-600 text-xs">{errors.email}</span>
                 )}
               </div>
-              <div>
-                <label className="block font-medium mb-1" htmlFor="phone">
+              <div className="booking-form-group">
+                <label className="booking-form-label" htmlFor="phone">
                   Phone Number
                 </label>
                 <input
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="booking-form-input"
                   type="text"
                   id="phone"
                   name="phone"
@@ -113,12 +117,12 @@ const FreeSecondOpinionForm = () => {
                   <span className="text-red-600 text-xs">{errors.phone}</span>
                 )}
               </div>
-              <div>
-                <label className="block font-medium mb-1" htmlFor="message">
+              <div className="booking-form-group">
+                <label className="booking-form-label" htmlFor="message">
                   Describe Your Case
                 </label>
                 <textarea
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="booking-form-textarea"
                   id="message"
                   name="message"
                   rows={4}
@@ -129,7 +133,7 @@ const FreeSecondOpinionForm = () => {
                   <span className="text-red-600 text-xs">{errors.message}</span>
                 )}
               </div>
-              <div>
+              {/* <div>
                 <label className="block font-medium mb-1" htmlFor="reports">
                   Upload Medical Reports (optional)
                 </label>
@@ -141,12 +145,30 @@ const FreeSecondOpinionForm = () => {
                   accept=".pdf,.jpg,.jpeg,.png"
                   onChange={handleChange}
                 />
+              </div> */}
+              <div className="booking-form-group mb-3">
+                <input type="checkbox" checked /> By submitting form you agree to our terms and provicya policy.
               </div>
               <button type="submit" className="primary-btn">
                 Submit Request
               </button>
             </form>
           )}
+        </div>
+
+        <div className="col-lg-7">
+          <h2 className="paragraph-28 f-w-900 my-4">Why should you get a second opinion?</h2>
+          <p className="mb-4">Obtaining a second opinion is crucial for confirming an accurate diagnosis and exploring the best treatment options. A good consultant will appreciate the perspective of another professional.</p>
+
+          <p>When seeking a second opinion, it's important to provide the precise details of your diagnosis and the proposed treatment plan to the evaluating physician. Always ensure you have the following information and reports on hand:</p>
+
+          <ul className="list-item-brandicon">
+            <li>Copies of all your pathology findings and reports</li>
+            <li>If you have had surgery earlier, a copy of the postoperative report</li>
+            <li>If you were hospitalized earlier, the discharge summary</li>
+            <li>A summary of your current treatment plan.</li>
+            <li>Details of your current medication plan and dosage schedule</li>
+          </ul>
         </div>
       </div>
     </div>

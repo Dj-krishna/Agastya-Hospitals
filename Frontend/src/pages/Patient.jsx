@@ -82,7 +82,7 @@
 const Patient = () => {
   return (
     <div className="py-5">
-      <div className="container px-3">
+      <div className="container px-3 patient-login">
         {/* <h1 className="h1 fw-bold text-dark text-center mb-5">
           Patient Portal
         </h1> */}
