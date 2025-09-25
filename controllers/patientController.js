@@ -113,7 +113,10 @@ exports.addPatient = async (req, res) => {
     }
 
     const getNextPatientID = async () => await getNextSequence('patientID');
-    const emailExists = async (email) => await Patient.exists({ email });
+
+    // Function to check if a patient exists with given countryCode and mobile
+    const patientExistsByMobile = async (countryCode, mobile) =>
+      await Patient.exists({ countryCode, mobile });
 
     // Handle ImageKit files
     if (req.files && req.files.profilePicture) {
@@ -127,8 +130,11 @@ exports.addPatient = async (req, res) => {
 
     // Single insert
     if (!Array.isArray(payload)) {
-      if (await emailExists(payload.email)) {
-        return res.status(409).json({ error: 'A patient with this email already exists.' });
+      if (!payload.countryCode || !payload.mobile) {
+        return res.status(400).json({ error: 'countryCode and mobile are required' });
+      }
+      if (await patientExistsByMobile(payload.countryCode, payload.mobile)) {
+        return res.status(409).json({ error: 'A patient with this countryCode and mobile already exists.' });
       }
 
       if (!payload.patientID) payload.patientID = await getNextPatientID();
@@ -139,23 +145,45 @@ exports.addPatient = async (req, res) => {
     }
 
     // Bulk insert (if payload is array)
-    const emails = payload.map(doc => doc.email);
-    const existingPatients = await Patient.find({ email: { $in: emails } }, { email: 1 });
-    const existingEmails = new Set(existingPatients.map(doc => doc.email));
-    const duplicateEmails = emails.filter((email, idx) => emails.indexOf(email) !== idx);
+    // Build array of {countryCode, mobile} combos from payload
+    const mobileCombos = payload.map(doc => ({
+      countryCode: doc.countryCode,
+      mobile: doc.mobile
+    }));
 
+    // Validate presence of countryCode and mobile in payload items
+    for (const doc of payload) {
+      if (!doc.countryCode || !doc.mobile) {
+        return res.status(400).json({ error: 'Each patient must have countryCode and mobile' });
+      }
+    }
+
+    // Query existing patients with matching countryCode and mobile combinations
+    // Build $or query for MongoDB
+    const orQueries = mobileCombos.map(c => ({
+      countryCode: c.countryCode,
+      mobile: c.mobile
+    }));
+
+    const existingPatients = await Patient.find({ $or: orQueries }, { countryCode: 1, mobile: 1 });
+    const existingSet = new Set(existingPatients.map(p => `${p.countryCode}-${p.mobile}`));
+
+    // Check duplicates inside payload
+    const duplicateInPayload = new Set();
     const errors = [];
     const patientsToInsert = [];
 
     for (const doc of payload) {
-      if (existingEmails.has(doc.email)) {
-        errors.push({ email: doc.email, error: 'Email already exists in database.' });
+      const comboKey = `${doc.countryCode}-${doc.mobile}`;
+      if (existingSet.has(comboKey)) {
+        errors.push({ combo: comboKey, error: 'Patient with this countryCode and mobile exists in database.' });
         continue;
       }
-      if (duplicateEmails.includes(doc.email)) {
-        errors.push({ email: doc.email, error: 'Duplicate email in request payload.' });
+      if (duplicateInPayload.has(comboKey)) {
+        errors.push({ combo: comboKey, error: 'Duplicate countryCode and mobile in request payload.' });
         continue;
       }
+      duplicateInPayload.add(comboKey);
 
       if (!doc.patientID) doc.patientID = await getNextPatientID();
       doc.UHID = `AHA${doc.patientID}`;
@@ -186,6 +214,7 @@ exports.addPatient = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 // 🟢 UPDATE patient by filter + ImageKit + form-data friendly
 exports.updatePatient = async (req, res) => {
