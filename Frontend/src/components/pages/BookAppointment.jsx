@@ -469,22 +469,6 @@ const BookAppointment = () => {
 
   return (
     <div>
-      {/* <div className="container-fluid">
-        <div className="banner mb-12">
-          <div className="container mx-auto">
-            <div className="row">
-              <div className="col-lg-12">
-                <h2 className="banner-title">Book Appointment</h2>
-                <div className="breadcrumb">
-                  <a href="/">Home</a> <span>/</span>
-                  <span>Book Appointment</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       <div className="container pb-8">
         <div className="row">
           <div className="col-lg-8">

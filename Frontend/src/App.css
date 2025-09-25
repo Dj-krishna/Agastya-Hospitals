@@ -2336,3 +2336,7 @@ footer {
     transform: translateY(0);
   }
 }
+.modal-header{
+  background-color: #ffe7e8;
+  color: #666;
+}

@@ -25,25 +25,10 @@ const BlogDetails = () => {
     dispatch(fetchBlogs());
   }, [dispatch]);
 
-  // const fetchBlogData = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${BLOGS_API}?blogID=${blogData.blogID}`
-  //     );
-  //     if (response.data) {
-  //       setBlogs(response.data);
-  //     }
-  //   } catch {
-  //     console.log("No blog data");
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchBlogData();
-  // }, []);
   const sortedBlogs = [...blogs].sort(
     (a, b) => new Date(b.dateOfPost) - new Date(a.dateOfPost)
   );
+
   return (
     <div className="container py-5">
       <div className="row m-0">
@@ -93,7 +78,7 @@ const BlogDetails = () => {
             <h2 className="f-30 f-w-700 mb-3">Tags</h2>
             <p>
               {blogData.tags.map((tag, index) => (
-                <span key={index}>
+                <span key={index} className="f-14">
                   {tag}
                   {blogData.tags.length === index + 1 ? " " : ", "}
                 </span>

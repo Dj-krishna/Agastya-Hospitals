@@ -1,11 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import ModalComponent from "../components/common/ModalComponent";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchHealthPackages } from "../slices/healthPackages";
-import { useState } from "react";
-import ModalComponent from "../components/common/ModalComponent";
-import HealthPackagesCards from "./HealthPackagesCards";
 
-const HealthPackages = () => {
+const HealthPackagesCards = () => {
   const [isBookOpen, setIsBookOpen] = useState(false);
   const [packageData, setPackageData] = useState({});
   const [formState, setFormState] = useState({
@@ -66,23 +64,9 @@ const HealthPackages = () => {
         (typeof formState[field] === "boolean" && formState[field] === false)
     );
   };
-
   return (
-    <div className="container py-5">
-      {loading && (
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading health packages...</span>
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="alert alert-danger text-center" role="alert">
-          Failed to load health packages.
-        </div>
-      )}
-      {/* <div class="row g-4 m-0">
+    <>
+      <div class="row g-4 m-0">
         {packages.packages?.map((pkg) => (
           <div className="col-md-3">
             <div className="package-card shadow-md border-1">
@@ -119,17 +103,91 @@ const HealthPackages = () => {
             </div>
           </div>
         ))}
-      </div> */}
-      <HealthPackagesCards />
-      <div className="text-center pt-4 mt-5">
-        <p className="mb-2">
-          Need a custom package? Contact us for personalized health check-up
-          plans.
-        </p>
-        <button className="btn btn-outline-primary">Contact Us</button>
       </div>
-    </div>
+      <ModalComponent
+        isOpen={isBookOpen}
+        onHide={() => setIsBookOpen(false)}
+        data={packageData}
+        mtitle={"Book Health Package"}
+        children={
+          <form>
+            <div className="row m-0">
+              <div className="booking-form-group my-0">
+                <label for="fullName" className="booking-form-label">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  className="booking-form-input"
+                  value={formState.fullName}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                />
+              </div>
+            </div>
+            <div className="row m-0">
+              <div className="booking-form-group my-0">
+                <label for="mobileNumber" className="booking-form-label">
+                  Mobile Number
+                </label>
+                <input
+                  type="text"
+                  id="mobileNumber"
+                  name="mobileNumber"
+                  className="booking-form-input"
+                  value={formState.mobileNumber}
+                  onChange={handleChange}
+                  placeholder="Enter your mobile number"
+                />
+              </div>
+            </div>
+            <div className="row m-0">
+              <div className="booking-form-group my-0">
+                <label for="email" className="booking-form-label">
+                  Email Address
+                </label>
+                <input
+                  type="text"
+                  id="email"
+                  name="email"
+                  className="booking-form-input"
+                  value={formState.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email address"
+                />
+              </div>
+            </div>
+            <div className="row m-0">
+              <div className="col-md-12 text-center">
+                <button
+                  type="submit"
+                  className={`btn ${
+                    isFormInvalid() ? "btn-secondary" : "btn-primary"
+                  }`}
+                  disabled={isFormInvalid()}
+                >
+                  Submit
+                </button>
+                &nbsp;&nbsp;
+                <button
+                  type="button"
+                  className="btn btn-danger py-2"
+                  onClick={() => {
+                    setFormState({ fullName: "", email: "", mobileNumber: "" });
+                    setIsBookOpen(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </form>
+        }
+      />
+    </>
   );
 };
 
-export default HealthPackages;
+export default HealthPackagesCards;

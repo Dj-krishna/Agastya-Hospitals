@@ -143,7 +143,7 @@ const FindDoctor = () => {
               filteredDoctors.map((doctor) => (
                 <div
                   key={doctor.ID}
-                  className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
+                  className="col-lg-6 col-md-12 col-sm-12 col-xs-12"
                 >
                   <div className="doctor-card">
                     <div className="row g-0">
