@@ -14,13 +14,13 @@ const patientSchema = new mongoose.Schema({
     enum: ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'], // only allow these values
     required: false
   },
-  mobile: { type: String },
+  mobile: { type: String, required: true  },
   altMobile: { type: String }, 
   address: { type: String },
   profilePicture: { type: String, default: null },
   pastHistory: { type: String },
   medicalRecords: { type: [String], default: [] },
-  doctorID: { type: Number, required: true },
+  doctorID: { type: Number },
   packageIDs: [{ type: Number }]
 }, {
   timestamps: true,
