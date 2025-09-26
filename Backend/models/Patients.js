@@ -11,8 +11,7 @@ const patientSchema = new mongoose.Schema({
   countryCode: { type: String, required: true }, 
   bloodGroup: { 
     type: String,
-    enum: ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'], // only allow these values
-    required: false
+    enum: ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−']
   },
   mobile: { type: String, required: true  },
   altMobile: { type: String }, 
