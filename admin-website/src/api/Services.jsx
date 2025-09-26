@@ -392,3 +392,77 @@ export const deleteHealthPackage = async (id) => {
     throw error;
   }
 };
+
+export const createHealthPackage = async (packageData) => {
+  try {
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(packageData).forEach(key => {
+      if (packageData[key] !== null && packageData[key] !== undefined) {
+        if (key === 'image' && packageData[key] instanceof File) {
+          formData.append(key, packageData[key]);
+        } else if (Array.isArray(packageData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(packageData[key]));
+        } else {
+          formData.append(key, packageData[key]);
+        }
+      }
+    });
+
+    const response = await axios.post(HEALTH_PACKAGES_API, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating health package:", error);
+    throw error;
+  }
+};
+
+export const updateHealthPackage = async (id, packageData) => {
+  try {
+    const formData = new FormData();
+    
+    // Add all form fields to FormData
+    Object.keys(packageData).forEach(key => {
+      if (packageData[key] !== null && packageData[key] !== undefined) {
+        if (key === 'image' && packageData[key] instanceof File) {
+          formData.append(key, packageData[key]);
+        } else if (Array.isArray(packageData[key])) {
+          // Convert arrays to JSON strings
+          formData.append(key, JSON.stringify(packageData[key]));
+        } else {
+          formData.append(key, packageData[key]);
+        }
+      }
+    });
+
+    const response = await axios.put(
+      `${HEALTH_PACKAGES_API}?packageID=${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating health package:", error);
+    throw error;
+  }
+};
+
+export const fetchHealthPackageById = async (id) => {
+  try {
+    const response = await axios.get(`${HEALTH_PACKAGES_API}?packageID=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching health package by ID:", error);
+    throw error;
+  }
+};

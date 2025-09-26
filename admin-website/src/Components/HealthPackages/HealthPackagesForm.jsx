@@ -17,6 +17,8 @@ import ValidationAlert from "../Common/Component/ValidationAlert";
 import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
 import MultiSelect from "../Common/Component/MultiSelect";
 import ModelComponent from "../Common/Component/ModelComponent";
+import { createHealthPackage, updateHealthPackage, fetchHealthPackageById } from "../../api/Services";
+import { toasterConfig } from "../../utils";
 
 // Custom CSS for better checkbox visibility
 const checkboxStyles = `
@@ -97,7 +99,7 @@ const initialModalErrors = {
   phoneNumber: "",
 };
 
-const HealthPackagesForm = ({ onClose }) => {
+const HealthPackagesForm = ({ onClose, editData = null, isEdit = false }) => {
   const [formState, setFormState] = useState(initialFormState);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -106,6 +108,7 @@ const HealthPackagesForm = ({ onClose }) => {
   const [modalErrors, setModalErrors] = useState(initialModalErrors);
   const [modalData, setModalData] = useState(initialModalData);
   const [isModalSubmitted, setIsModalSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const idealForList = [
     { name: "Male", id: 1 },
@@ -122,6 +125,26 @@ const HealthPackagesForm = ({ onClose }) => {
       document.head.removeChild(styleElement);
     };
   }, []);
+
+  // Load edit data when in edit mode
+  useEffect(() => {
+    if (isEdit && editData) {
+      setFormState({
+        packageName: editData.packageName || "",
+        price: editData.price?.toString() || "",
+        discountType: editData.discountType === "Fixed" ? "fixedPrice" : "percentage",
+        discountAmount: editData.discountAmount?.toString() || "",
+        image: editData.photo || "",
+        testsQuantity: editData.totalLabTests?.toString() || "",
+        listOfCoveredTests: editData.coveredTests ? editData.coveredTests.join(", ") : "",
+        idealFor: editData.idealFor ? [editData.idealFor] : [],
+        idealForIds: editData.idealFor === "Male" ? [1] : editData.idealFor === "Female" ? [2] : editData.idealFor === "Children" ? [3] : [],
+        ageGroup: editData.ageGroup || "",
+        descriptionOfPackage: editData.description || "",
+        guidelines: editData.guidelines || "",
+      });
+    }
+  }, [isEdit, editData]);
 
   const validateField = (field, value) => {
     switch (field) {
@@ -189,15 +212,30 @@ const HealthPackagesForm = ({ onClose }) => {
   };
 
   const validateQuillField = (fieldName, value) => {
-    const stripped = value.editor
-      .getData()
-      .replace(/<[^>]+>/g, "")
-      .trim();
-    return stripped === "" ? "This field is required" : "";
+    // Check if value has editor property and getData method
+    if (value && value.editor && typeof value.editor.getData === 'function') {
+      const stripped = value.editor
+        .getData()
+        .replace(/<[^>]+>/g, "")
+        .trim();
+      return stripped === "" ? "This field is required" : "";
+    }
+    // If value is a string (already processed), validate directly
+    if (typeof value === 'string') {
+      const stripped = value.replace(/<[^>]+>/g, "").trim();
+      return stripped === "" ? "This field is required" : "";
+    }
+    return "This field is required";
   };
 
   const handleQuillChange = (field, value) => {
-    setFormState((prev) => ({ ...prev, [field]: value.editor.getData() }));
+    // Check if value has editor property and getData method
+    if (value && value.editor && typeof value.editor.getData === 'function') {
+      setFormState((prev) => ({ ...prev, [field]: value.editor.getData() }));
+    } else if (typeof value === 'string') {
+      setFormState((prev) => ({ ...prev, [field]: value }));
+    }
+    
     if (isSubmitted) {
       const errMsg = validateQuillField(field, value);
       setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
@@ -209,16 +247,17 @@ const HealthPackagesForm = ({ onClose }) => {
     // setFormErrors((prev) => ({ ...prev, [field]: errMsg }));
   };
 
-  const handleSubmit = (e, data) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitted(true);
+    setLoading(true);
 
     const newErrors = {};
     Object.keys(formState).forEach((key) => {
       if (
-        formState[key] === "listOfCoveredTests" ||
-        formState[key] === "descriptionOfPackage" ||
-        formState[key] === "guidelines"
+        key === "listOfCoveredTests" ||
+        key === "descriptionOfPackage" ||
+        key === "guidelines"
       ) {
         newErrors[key] = validateQuillField(key, formState[key]);
       } else {
@@ -226,11 +265,8 @@ const HealthPackagesForm = ({ onClose }) => {
       }
     });
     setFormErrors(newErrors);
-    const isValid =
-      Object.values(newErrors)
-        .flat()
-        .every((msg) => msg === "") &&
-      Object.values(data).every((value) => value !== "");
+    
+    const isValid = Object.values(newErrors).every((msg) => msg === "");
     const isHTMLValid = Object.values(formState).every((value) => {
       if (typeof value === "string") {
         const stripped = value.replace(/<[^>]+>/g, "").trim();
@@ -240,13 +276,47 @@ const HealthPackagesForm = ({ onClose }) => {
     });
 
     if (isValid && isHTMLValid) {
-      console.log("Form submitted successfully with data:", formState);
-      setOpenPreview(true);
-      setIsSubmitted(false);
-      // Here you can handle the form submission, e.g., send data to an API
+      try {
+        // Prepare data for API
+        const packageData = {
+          packageName: formState.packageName,
+          price: parseInt(formState.price),
+          discountType: formState.discountType === "fixedPrice" ? "Fixed" : "Percentage",
+          discountAmount: parseInt(formState.discountAmount),
+          totalLabTests: parseInt(formState.testsQuantity),
+          coveredTests: formState.listOfCoveredTests.split(',').map(test => test.trim()),
+          ageGroup: formState.ageGroup,
+          idealFor: formState.idealFor[0] || "",
+          description: formState.descriptionOfPackage,
+          guidelines: formState.guidelines,
+          image: formState.image
+        };
+
+        let response;
+        if (isEdit && editData) {
+          response = await updateHealthPackage(editData.packageID, packageData);
+        } else {
+          response = await createHealthPackage(packageData);
+        }
+
+        if (response) {
+          toasterConfig(
+            "success",
+            isEdit ? "Health package updated successfully" : "Health package created successfully"
+          );
+          onClose();
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        toasterConfig("error", "Something went wrong. Please try again.");
+      } finally {
+        setLoading(false);
+        setIsSubmitted(false);
+      }
     } else {
       console.log("Form has errors:", newErrors);
-      console.log("Form errors with data:", formState);
+      setLoading(false);
+      setIsSubmitted(false);
     }
   };
   const handleRadioChange = (e) => {
@@ -394,7 +464,7 @@ const HealthPackagesForm = ({ onClose }) => {
                 <Form
                   className="needs-validation"
                   noValidate=""
-                  onSubmit={(e) => handleSubmit(e, formState)}
+                  onSubmit={handleSubmit}
                 >
                   <Row>
                     <Col md="4 mb-3">
@@ -668,8 +738,8 @@ const HealthPackagesForm = ({ onClose }) => {
                   </Row>
                   <Row>
                     <Col>
-                      <Button type="submit" color="primary">
-                        Proceed to Buy
+                      <Button type="submit" color="primary" disabled={loading}>
+                        {loading ? "Processing..." : isEdit ? "Update Package" : "Create Package"}
                       </Button>
                     </Col>
                   </Row>

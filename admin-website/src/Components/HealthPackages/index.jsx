@@ -4,7 +4,7 @@ import { Breadcrumbs } from "../../AbstractElements";
 import { Container, Row } from "reactstrap";
 import TableComponent from "../Common/Component/TableComponent";
 import { FaPencilAlt,  FaTrashAlt } from "react-icons/fa";
-import { fetchDataGet } from "../../api/Services";
+import { fetchDataGet, fetchHealthPackageById } from "../../api/Services";
 import { HEALTH_PACKAGES_API } from "../../api";
 import TableSkeleton from "../Common/Component/TableSkeleton";
 import { deleteHealthPackage } from "../../api/Services";
@@ -16,6 +16,8 @@ const HealthPackages = () => {
   const [healthPackageData, setHealthPackageData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [editData, setEditData] = useState(null);
+  const [isEdit, setIsEdit] = useState(false);
 
   const fetchHealthPackages = async () => {
     try {
@@ -33,7 +35,31 @@ const HealthPackages = () => {
   }, []);
 
   const handleAddHealthPackage = () => {
+    setEditData(null);
+    setIsEdit(false);
     setShowHealthPackageForm(!showHealthPackageForm);
+  };
+
+  const handleEditHealthPackage = async (packageID) => {
+    try {
+      setLoading(true);
+      const data = await fetchHealthPackageById(packageID);
+      setEditData(data);
+      setIsEdit(true);
+      setShowHealthPackageForm(true);
+    } catch (error) {
+      console.error("Error fetching package for edit:", error);
+      toasterConfig("error", "Failed to load package data for editing");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setShowHealthPackageForm(false);
+    setEditData(null);
+    setIsEdit(false);
+    fetchHealthPackages(); // Refresh the list
   };
 
 
@@ -111,10 +137,18 @@ const HealthPackages = () => {
                             </td>
                             <td>Rs. {data.discountPrice}/-</td>
                             <td>
-                              <FaPencilAlt color="#7366ff" />
+                              <FaPencilAlt 
+                                color="#7366ff" 
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleEditHealthPackage(data.packageID)}
+                              />
                               &nbsp;&nbsp;<span className="text-muted">|</span>
                               &nbsp;&nbsp;
-                              <FaTrashAlt color="#fc4438" onClick={()=>handleDelete(data.packageID)}/>
+                              <FaTrashAlt 
+                                color="#fc4438" 
+                                style={{ cursor: 'pointer' }}
+                                onClick={()=>handleDelete(data.packageID)}
+                              />
                             </td>
                           </tr>
                         ))
@@ -131,7 +165,11 @@ const HealthPackages = () => {
           </Container>
         </>
       ) : (
-        <HealthPackagesForm onClose={handleAddHealthPackage} />
+        <HealthPackagesForm 
+          onClose={handleCloseForm} 
+          editData={editData}
+          isEdit={isEdit}
+        />
       )}
     </Fragment>
   );
