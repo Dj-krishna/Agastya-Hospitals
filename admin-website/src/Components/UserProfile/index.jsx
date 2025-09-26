@@ -25,6 +25,7 @@ import {
 } from "reactstrap";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { updatePassword } from "../../api/Services";
 
 const UserProfileCard = () => {
   const [togglePwd, setTogglePwd] = useState(false);
@@ -39,12 +40,22 @@ const UserProfileCard = () => {
     setNewpwd("");
     setConfirmpwd("");
   };
-  const updatePassword = (e) => {
+  const onUpdatePassword = async (e) => {
     e.preventDefault();
-    console.log(currentpwd, "\n", newpwd, "\n", confirmpwd);
-    resetForm();
-    toast.success("Password is updated!");
-    setTogglePwd(false);
+    try {
+      const payload = {
+        currentPassword: currentpwd,
+        newPassword: newpwd,
+        confirmPassword: confirmpwd,
+      };
+      const res = await updatePassword(payload);
+      toast.success(res?.message || "Password updated successfully");
+      resetForm();
+      setTogglePwd(false);
+    } catch (error) {
+      const msg = error.response?.data?.message || error.response?.data?.error || "Failed to update password";
+      toast.error(msg);
+    }
   };
 
   return (
@@ -97,7 +108,7 @@ const UserProfileCard = () => {
             <Col md="6">
               <Card>
                 <CardBody>
-                  <Form onSubmit={updatePassword}>
+                  <Form onSubmit={onUpdatePassword}>
                     <FormGroup>
                       <Label>Current Password</Label>
                       <Input

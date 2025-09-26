@@ -1,6 +1,7 @@
 import axios from "axios";
 import {
   LOGIN_URL,
+  // add new constant if needed in index.jsx later
   DOCTORS_API,
   USER_ROLES_API,
   USERS_API,
@@ -12,6 +13,7 @@ import {
   APPOINTMENTS_API,
   PATIENTS_API,
   HEALTH_PACKAGES_API,
+  UpdatePassword_URL
 } from "./index";
 
 // Add request interceptor to include auth token
@@ -68,6 +70,25 @@ export const fetchDataPost = async (url, data, options = {}) => {
 export const fetchDataPut = async (url, data, options = {}) => {
   try {
     const response = await axios.put(url, data, options);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Auth - Update Password
+export const updatePassword = async ({ currentPassword, newPassword, confirmPassword }) => {
+  try {
+    const response = await axios.put(
+      `${UpdatePassword_URL}`,
+      { currentPassword, newPassword, confirmPassword },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization header is injected by interceptor from localStorage token
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     throw error;

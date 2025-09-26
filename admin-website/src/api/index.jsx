@@ -21,6 +21,7 @@ export const CREATE_BLOGS_API = `${baseUrl}/${api}/blogs`;
 export const UPDATE_BLOGS_API = `${baseUrl}/${api}/blogs`;
 export const DELETE_BLOGS_API = `${baseUrl}/${api}/blogs`;
 export const TECHNOLOGIES_API = `${baseUrl}/${api}/technologies`;
+export const UpdatePassword_URL = `${baseUrl}/${api}/auth/update-password`;
 
 export const TaskApi = `${api}/task.json`;
 export const BookmarkApi = `${api}/bookmark.json`;
