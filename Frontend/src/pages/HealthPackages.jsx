@@ -82,44 +82,6 @@ const HealthPackages = () => {
           Failed to load health packages.
         </div>
       )}
-      {/* <div class="row g-4 m-0">
-        {packages.packages?.map((pkg) => (
-          <div className="col-md-3">
-            <div className="package-card shadow-md border-1">
-              <span className="discount-badge">
-                {getDiscountPercentage(pkg)}% Off
-              </span>
-              <h5 className="packagename">{pkg.packageName}</h5>
-              <p className="tests-covered">Tests Covered: 24</p>
-              <ul
-                className="tests-list"
-                style={{
-                  height: "100px",
-                  overflowY: "scroll",
-                  listStylePosition: "outside",
-                  paddingLeft: "20px",
-                }}
-              >
-                {pkg.coveredTests.map((test, idx) => (
-                  <li key={idx}>{test}</li>
-                ))}
-              </ul>
-              <div className="price-container">
-                <span className="price">
-                  INR {pkg.price.toLocaleString("en-IN")}/-
-                </span>
-                <span className="old-price">INR {getOriginalPrice(pkg)}/-</span>
-              </div>
-              <button
-                className="packagebook-btn mt-3"
-                onClick={() => openBookNow(pkg)}
-              >
-                Book Now
-              </button>
-            </div>
-          </div>
-        ))}
-      </div> */}
       <HealthPackagesCards />
       <div className="text-center pt-4 mt-5">
         <p className="mb-2">

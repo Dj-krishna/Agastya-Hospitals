@@ -11,6 +11,7 @@ const HealthPackagesSection = () => {
     mobileNumber: "",
     email: "",
   });
+  const [showNote, setShowNote] = useState(false);
   const dispatch = useDispatch();
   const {
     healthPackages: packages,
@@ -45,6 +46,7 @@ const HealthPackagesSection = () => {
   }
 
   const openBookNow = (data) => {
+    setIsBookOpen(false);
     setPackageData(data);
     setIsBookOpen(true);
   };
@@ -63,6 +65,21 @@ const HealthPackagesSection = () => {
         formState[field] === "" ||
         (typeof formState[field] === "boolean" && formState[field] === false)
     );
+  };
+
+  const closeBooking = () => {
+    setShowNote(false);
+    setFormState({
+      fullName: "",
+      email: "",
+      mobileNumber: "",
+    });
+    setIsBookOpen(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setShowNote(true);
   };
   return (
     <div>
@@ -208,84 +225,96 @@ const HealthPackagesSection = () => {
       </section>
       <ModalComponent
         isOpen={isBookOpen}
-        onHide={() => setIsBookOpen(false)}
+        onHide={closeBooking}
         data={packageData}
         mtitle={"Book Health Package"}
         children={
-          <form>
-            <div className="row m-0">
-              <div className="booking-form-group my-0">
-                <label for="fullName" className="booking-form-label">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  className="booking-form-input"
-                  value={formState.fullName}
-                  onChange={handleChange}
-                  placeholder="Enter your full name"
-                />
-              </div>
-            </div>
-            <div className="row m-0">
-              <div className="booking-form-group my-0">
-                <label for="mobileNumber" className="booking-form-label">
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  className="booking-form-input"
-                  value={formState.mobileNumber}
-                  onChange={handleChange}
-                  placeholder="Enter your mobile number"
-                />
-              </div>
-            </div>
-            <div className="row m-0">
-              <div className="booking-form-group my-0">
-                <label for="email" className="booking-form-label">
-                  Email Address
-                </label>
-                <input
-                  type="text"
-                  id="email"
-                  name="email"
-                  className="booking-form-input"
-                  value={formState.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email address"
-                />
-              </div>
-            </div>
-            <div className="row m-0">
-              <div className="col-md-12 text-center">
-                <button
-                  type="submit"
-                  className={`btn ${
-                    isFormInvalid() ? "btn-secondary" : "btn-primary"
-                  }`}
-                  disabled={isFormInvalid()}
-                >
-                  Submit
-                </button>
-                &nbsp;&nbsp;
-                <button
-                  type="button"
-                  className="btn btn-danger py-2"
-                  onClick={() => {
-                    setFormState({ fullName: "", email: "", mobileNumber: "" });
-                    setIsBookOpen(false);
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </form>
+          <>
+            {showNote ? (
+              <p className="f-16 f-w-400 text-center">
+                Thank you,{" "}
+                <span className="f-w-600 text-success">
+                  {formState.fullName}
+                </span>
+                . <br />
+                Your request for the Health Package has been successfully
+                submitted. <br />
+                Our team will review it and get back to you shortly.
+              </p>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <div className="row m-0">
+                  <div className="booking-form-group my-0">
+                    <label for="fullName" className="booking-form-label">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      className="booking-form-input"
+                      value={formState.fullName}
+                      onChange={handleChange}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                </div>
+                <div className="row m-0">
+                  <div className="booking-form-group my-0">
+                    <label for="mobileNumber" className="booking-form-label">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="text"
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      className="booking-form-input"
+                      value={formState.mobileNumber}
+                      onChange={handleChange}
+                      placeholder="Enter your mobile number"
+                    />
+                  </div>
+                </div>
+                <div className="row m-0">
+                  <div className="booking-form-group my-0">
+                    <label for="email" className="booking-form-label">
+                      Email Address
+                    </label>
+                    <input
+                      type="text"
+                      id="email"
+                      name="email"
+                      className="booking-form-input"
+                      value={formState.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email address"
+                    />
+                  </div>
+                </div>
+                <div className="row m-0">
+                  <div className="col-md-12 text-center">
+                    <button
+                      type="submit"
+                      className={`btn ${
+                        isFormInvalid() ? "btn-secondary" : "btn-primary"
+                      }`}
+                      disabled={isFormInvalid()}
+                    >
+                      Submit
+                    </button>
+                    &nbsp;&nbsp;
+                    <button
+                      type="button"
+                      className="btn btn-danger py-2"
+                      onClick={closeBooking}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+          </>
         }
       />
     </div>
