@@ -16,9 +16,8 @@ import {
 import ValidationAlert from "../Common/Component/ValidationAlert";
 import { FaCalendarAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
-import axios from "axios";
 import { toasterConfig } from "../../utils";
-import { PATIENT_API, UPDATE_PATIENT } from "../../api";
+import { createPatient, updatePatient } from "../../api/Services";
 import { countryCodes } from "../../api/countryCode";
 
 const initialFormData = {
@@ -30,7 +29,6 @@ const initialFormData = {
   bloodGroup: "",
   altPhoneNumber: "",
   uhid: "",
-  address: "",
   pastHistory: "",
   gender: "",
   profilePicture: "",
@@ -45,7 +43,6 @@ const initialFormErrors = {
   bloodGroup: "",
   altPhoneNumber: "",
   uhid: "",
-  address: "",
   pastHistory: "",
   gender: "",
   profilePicture: "",
@@ -55,15 +52,26 @@ const PatientForm = ({ onClose, formType, patientData }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState(initialFormErrors);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setFormData({
-      formData,
-      ...patientData,
-      uhid: formType === "Edit" ? patientData?.UHID : formData.uhid,
-      dob: formType === "Edit" ? patientData?.dob : formData.dob,
-    });
-  }, [patientData, formType === "Edit"]);
+    console.log("PatientForm useEffect - formType:", formType, "patientData:", patientData);
+    if (formType === "Edit" && patientData) {
+      setFormData({
+        ...formData,
+        ...patientData,
+        uhid: patientData?.UHID || "",
+        dob: patientData?.dob ? new Date(patientData.dob) : new Date(),
+      });
+    } else {
+      setFormData(initialFormData);
+    }
+  }, [patientData, formType]);
+
+  // Debug form data changes
+  useEffect(() => {
+    console.log("Form data updated:", formData);
+  }, [formData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,16 +89,18 @@ const PatientForm = ({ onClose, formType, patientData }) => {
         return value ? "" : "Address is required";
       case "dob":
         return value ? "" : "Date of Birth is required";
-      case "bloodGroup":
-        return value ? "" : "Blood Group is required";
-      case "altPhoneNumber":
-        return value ? "" : "Alternate Phone Number is required";
-      case "uhid":
-        return value ? "" : "UHID is required";
-      case "pastHistory":
-        return value ? "" : "Past History is required";
       case "gender":
         return value ? "" : "Gender is required";
+      case "countryCode":
+        return value ? "" : "Country Code is required";
+      // Optional fields - no validation required
+      case "bloodGroup":
+      case "altPhoneNumber":
+      case "uhid":
+      case "pastHistory":
+      case "email":
+      case "profilePicture":
+        return "";
       default:
         return "";
     }
@@ -106,68 +116,92 @@ const PatientForm = ({ onClose, formType, patientData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form submitted with data:", formData);
     setIsSubmitted(true);
+    setLoading(true);
+    
+    // Basic validation - only check if essential fields are filled
+    if (!formData.fullName || !formData.mobile || !formData.address || !formData.gender) {
+      console.log("Missing required fields");
+      toasterConfig("error", "Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+    
+    // Only validate required fields
+    const requiredFields = ['fullName', 'mobile', 'address', 'dob', 'gender', 'countryCode'];
     let isValid = true;
     const errors = {};
-    Object.keys(formData).forEach((field) => {
+    
+    requiredFields.forEach((field) => {
       const errorMsg = validateField(field, formData[field]);
       if (errorMsg) {
         errors[field] = errorMsg;
         isValid = false;
       }
     });
-    if (formData.dob) {
-      const dobError = validateField("dob", formData.dob);
-      if (dobError) {
-        errors.dob = dobError;
-        isValid = false;
-      }
-    }
+    
     setFormErrors(errors);
+    
     if (!isValid) {
+      console.log("Form validation failed:", errors);
+      setLoading(false);
       return;
     }
 
-    const createRequest = {
-      fullName: formData.fullName,
-      dob: formData.dob,
-      gender: formData.gender,
-      email: formData.email,
-      phone: formData.mobile,
-      address: formData.address,
-      profilePicture: "",
-      transactions: [],
-      labRecords: [],
-      visits: [],
-      doctorID: "",
-      packageIDs: [],
-      mobile: formData.mobile,
-      countryCode: formData.countryCode,
-    };
-
-    const updateRequest = {};
-
-    var response = {};
-    var message = "";
-
     try {
+      // Prepare data according to API format
+      const patientRequestData = {
+        fullName: formData.fullName,
+        dob: formData.dob instanceof Date ? formData.dob.toISOString().split('T')[0] : formData.dob,
+        gender: formData.gender,
+        email: formData.email || "",
+        mobile: formData.mobile,
+        address: formData.address,
+        countryCode: formData.countryCode,
+        bloodGroup: formData.bloodGroup || "",
+        altMobile: formData.altPhoneNumber || "",
+        pastHistory: formData.pastHistory || "",
+        doctorID: formData.doctorID || 1, // Default doctor ID
+        packageIDs: formData.packageIDs || [2] // Default package ID
+      };
+
+      console.log("Sending API request with data:", patientRequestData);
+      console.log("Form type:", formType);
+
+      let response;
+      let message;
+
       if (formType === "Edit") {
-        response = await axios.put(
-          `${UPDATE_PATIENT}?patientID=${formData?.patientID}`,
-          formData
-        );
-        message = "Updated the patient details";
+        console.log("Updating patient with ID:", formData.patientID);
+        response = await updatePatient(formData.patientID, patientRequestData);
+        message = "Patient updated successfully";
       } else {
-        response = await axios.post(UPDATE_PATIENT, createRequest);
-        message = "Created the patient successfully";
+        console.log("Creating new patient");
+        response = await createPatient(patientRequestData);
+        message = "Patient created successfully";
       }
+
+      console.log("API response:", response);
+
       if (response) {
         toasterConfig("success", message);
+        onClose();
       }
-      onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toasterConfig("error", "Something went wrong!");
+      
+      // Handle specific error cases
+      if (error.response?.data?.error?.includes("already exists")) {
+        toasterConfig("error", "A patient with this country code and mobile number already exists.");
+      } else if (error.response?.data?.message) {
+        toasterConfig("error", error.response.data.message);
+      } else {
+        toasterConfig("error", "Something went wrong. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+      setIsSubmitted(false);
     }
   };
 
@@ -374,8 +408,13 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                       />
                     </Col>
                     <Col className="col-md-12 text-center mt-2">
-                      <Button type="submit" color="primary">
-                        Save
+                      <Button 
+                        type="submit" 
+                        color="primary" 
+                        disabled={loading}
+                        onClick={() => console.log("Button clicked!")}
+                      >
+                        {loading ? "Processing..." : formType === "Edit" ? "Update Patient" : "Create Patient"}
                       </Button>
                     </Col>
                   </Row>

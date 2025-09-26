@@ -8,8 +8,7 @@ import PatientForm from "./PatientForm";
 import PatientDetails from "./PatientDetails";
 import { fetchPatients } from "../../slices/patientSlice";
 import TableSkeleton from "../Common/Component/TableSkeleton";
-import axios from "axios";
-import { UPDATE_PATIENT } from "../../api";
+import { deletePatient as deletePatientAPI } from "../../api/Services";
 import { toasterConfig } from "../../utils";
 import Swal from "sweetalert2";
 
@@ -48,7 +47,7 @@ const Patients = () => {
     dispatch(fetchPatients());
   }, [dispatch]);
 
-  const deletePatient = async (id) => {
+  const handleDeletePatient = async (id) => {
     Swal.fire({
       title: "Are you sure?",
       text: "Do you want to delete this patient?",
@@ -60,19 +59,18 @@ const Patients = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(
-            `${UPDATE_PATIENT}?patientID=${id}`
-          );
+          const response = await deletePatientAPI(id);
           if (response) {
             toasterConfig(
               "success",
-              response.data?.message || "Deleted successfully"
+              response.message || "Patient deleted successfully"
             );
             dispatch(fetchPatients()); // Refresh the list
           } else {
             toasterConfig("error", "Something went wrong");
           }
         } catch (error) {
+          console.error("Error deleting patient:", error);
           toasterConfig("error", "Something went wrong");
         }
       }
@@ -152,7 +150,8 @@ const Patients = () => {
                                 &nbsp;&nbsp;
                                 <FaTrashAlt
                                   color="#fc4438"
-                                  onClick={() => deletePatient(data.patientID)}
+                                  style={{ cursor: 'pointer' }}
+                                  onClick={() => handleDeletePatient(data.patientID)}
                                 />
                               </td>
                             </tr>
@@ -169,7 +168,10 @@ const Patients = () => {
           </>
         ) : (
           <PatientForm
-            onClose={() => setShowPatientsForm(false)}
+            onClose={() => {
+              setShowPatientsForm(false);
+              dispatch(fetchPatients()); // Refresh the list after form submission
+            }}
             patientData={patientData}
             formType={formType}
           />

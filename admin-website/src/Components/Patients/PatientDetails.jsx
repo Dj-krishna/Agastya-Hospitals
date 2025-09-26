@@ -79,7 +79,7 @@ const PatientDetails = ({ patientDetails }) => {
               headers={["Record ID", "Date", "Reason", "Description", "Doctor"]}
               tableBody={
                 <tbody>
-                  {patientDetails.visits?.length === 0 ? (
+                  {patientDetails.medicalRecords?.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="text-center">
                         No medical records found.

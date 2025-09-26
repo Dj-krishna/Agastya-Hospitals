@@ -466,3 +466,56 @@ export const fetchHealthPackageById = async (id) => {
     throw error;
   }
 };
+
+// Patient CRUD API functions
+export const createPatient = async (patientData) => {
+  try {
+    const response = await axios.post(PATIENTS_API, patientData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating patient:", error);
+    throw error;
+  }
+};
+
+export const updatePatient = async (id, patientData) => {
+  try {
+    const response = await axios.put(
+      `${PATIENTS_API}?patientID=${id}`,
+      patientData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    throw error;
+  }
+};
+
+export const deletePatient = async (id) => {
+  try {
+    const response = await axios.delete(`${PATIENTS_API}?patientID=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting patient:", error);
+    throw error;
+  }
+};
+
+export const fetchPatientById = async (id) => {
+  try {
+    const response = await axios.get(`${PATIENTS_API}?patientID=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    throw error;
+  }
+};
