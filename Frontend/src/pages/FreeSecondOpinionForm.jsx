@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import EnquiryForm from "./EnquiryForm";
 
 const initialState = {
   fullName: "",
@@ -71,109 +72,7 @@ const FreeSecondOpinionForm = () => {
               soon.
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="booking-form-container">
-              <div className="booking-form-group">
-                <h2 className="booking-form-title">Enquire Now</h2>
-                <label className="booking-form-label" htmlFor="fullName">
-                  Full Name
-                </label>
-                <input
-                  className="booking-form-input"
-                  type="text"
-                  id="fullName"
-                  name="fullName"
-                  value={formState.fullName}
-                  placeholder="Enter full name"
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="booking-form-group">
-                <label className="booking-form-label" htmlFor="mobileNumber">
-                  Mobile Number
-                </label>
-                <input
-                  className="booking-form-input"
-                  type="text"
-                  id="mobileNumber"
-                  name="mobileNumber"
-                  value={formState.mobileNumber}
-                  placeholder="Enter phone number"
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="booking-form-group">
-                <input
-                  id="isWhatsApp"
-                  type="checkbox"
-                  checked={formState.isWhatsApp}
-                  onChange={() =>
-                    setFormState({
-                      ...formState,
-                      isWhatsApp: !formState.isWhatsApp,
-                    })
-                  }
-                />{" "}
-                <label className="f-14" htmlFor="isWhatsApp">
-                  This is my WhatsApp number
-                </label>
-              </div>
-              <div className="booking-form-group">
-                <label className="booking-form-label" htmlFor="email">
-                  Email
-                </label>
-                <input
-                  className="booking-form-input"
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formState.email}
-                  placeholder="Enter email address"
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="booking-form-group">
-                <label className="booking-form-label" htmlFor="message">
-                  Message
-                </label>
-                <textarea
-                  className="booking-form-textarea"
-                  id="message"
-                  name="message"
-                  rows={4}
-                  value={formState.message}
-                  placeholder="Enter your query"
-                  onChange={handleChange}
-                />
-                {errors.message && (
-                  <span className="text-red-600 text-xs">{errors.message}</span>
-                )}
-              </div>
-              <div className="booking-form-group mb-3">
-                <input
-                  id="agreePolicy"
-                  type="checkbox"
-                  checked={formState.agreePolicy}
-                  onChange={() =>
-                    setFormState({
-                      ...formState,
-                      agreePolicy: !formState.agreePolicy,
-                    })
-                  }
-                />{" "}
-                <label className="f-14" htmlFor="agreePolicy">
-                  I agree to the Terms & Conditions and Privacy Policy.
-                </label>
-              </div>
-              <button
-                type="submit"
-                className={`rounded-5 btn ${
-                  isFormInvalid() ? "btn-secondary" : "btn-primary"
-                }`}
-                disabled={isFormInvalid()}
-              >
-                Submit Request
-              </button>
-            </form>
+            <EnquiryForm />
           )}
         </div>
 

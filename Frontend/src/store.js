@@ -3,6 +3,7 @@ import doctorReducer from "./slices/doctorsSlice";
 import blogReducer from "./slices/blogSlice";
 import healthPackagesReducer from "./slices/healthPackages";
 import specialtyReducer from "./slices/specialtySlice";
+import breadcrumbReducer from "./slices/breadcrumbSlice";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     blogs: blogReducer,
     healthPackages: healthPackagesReducer,
     specialties: specialtyReducer,
+    breadcrumb: breadcrumbReducer,
   },
 });
 

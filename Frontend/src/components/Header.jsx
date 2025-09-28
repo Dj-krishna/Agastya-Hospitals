@@ -1,9 +1,33 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
+import { fetchSpecialties } from "../slices/specialtySlice";
+import { useEffect } from "react";
 
 const Header = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { specialties, loading: isLoading } = useSelector(
+    (state) => state.specialties
+  );
+
+  useEffect(() => {
+    dispatch(fetchSpecialties());
+  }, [dispatch]);
+
+  const sortedData = Array.isArray(specialties?.data)
+    ? [...specialties?.data].map((item) => {
+        return {
+          path: item.specialityName.toLowerCase().replace(" ", "-"),
+          label: item.specialityName,
+        };
+      })
+    : [];
   const { pathname } = useLocation();
+  console.log("PATHNAME::: ", pathname);
+
+  const trail = useSelector((state) => state.breadcrumb.trail) || [];
 
   // Navigation items
   const navItems = [
@@ -41,7 +65,12 @@ const Header = () => {
     { path: "/gallery", label: "Gallery" },
   ];
 
-  const allNavItems = [...navItems, ...nonHeaderPaths, ...aboutDropdown];
+  const allNavItems = [
+    ...navItems,
+    ...nonHeaderPaths,
+    ...aboutDropdown,
+    ...sortedData,
+  ];
 
   // Derive page title from pathname
   const currentPage =
@@ -77,7 +106,8 @@ const Header = () => {
       {/* Main Navigation */}
       <nav
         className={`container-fluid mx-auto px-2 pt-4 pb-0 main-navigation ${
-          currentPage && currentPage !== "Home" ? "banner" : ""
+          // currentPage && currentPage !== "Home"
+          trail.some((nav) => nav !== "Home") ? "banner" : ""
         }`}
       >
         <div className="container d-flex justify-between items-center position-relative z-3">
@@ -105,6 +135,9 @@ const Header = () => {
                   className={`hover:text-blue-600 inline-flex align-items-center ${
                     pathname === path ? "font-semibold text-blue-700" : ""
                   }`}
+                  onClick={() => {
+                    dispatch(setBreadcrumb(["Home", label]));
+                  }}
                 >
                   <span>{label}</span>
                   {label === "About Us" && (
@@ -133,7 +166,7 @@ const Header = () => {
         </div>
 
         {/* Banner & Breadcrumb */}
-        {currentPage && currentPage !== "Home" && (
+        {currentPage !== "Home" && (
           <div className="container">
             <div className="row">
               <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
@@ -141,8 +174,19 @@ const Header = () => {
               </div>
               <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
                 <div className="breadcrumb">
-                  <Link to="/">Home</Link> <span>/</span>
-                  <span style={{ color: "#000000" }}>{currentPage}</span>
+                  {/* <Link to="/">Home</Link> <span>/</span>
+                  <span style={{ color: "#000000" }}>{currentPage}</span> */}
+                  {Array.isArray(trail) &&
+                    trail.map((crumb, index) => (
+                      <span key={index} className="flex items-center gap-2">
+                        {index < trail.length - 1 ? (
+                          <Link to="/">{crumb}</Link>
+                        ) : (
+                          <span className="f-w-600">{crumb}</span>
+                        )}
+                        {index < trail.length - 1 && <span>/</span>}
+                      </span>
+                    ))}
                 </div>
               </div>
             </div>

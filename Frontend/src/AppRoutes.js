@@ -21,6 +21,7 @@ import Leadership from "./pages/Leadership";
 import MedicalReports from "./pages/MedicalReports";
 import Patient from "./pages/Patient";
 import Specialties from "./pages/Specialties";
+import SpecialtyDetails from "./pages/SpecialtyDetails";
 
 export const routes = [
   { path: "/", component: Home },
@@ -46,4 +47,5 @@ export const routes = [
   { path: "/gallery", component: Gallery },
   { path: "/international-patient", component: InternationalPatient },
   { path: "/blog-details", component: BlogDetails },
+  { path: "/:id", component: SpecialtyDetails },
 ];

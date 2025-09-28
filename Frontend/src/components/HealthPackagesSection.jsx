@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchHealthPackages } from "../slices/healthPackages";
 import ModalComponent from "./common/ModalComponent";
@@ -18,6 +18,7 @@ const HealthPackagesSection = () => {
     loading,
     error,
   } = useSelector((state) => state);
+  const scrollRef = useRef();
 
   useEffect(() => {
     dispatch(fetchHealthPackages());
@@ -81,6 +82,17 @@ const HealthPackagesSection = () => {
     e.preventDefault();
     setShowNote(true);
   };
+
+  const handleDotClick = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = 300; // adjust for card width
+      if (direction === "left") {
+        scrollRef.current.scrollBy({ left: -scrollAmount, behavior: "smooth" });
+      } else {
+        scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+      }
+    }
+  };
   return (
     <div>
       <section className="healthpackage-section">
@@ -105,9 +117,28 @@ const HealthPackagesSection = () => {
                     </h2>
                   </div>
                 </div>
-
-                <div class="row g-4">
-                  {packages.packages?.slice(0, 2)?.map((pkg) => (
+                
+                <div className="text-right mb-3">
+                  <button
+                    className="bg-white p-0 px-3 rounded-5 shadow-lg"
+                    onClick={() => handleDotClick("left")}
+                  >
+                    <span className="f-18">←</span>
+                  </button>
+                  &nbsp;
+                  <button
+                    className="bg-white rounded-5 shadow-lg p-0 px-3"
+                    onClick={() => handleDotClick("right")}
+                  >
+                    <span className="f-18">→</span>
+                  </button>
+                </div>
+                <div
+                  className="flex gap-6 overflow-x-auto pb-4 specialties-bg-scroller"
+                  ref={scrollRef}
+                >
+                  {/* <div class="row g-4"> */}
+                  {packages.packages?.map((pkg) => (
                     <div className="col-md-5">
                       <div className="package-card shadow-md border-1">
                         <span className="discount-badge">
@@ -145,6 +176,7 @@ const HealthPackagesSection = () => {
                       </div>
                     </div>
                   ))}
+                  {/* </div> */}
                 </div>
               </div>
             </div>
