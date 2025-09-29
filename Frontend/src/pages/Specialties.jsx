@@ -15,9 +15,11 @@ const Specialties = () => {
     dispatch(fetchSpecialties());
   }, [dispatch]);
 
-  const sortedData = [...specialties?.data].sort((a, b) =>
-    a.specialityName.localeCompare(b.specialityName)
-  );
+  const sortedData = Array.isArray(specialties?.data)
+    ? [...specialties?.data].sort((a, b) =>
+        a.specialityName.localeCompare(b.specialityName)
+      )
+    : [];
 
   return (
     <div>

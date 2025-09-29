@@ -4,11 +4,13 @@ import { useState } from "react";
 import { DOCTORS_API } from "../../api/services";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setBreadcrumb } from "../../slices/breadcrumbSlice";
 
 const DoctorProfile = () => {
   const [doctorProfile, setDoctorProfile] = useState({});
   const [loading, setLoading] = useState(false);
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const doctorID = location.state?.doctorID;
@@ -105,7 +107,10 @@ const DoctorProfile = () => {
               <div className="mt-4 text-center">
                 <button
                   className="btn rounded-pill px-3 py-2 book-btn f-12"
-                  onClick={() => navigate("/book-appointment")}
+                  onClick={() => {
+                    dispatch(setBreadcrumb(["Home", "Book Appointment"]));
+                    navigate("/book-appointment");
+                  }}
                 >
                   Book Appointment
                 </button>

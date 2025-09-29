@@ -2,12 +2,15 @@ import { useRef } from "react";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpecialties } from "../slices/specialtySlice";
+import { useNavigate } from "react-router-dom";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
 
 const SpecialtiesSection = () => {
-  const scrollRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeCard, setActiveCard] = useState("");
-
+  const scrollRef = useRef(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   // const dispatch = useDispatch();
   // const { specialties, loading: isLoading } = useSelector(
   //   (state) => state.specialties
@@ -84,8 +87,12 @@ const SpecialtiesSection = () => {
             <h2 className="main-title">Our Specialties</h2>
           </div>
           <a
-            href="/specialties"
-            className="text-hospital-blue hover:text-hospital-dark-blue font-medium"
+            onClick={() => {
+              window.scrollTo(0, 0);
+              dispatch(setBreadcrumb(["Home", "Specialties"]));
+              navigate("/specialties");
+            }}
+            className="text-primary f-w-600 f-18 cursor-pointer"
           >
             View All Specialties
           </a>
