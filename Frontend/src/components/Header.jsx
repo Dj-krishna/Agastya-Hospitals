@@ -88,13 +88,24 @@ const Header = () => {
             </span>
           </div>
           <div className="d-flex items-center space-x-4">
-            <Link to="/patient" className="patientlogin">
+            <Link
+              to="/patient"
+              className="patientlogin"
+              onClick={() => {
+                dispatch(setBreadcrumb(["Home", "Patient Login"]));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
               <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392814/agastya/patient-login.svg" />
               Patient Login
             </Link>
             <button
               className="bookappointment d-flex items-center space-x-1"
-              onClick={() => navigate("/book-appointment")}
+              onClick={() => {
+                dispatch(setBreadcrumb(["Home", "Book Appointment"]));
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                navigate("/book-appointment");
+              }}
             >
               <i className="lni lni-calendar-days icon"></i>
               <span>Book Appointment</span>
@@ -174,13 +185,16 @@ const Header = () => {
               </div>
               <div className="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
                 <div className="breadcrumb">
-                  {/* <Link to="/">Home</Link> <span>/</span>
-                  <span style={{ color: "#000000" }}>{currentPage}</span> */}
                   {Array.isArray(trail) &&
                     trail.map((crumb, index) => (
                       <span key={index} className="flex items-center gap-2">
                         {index < trail.length - 1 ? (
-                          <Link to="/">{crumb}</Link>
+                          <Link
+                            to="/"
+                            onClick={() => dispatch(setBreadcrumb(["Home"]))}
+                          >
+                            {crumb}
+                          </Link>
                         ) : (
                           <span className="f-w-600">{crumb}</span>
                         )}

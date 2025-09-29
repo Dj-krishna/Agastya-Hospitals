@@ -1,7 +1,29 @@
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
+
+const quickLinks = [
+  {
+    label: "Book a Doctor's Appointment",
+    path: "/book-appointment",
+  },
+  {
+    label: "Explore Our Health Packages",
+    path: "/health-packages",
+  },
+  {
+    label: "View Your Medical Reports",
+    path: "/medical-reports",
+  },
+  {
+    label: "Get a Free Second Opinion",
+    path: "/free-second-opinion",
+  },
+];
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   return (
     <div>
       {/* <section className="bg-gradient-to-r from-blue-50 to-white py-20">
@@ -68,32 +90,87 @@ const HeroSection = () => {
             <div className="herobanner-quicklinks">
               <a
                 className="quicklink"
-                onClick={() => navigate("/book-appointment")}
+                onClick={() => {
+                  dispatch(setBreadcrumb(["Home", "Book Appointment"]));
+                  navigate("/book-appointment");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
               >
-                <span>Book a Doctor's <br /> Appointment</span>
-                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
+                <span>
+                  Book a Doctor's <br /> Appointment
+                </span>
+                <span>
+                  <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" />
+                </span>
               </a>
               <a
-                onClick={() => navigate("/health-packages")}
+                onClick={() => {
+                  dispatch(setBreadcrumb(["Home", "Health Packages"]));
+                  navigate("/health-packages");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className="quicklink"
               >
-                <span>Explore Our <br />Health Packages</span>
-                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
+                <span>
+                  Explore Our <br />
+                  Health Packages
+                </span>
+                <span>
+                  <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" />
+                </span>
               </a>
               <a
-                onClick={() => navigate("/medical-reports")}
+                onClick={() => {
+                  dispatch(setBreadcrumb(["Home", "Medical Reports"]));
+                  navigate("/medical-reports");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className="quicklink"
               >
-                <span>View Your <br />Medical Reports</span>
-                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
+                <span>
+                  View Your <br />
+                  Medical Reports
+                </span>
+                <span>
+                  <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" />
+                </span>
               </a>
               <a
-                onClick={() => navigate("/free-second-opinion")}
+                onClick={() => {
+                  dispatch(setBreadcrumb(["Home", "Free Second Opinion"]));
+                  navigate("/free-second-opinion");
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className="quicklink"
               >
-                <span>Get a Free <br />Second Opinion</span>
-                <span><img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" /></span>
+                <span>
+                  Get a Free <br />
+                  Second Opinion
+                </span>
+                <span>
+                  <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg" />
+                </span>
               </a>
+              {/* {quickLinks.map((link, idx) => (
+                <a
+                  key={link.path}
+                  className="quicklink"
+                  onClick={() => navigate(link.path)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span>
+                    {link.label.split(" ").slice(0, -1).join(" ")}
+                    <br />
+                    {link.label.split(" ").slice(-1)}
+                  </span>
+                  <span>
+                    <img
+                      src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392971/agastya/arrow-right.svg"
+                      alt="arrow"
+                    />
+                  </span>
+                </a>
+              ))} */}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchSpecialties } from "../slices/specialtySlice";
 import { DOCTORS_API, SPECIALITIES_API } from "../api/services";
 import axios from "axios";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
 
 const DoctorsSection = () => {
   const [activeIndex, setActiveIndex] = useState();
@@ -135,6 +136,19 @@ const DoctorsSection = () => {
                   <div className="text-center">
                     <div className="mb-4">
                       <img className="rounded-5" src={doctor.profilePicture} />
+                      <button
+                        className="shadow-sm border-1 rounded-5 d-flex align-items-center mt-3 ctabtn bookappointment"
+                        onClick={() => {
+                          dispatch(setBreadcrumb(["Home", "Book Appointment"]));
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                          navigate("/book-appointment");
+                        }}
+                      >
+                        <span>
+                          <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758389743/agastya/circlearrow.svg" />
+                        </span>{" "}
+                        <span>Book Appointment</span>
+                      </button>
                     </div>
                     <h3 className="f-20 mb-3 f-w-700 text-center">
                       {doctor.fullName}

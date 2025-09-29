@@ -42,12 +42,12 @@ const Careers = () => {
   ];
 
   return (
-    <div className="container py-5">
+    <div className="container py-5 m-0" style={{overflow: "hidden"}}>
       {/* <h1 className="text-4xl font-bold text-gray-900 text-center mb-12">
           Careers at Agastya Hospitals
         </h1> */}
 
-      <div className="row">
+      <div className="row m-0">
         <div className="col-lg-12">
           <h2 className="heading-22">Join Our Team</h2>
           <p className="paragraph-16">
@@ -63,7 +63,7 @@ const Careers = () => {
         </div>
       </div>
 
-      <div className="row mt-5">
+      <div className="row mt-5 m-0">
         <div className="col-lg-12">
           <h2 className="heading-22 mb-3">Current Openings</h2>
 
@@ -75,7 +75,7 @@ const Careers = () => {
                     <h3 className="position-title">{position.title}</h3>
                     <p className="position-desc">{position.description}</p>
                   </div>
-                  <button className="applynow">Apply Now</button>
+                  <button className="applynow rounded-5">Apply Now</button>
                 </div>
 
                 <div className="careers-category">
@@ -105,7 +105,7 @@ const Careers = () => {
               Don't see a position that matches your skills? Send us your
               resume!
             </p>
-            <button className="primary-btn mb-5 mt-2">Submit Resume</button>
+            <button className="primary-btn mb-5 mt-2 rounded-5">Submit Resume</button>
           </div>
         </div>
       </div>

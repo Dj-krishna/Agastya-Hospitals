@@ -3,7 +3,8 @@ import { DOCTORS_API, SPECIALITIES_API } from "../api/services";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
-import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
+import { useDispatch } from "react-redux";
 
 const FindDoctor = () => {
   const [doctors, setDoctors] = useState([]);
@@ -11,9 +12,8 @@ const FindDoctor = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [specialties, setSpecialties] = useState([]);
-  const [showSpecialtyDropdown, setShowSpecialtyDropdown] = useState(false);
-  const [query, setQuery] = useState("");
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const fetchSpecialties = async () => {
@@ -212,7 +212,11 @@ const FindDoctor = () => {
                       </button>
                       <button
                         className="ctabtn bookappointment"
-                        onClick={() => navigate("/book-appointment")}
+                        onClick={() => {
+                          dispatch(setBreadcrumb(["Home", "Book Appointment"]));
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                          navigate("/book-appointment");
+                        }}
                       >
                         <span>
                           <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758389743/agastya/circlearrow.svg" />

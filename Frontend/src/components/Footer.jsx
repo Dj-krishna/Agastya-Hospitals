@@ -2,21 +2,32 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpecialties } from "../slices/specialtySlice";
+import { setBreadcrumb } from "../slices/breadcrumbSlice";
+
+const quickLinks = [
+  { label: "About Us", path: "/about" },
+  { label: "Patient Care", path: "/patient-care" },
+  { label: "News & Updates", path: "/news-and-updates" },
+  { label: "Careers", path: "/careers" },
+  { label: "Blogs", path: "/blog" },
+  { label: "Contact Us", path: "/contact-us" },
+  { label: "Privacy Policy", path: "/privacy-policy" },
+  { label: "Terms & Conditions", path: "/terms-and-conditions" },
+];
 
 const Footer = () => {
   const navigate = useNavigate();
-  const handleNavigation = (path) => {
+  const dispatch = useDispatch();
+
+  const handleNavigation = (path, label) => {
+    dispatch(setBreadcrumb(["Home", label]));
     navigate(path);
     window.scrollTo({ top: 0, behavior: "smooth" }); // scroll smoothly to top
   };
-  const dispatch = useDispatch();
-  const { specialties, loading: isLoading } = useSelector(
-    (state) => state.specialties
-  );
-
   useEffect(() => {
     dispatch(fetchSpecialties());
   }, [dispatch]);
+
   return (
     <footer>
       <div className="footer-main container">
@@ -65,7 +76,7 @@ const Footer = () => {
                 <li>
                   <a href="#">Neuro Sciences</a>
                 </li>
-              </ul>  
+              </ul>
             </div>
           </div>
 
@@ -73,40 +84,16 @@ const Footer = () => {
             <div className="widget">
               <h3>Quick Links</h3>
               <ul>
-                <li>
-                  <a onClick={() => handleNavigation("/about")}>About Us</a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/patient-care")}>
-                    Patient Care
-                  </a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/news-and-updates")}>
-                    News & Updates
-                  </a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/careers")}>Careers</a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/blog")}>Blogs</a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/contact-us")}>
-                    Contact Us
-                  </a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/privacy-policy")}>
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a onClick={() => handleNavigation("/terms-and-conditions")}>
-                    Terms & Conditions
-                  </a>
-                </li>
+                {quickLinks.map((link) => (
+                  <li key={link.path}>
+                    <a
+                      onClick={() => handleNavigation(link.path, link.label)}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchSpecialties } from "../slices/specialtySlice";
@@ -7,63 +7,63 @@ import { setBreadcrumb } from "../slices/breadcrumbSlice";
 
 const SpecialtiesSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [activeCard, setActiveCard] = useState("");
+
   const scrollRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  // const dispatch = useDispatch();
-  // const { specialties, loading: isLoading } = useSelector(
-  //   (state) => state.specialties
-  // );
 
-  // useEffect(() => {
-  //   dispatch(fetchSpecialties());
-  // }, [dispatch]);
+  const { specialties, loading: isLoading } = useSelector(
+    (state) => state.specialties
+  );
 
-  const specialties = [
-    {
-      id: 1,
-      name: "General Medicine",
-      description: "Comprehensive medical care for all ages",
-      icon: "🏥",
-      active: false,
-    },
-    {
-      id: 2,
-      name: "Interventional Pulmonology",
-      description: "Advanced respiratory care and procedures",
-      icon: "🫁",
-      active: true,
-    },
-    {
-      id: 3,
-      name: "Nephrology & Urology",
-      description: "Kidney and urinary system specialists",
-      icon: "🫘",
-      active: false,
-    },
-    {
-      id: 4,
-      name: "Cardiology",
-      description: "Heart and cardiovascular health",
-      icon: "❤️",
-      active: false,
-    },
-    {
-      id: 5,
-      name: "Neurology",
-      description: "Brain and nervous system care",
-      icon: "🧠",
-      active: false,
-    },
-    {
-      id: 6,
-      name: "Orthopedics",
-      description: "Bone and joint specialists",
-      icon: "🦴",
-      active: false,
-    },
-  ];
+  useEffect(() => {
+    dispatch(fetchSpecialties());
+  }, [dispatch]);
+
+  // const specialties = [
+  //   {
+  //     id: 1,
+  //     name: "General Medicine",
+  //     description: "Comprehensive medical care for all ages",
+  //     icon: "🏥",
+  //     active: false,
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Interventional Pulmonology",
+  //     description: "Advanced respiratory care and procedures",
+  //     icon: "🫁",
+  //     active: true,
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Nephrology & Urology",
+  //     description: "Kidney and urinary system specialists",
+  //     icon: "🫘",
+  //     active: false,
+  //   },
+  //   {
+  //     id: 4,
+  //     name: "Cardiology",
+  //     description: "Heart and cardiovascular health",
+  //     icon: "❤️",
+  //     active: false,
+  //   },
+  //   {
+  //     id: 5,
+  //     name: "Neurology",
+  //     description: "Brain and nervous system care",
+  //     icon: "🧠",
+  //     active: false,
+  //   },
+  //   {
+  //     id: 6,
+  //     name: "Orthopedics",
+  //     description: "Bone and joint specialists",
+  //     icon: "🦴",
+  //     active: false,
+  //   },
+  // ];
 
   const handleDotClick = (index) => {
     if (scrollRef.current) {
@@ -76,7 +76,7 @@ const SpecialtiesSection = () => {
     }
   };
 
-  const totalDots = Math.ceil(specialties.length / 2);
+  const totalDots = Math.ceil(specialties.data?.length / 4);
 
   return (
     <section className="container specialties-bg mx-auto">
@@ -102,25 +102,55 @@ const SpecialtiesSection = () => {
           className="flex gap-6 overflow-x-auto pb-4 specialties-bg-scroller"
           ref={scrollRef}
         >
-          {specialties.map((specialty) => (
+          {specialties.data?.map((specialty) => (
             <div
-              key={specialty.id}
-              className={`flex-shrink-0 specialty-card-home ${
+              key={specialty.specialtyID}
+              className={`specialty-card-home col-md-4 ${
                 specialty.active
                   ? "bg-white text-gray-700 border-gray-200 hover:border-hospital-blue"
                   : "bg-white text-gray-700 border-gray-200 hover:border-hospital-blue"
               }`}
             >
               {/* specialty-card-home-active text-white border-hospital-blue / text-blue-100*/}
-              <div className="text-4xl mb-4">{specialty.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{specialty.name}</h3>
+              <div className=" mb-4">
+                <img
+                  src={specialty.icon || specialty.banner[0]}
+                  style={{
+                    width: 50,
+                    height: 50,
+                    objectFit: "cover",
+                    background: "#f5f5f5",
+                  }}
+                  className="rounded-5"
+                />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                {specialty.specialityName}
+              </h3>
               <p
                 className={`text-sm ${
                   specialty.active ? "text-gray-600" : "text-gray-600"
                 }`}
               >
-                {specialty.description}
+                {specialty.shortDescription}
               </p>
+              <div className="specialtypage-btn" style={{ position: "relative", bottom: 0 }}>
+                <a
+                  className="f-12 text-primary cursor-pointer"
+                  onClick={() => {
+                    dispatch(setBreadcrumb(["Home", specialty.specialityName]));
+                    navigate(
+                      `/${specialty.specialityName
+                        .toLowerCase()
+                        .replace(" ", "-")}`,
+                      { state: { specialityID: specialty.specialityID } }
+                    );
+                    window.scrollTo({ top: 0, behavior: "smooth" }); // scroll smoothly to top
+                  }}
+                >
+                  Know more
+                </a>
+              </div>
             </div>
           ))}
         </div>
