@@ -77,6 +77,27 @@ const Header = () => {
   const currentPage =
     allNavItems.find((item) => item.path === pathname)?.label || "";
 
+  useEffect(() => {
+    // Reset breadcrumb to Home if on root, or set based on pathname
+    if (pathname === "/") {
+      dispatch(setBreadcrumb(["Home"]));
+    } else {
+      // Find label for current path
+      const allNavItems = [
+        ...navItems,
+        ...nonHeaderPaths,
+        ...aboutDropdown,
+        ...sortedData,
+      ];
+      const current = allNavItems.find(
+        (item) => item.path === location.pathname
+      );
+      if (current) {
+        dispatch(setBreadcrumb(["Home", current.label]));
+      }
+    }
+  }, [pathname]);
+
   return (
     <header className="bg-white shadow-sm">
       {/* Top Bar */}
@@ -125,7 +146,13 @@ const Header = () => {
         <div className="container d-flex justify-between items-center position-relative z-3">
           {/* Logo */}
           <div className="d-flex items-center">
-            <Link to="/" className="text-2xl font-bold text-hospital-blue">
+            <Link
+              to="/"
+              className="text-2xl font-bold text-hospital-blue"
+              onClick={() => {
+                dispatch(setBreadcrumb(["Home"]));
+              }}
+            >
               <img
                 src="https://res.cloudinary.com/sdk28cdn/image/upload/v1756301086/agastya/agastyahospitals-logo.svg"
                 alt="Agastya Hospitals"
@@ -171,7 +198,15 @@ const Header = () => {
                     <ul className="dropdown-menu shadow">
                       {aboutDropdown.map((item) => (
                         <li key={item.path}>
-                          <Link to={item.path} className="dropdown-item">
+                          <Link
+                            to={item.path}
+                            className="dropdown-item"
+                            onClick={() => {
+                              dispatch(
+                                setBreadcrumb(["Home", "About Us", item.label])
+                              );
+                            }}
+                          >
                             {item.label}
                           </Link>
                         </li>
