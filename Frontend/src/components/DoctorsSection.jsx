@@ -8,7 +8,6 @@ import { setBreadcrumb } from "../slices/breadcrumbSlice";
 
 const DoctorsSection = () => {
   const [activeIndex, setActiveIndex] = useState();
-  const [activeCard, setActiveCard] = useState("");
   const [doctorList, setDoctorList] = useState([]);
   const scrollRef = React.useRef(null);
   const dispatch = useDispatch();
@@ -24,12 +23,18 @@ const DoctorsSection = () => {
   const sortedData = Array.isArray(specialties?.data)
     ? [...specialties?.data].sort((a, b) => a.specialityID - b.specialityID)
     : [];
+
   const specialtiesData = sortedData?.map((specialty) => {
     return {
       specialityName: specialty.specialityName,
       specialityID: specialty.specialityID,
     };
   });
+
+  useEffect(() => {
+      setActiveIndex(specialtiesData[0]?.specialityID);
+      fetchDoctorsBySpecialty(specialtiesData[0]?.specialityID);
+  }, []);
 
   const fetchDoctorsBySpecialty = async (specialityID) => {
     try {
@@ -52,10 +57,10 @@ const DoctorsSection = () => {
     } catch (error) {
       console.error("Error fetching doctors by specialty:", error);
       setDoctorList([]);
+      setActiveIndex(specialityID);
     }
   };
 
-  console.log("DOCTORS:: ", doctorList);
   const handleDotClick = (direction) => {
     if (scrollRef.current) {
       const scrollAmount = 300; // adjust for card width
@@ -66,13 +71,6 @@ const DoctorsSection = () => {
       }
     }
   };
-
-  useEffect(() => {
-    if (specialtiesData.length > 0) {
-      setActiveIndex(specialtiesData[0].specialityID);
-      fetchDoctorsBySpecialty(specialtiesData[0].specialityID);
-    }
-  }, []);
 
   return (
     <section className="py-16 bg-white">

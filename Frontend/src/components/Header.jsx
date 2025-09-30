@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setBreadcrumb } from "../slices/breadcrumbSlice";
 import { fetchSpecialties } from "../slices/specialtySlice";
 import { useEffect } from "react";
+import SideMenu from "./common/SideMenu";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -131,49 +132,56 @@ const Header = () => {
               />
             </Link>
           </div>
+          <SideMenu
+            navItems={navItems}
+            aboutDropdown={aboutDropdown}
+            pathname={pathname}
+          />
 
           {/* Navigation Links */}
-          <ul className="d-flex items-center space-x-8">
-            {navItems.map(({ path, label }) => (
-              <li
-                key={path}
-                className={`nav-item position-relative ${
-                  label === "About Us" ? "dropdown" : ""
-                }`}
-              >
-                <Link
-                  to={path}
-                  className={`hover:text-blue-600 inline-flex align-items-center ${
-                    pathname === path ? "font-semibold text-blue-700" : ""
+          <div className="side_menu_responsive_desktop">
+            <ul className="d-flex items-center space-x-8">
+              {navItems.map(({ path, label }) => (
+                <li
+                  key={path}
+                  className={`nav-item position-relative ${
+                    label === "About Us" ? "dropdown" : ""
                   }`}
-                  onClick={() => {
-                    dispatch(setBreadcrumb(["Home", label]));
-                  }}
                 >
-                  <span>{label}</span>
+                  <Link
+                    to={path}
+                    className={`hover:text-blue-600 inline-flex align-items-center ${
+                      pathname === path ? "font-semibold text-blue-700" : ""
+                    }`}
+                    onClick={() => {
+                      dispatch(setBreadcrumb(["Home", label]));
+                    }}
+                  >
+                    <span>{label}</span>
+                    {label === "About Us" && (
+                      <>
+                        &nbsp;&nbsp;
+                        <span>
+                          <FaChevronDown className="text-muted" />
+                        </span>
+                      </>
+                    )}
+                  </Link>
                   {label === "About Us" && (
-                    <>
-                      &nbsp;&nbsp;
-                      <span>
-                        <FaChevronDown className="text-muted" />
-                      </span>
-                    </>
+                    <ul className="dropdown-menu shadow">
+                      {aboutDropdown.map((item) => (
+                        <li key={item.path}>
+                          <Link to={item.path} className="dropdown-item">
+                            {item.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                </Link>
-                {label === "About Us" && (
-                  <ul className="dropdown-menu shadow">
-                    {aboutDropdown.map((item) => (
-                      <li key={item.path}>
-                        <Link to={item.path} className="dropdown-item">
-                          {item.label}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         {/* Banner & Breadcrumb */}
