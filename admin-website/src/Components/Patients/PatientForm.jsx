@@ -163,7 +163,7 @@ const PatientForm = ({ onClose, formType, patientData }) => {
         altMobile: formData.altPhoneNumber || "",
         pastHistory: formData.pastHistory || "",
         doctorID: formData.doctorID || 1, // Default doctor ID
-        packageIDs: formData.packageIDs || [2] // Default package ID
+        packageIDs: 2 // Static package ID as requested
       };
 
       console.log("Sending API request with data:", patientRequestData);

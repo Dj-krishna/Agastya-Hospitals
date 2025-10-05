@@ -491,9 +491,19 @@ export const fetchHealthPackageById = async (id) => {
 // Patient CRUD API functions
 export const createPatient = async (patientData) => {
   try {
-    const response = await axios.post(PATIENTS_API, patientData, {
+    const formData = new FormData();
+    Object.keys(patientData).forEach(key => {
+      if (patientData[key] !== null && patientData[key] !== undefined) {
+        if (Array.isArray(patientData[key])) {
+          formData.append(key, JSON.stringify(patientData[key]));
+        } else {
+          formData.append(key, patientData[key]);
+        }
+      }
+    });
+    const response = await axios.post(PATIENTS_API, formData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
