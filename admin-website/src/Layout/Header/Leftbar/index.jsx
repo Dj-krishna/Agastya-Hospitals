@@ -8,12 +8,13 @@ import NotificationSlider from "./NotificationSlider";
 import { getRoleId } from '../../../utils/role';
 
 const Leftbar = () => {
-  const roleid = getRoleId();
-  const allowedRoles = [1, 2, 3];
-  const logoRedirect = allowedRoles.includes(roleid) ? `/dashboard/default/${layoutURL}` : `/appointments`;
+
   const { layoutURL, setToggleIcon, toggleSidebar } = useContext(CustomizerContext);
   const [sidebartoggle] = useState(true);
   const width = useWindowSize();
+  const roleid = getRoleId();
+  const allowedRoles = [1, 2, 3];
+  const logoRedirect = allowedRoles.includes(roleid) ? `/dashboard/default/${layoutURL}` : `/appointments`;
 
   function useWindowSize() {
     const [size, setSize] = useState([0, 0]);
