@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Image } from "../../../AbstractElements";
 import CustomizerContext from "../../../_helper/Customizer";
 import NotificationSlider from "./NotificationSlider";
-import { getRoleId } from '../../../utils/role';
+import { getRoleId } from '../../../utils';
 
 const Leftbar = () => {
 
