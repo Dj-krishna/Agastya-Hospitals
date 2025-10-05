@@ -6,6 +6,8 @@
 //           Patient Portal
 //         </h1>
 
+import { useState } from "react";
+
 //         <div className="max-w-4xl mx-auto">
 //           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 //             {/* Login Form */}
@@ -80,6 +82,26 @@
 // export default Patient
 
 const Patient = () => {
+  const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
+
+  const isFormInvalid = (formState) => {
+    const requiredFields = ["userName", "password"];
+    return requiredFields.some(
+      (field) =>
+        formState[field] === null ||
+        formState[field] === undefined ||
+        formState[field] === "" ||
+        (typeof formState[field] === "boolean" && formState[field] === false)
+    );
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    
+  }
+
   return (
     <div className="py-5">
       <div className="container px-3 patient-login">
@@ -88,7 +110,6 @@ const Patient = () => {
         </h1> */}
 
         <div className="mx-auto" style={{ maxWidth: "960px" }}>
-          {" "}
           {/* max-w-4xl */}
           <div className="row g-4">
             {/* Login Form */}
@@ -96,28 +117,34 @@ const Patient = () => {
               <div className="bg-white p-4 rounded shadow">
                 <h2 className="h4 fw-semibold text-dark mb-4">Patient Login</h2>
 
-                <form className="d-grid gap-3">
+                <form className="d-grid gap-3" onSubmit={handleSubmit}>
                   <div>
                     <label className="form-label text-dark">Patient ID</label>
                     <input
                       type="text"
                       className="booking-form-input"
                       placeholder="Enter your Patient ID"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
                     />
                   </div>
 
                   <div>
-                    <label className="form-label text-dark">
-                      Password
-                    </label>
+                    <label className="form-label text-dark">Password</label>
                     <input
                       type="password"
                       className="booking-form-input"
                       placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
 
-                  <button type="submit" className="btn btn-primary w-100">
+                  <button
+                    type="submit"
+                    className="btn btn-primary rounded-5"
+                    disabled={isFormInvalid({ userName, password })}
+                  >
                     Login
                   </button>
                 </form>

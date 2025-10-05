@@ -111,11 +111,21 @@ const Header = () => {
           </div>
           <div className="d-flex items-center space-x-4">
             <Link
-              to="/patient"
+              // to="/patient"
               className="patientlogin"
-              onClick={() => {
-                dispatch(setBreadcrumb(["Home", "Patient Login"]));
+              // onClick={() => {
+              //   dispatch(setBreadcrumb(["Home", "Patient Login"]));
+              //   window.scrollTo({ top: 0, behavior: "smooth" });
+              // }}
+              to="#"
+              onClick={(e) => {
+                e.preventDefault();
+                dispatch(setBreadcrumb(["Home"]));
                 window.scrollTo({ top: 0, behavior: "smooth" });
+                window.open(
+                  "https://agastya-hospitals-adminpage.onrender.com",
+                  "_blank"
+                );
               }}
             >
               <img src="https://res.cloudinary.com/sdk28cdn/image/upload/v1758392814/agastya/patient-login.svg" />

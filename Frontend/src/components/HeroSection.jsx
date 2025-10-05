@@ -120,9 +120,12 @@ const HeroSection = () => {
                 </span>
               </a>
               <a
+                href="https://agastya-hospitals-adminpage.onrender.com"
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => {
-                  dispatch(setBreadcrumb(["Home", "Medical Reports"]));
-                  navigate("/medical-reports");
+                  dispatch(setBreadcrumb(["Home"]));
+                  //navigate("/medical-reports");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 className="quicklink"
