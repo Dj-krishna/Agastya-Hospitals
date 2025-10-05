@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -24,6 +25,7 @@ const departmentRoutes = require('./routes/departmentRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const technologyRoutes = require('./routes/technologyRoutes');
+const emailRoutes = require('./routes/emailRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -34,6 +36,7 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
+app.use(bodyParser.json());
 
 // Rate limiting
 const limiter = rateLimit({
@@ -62,6 +65,7 @@ app.use('/api/doctor-slots', doctorSlotRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/departments', departmentRoutes);
 app.use('/api/appointments', appointmentRoutes);
+app.use('/api/email', emailRoutes);
 
 
 // ---------------- ERROR HANDLER ----------------
