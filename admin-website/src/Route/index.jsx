@@ -8,6 +8,7 @@ import LayoutRoutes from "../Route/LayoutRoutes";
 import Signin from "../Auth/Signin";
 import PrivateRoute from "./PrivateRoute";
 import { classes } from "../Data/Layouts";
+import { getRoleId } from '../utils/role';
 
 // setup fake backend
 
@@ -33,6 +34,11 @@ const Routers = () => {
   // Check if user is authenticated (either from Redux or localStorage)
   const isUserAuthenticated = isAuthenticated || login || authenticated;
 
+  // Get roleID from localStorage.userdetails
+  const roleid = getRoleId();
+  const allowedRoles = [1, 2, 3];
+  const initialRedirect = allowedRoles.includes(roleid) ? '/dashboard' : '/appointments';
+
   return (
     <BrowserRouter basename={"/"}>
       <Suspense fallback={<Loader />}>
@@ -40,8 +46,7 @@ const Routers = () => {
           <Route path={"/"} element={<PrivateRoute />}>
             {isUserAuthenticated ? (
               <>
-                <Route exact path={`/`} element={<Navigate to={`/dashboard`} />} />
-                <Route exact path={`/`} element={<Navigate to={`/dashboard`} />} />
+                <Route exact path={`/`} element={<Navigate to={initialRedirect} />} />
               </>
             ) : (
               ""

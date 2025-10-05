@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import SvgIcon from "../../Components/Common/Component/SvgIcon";
 import CustomizerContext from "../../_helper/Customizer";
 import { MENUITEMS } from "./Menu";
+import { getRoleId } from '../../utils/role';
 
 const SidebarMenuItems = ({
   setMainMenu,
@@ -58,28 +59,42 @@ const SidebarMenuItems = ({
     setMainMenu({ mainmenu: MENUITEMS });
   };
 
+  // Get roleID from localStorage.userdetails
+  const roleid = getRoleId();
+  const allowedRoles = [1, 2, 3];
+
+  // Filter menu items based on roleid
+  const filterMenuItems = (items) => {
+    if (allowedRoles.includes(roleid)) {
+      return items;
+    }
+    // For other roles, show only Appointments and Medical Records
+    return items.filter(
+      (item) =>
+        item.title === 'Appointments' || item.title === 'Medical Records'
+    );
+  };
+
   return (
     <>
       {MENUITEMS.map((Item, i) => (
         <Fragment key={i}>
-            <li className="sidebar-main-title">
-              <div>
-                <h6 className="lan-1">{t(Item.menutitle)}</h6>
-              </div>
-            </li>
-          {Item.Items.map((menuItem, i) => (
+          <li className="sidebar-main-title">
+            <div>
+              <h6 className="lan-1">{t(Item.menutitle)}</h6>
+            </div>
+          </li>
+          {filterMenuItems(Item.Items).map((menuItem, i) => (
             <li className="sidebar-list" key={i}>
               {menuItem.type === "sub" ? (
                 <a
                   href="javascript"
                   className={`sidebar-link sidebar-title ${
-                    // CurrentPath.includes(menuItem.title.toLowerCase())
                     activeTab === menuItem.title ? "active" : ""
                   } ${menuItem.active && "active"}`}
                   onClick={(event) => {
                     event.preventDefault();
                     setNavActive(menuItem);
-                    // setActiveTab(menuItem.title);
                     activeClass(menuItem.active);
                   }}
                 >
@@ -99,13 +114,13 @@ const SidebarMenuItems = ({
                   ) : (
                     ""
                   )}
-                    <div className="according-menu">
-                      {menuItem.active ? (
-                        <i className="fa fa-angle-down"></i>
-                      ) : (
-                        <i className="fa fa-angle-right"></i>
-                      )}
-                    </div>
+                  <div className="according-menu">
+                    {menuItem.active ? (
+                      <i className="fa fa-angle-down"></i>
+                    ) : (
+                      <i className="fa fa-angle-right"></i>
+                    )}
+                  </div>
                 </a>
               ) : (
                 ""
@@ -169,23 +184,22 @@ const SidebarMenuItems = ({
                                 ? "active"
                                 : ""
                             }`}
-                            // className={`${childrenItem.active ? 'active' : ''}`}
                             onClick={(event) => {
                               event.preventDefault();
                               toggletNavActive(childrenItem);
                             }}
                           >
                             {t(childrenItem.title)}
-                              <span className="sub-arrow">
-                                <i className="fa fa-chevron-right"></i>
-                              </span>
-                              <div className="according-menu">
-                                {childrenItem.active ? (
-                                  <i className="fa fa-angle-down"></i>
-                                ) : (
-                                  <i className="fa fa-angle-right"></i>
-                                )}
-                              </div>
+                            <span className="sub-arrow">
+                              <i className="fa fa-chevron-right"></i>
+                            </span>
+                            <div className="according-menu">
+                              {childrenItem.active ? (
+                                <i className="fa fa-angle-down"></i>
+                              ) : (
+                                <i className="fa fa-angle-right"></i>
+                              )}
+                            </div>
                           </a>
                         ) : (
                           ""
@@ -201,7 +215,6 @@ const SidebarMenuItems = ({
                                 ? "active"
                                 : ""
                             }`}
-                            // className={`${childrenItem.active ? 'active' : ''}`} bonusui
                             onClick={() => toggletNavActive(childrenItem)}
                           >
                             {t(childrenItem.title)}
@@ -226,7 +239,7 @@ const SidebarMenuItems = ({
                                 <li key={key}>
                                   {childrenSubItem.type === "link" ? (
                                     <Link
-                                      to={childrenSubItem.path }
+                                      to={childrenSubItem.path}
                                       className={`${
                                         CurrentPath.includes(
                                           childrenSubItem?.title?.toLowerCase()
@@ -234,7 +247,6 @@ const SidebarMenuItems = ({
                                           ? "active"
                                           : ""
                                       }`}
-                                      // className={`${childrenSubItem.active ? 'active' : ''}`}
                                       onClick={() =>
                                         toggletNavActive(childrenSubItem)
                                       }

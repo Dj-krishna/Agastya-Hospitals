@@ -5,8 +5,12 @@ import { Link } from "react-router-dom";
 import { Image } from "../../../AbstractElements";
 import CustomizerContext from "../../../_helper/Customizer";
 import NotificationSlider from "./NotificationSlider";
+import { getRoleId } from '../../../utils/role';
 
 const Leftbar = () => {
+  const roleid = getRoleId();
+  const allowedRoles = [1, 2, 3];
+  const logoRedirect = allowedRoles.includes(roleid) ? `/dashboard/default/${layoutURL}` : `/appointments`;
   const { layoutURL, setToggleIcon, toggleSidebar } = useContext(CustomizerContext);
   const [sidebartoggle] = useState(true);
   const width = useWindowSize();
@@ -50,7 +54,7 @@ const Leftbar = () => {
     <Fragment>
       <Col className="header-logo-wrapper col-auto p-0" id="out_side_click">
         <div className="logo-wrapper">
-          <Link to={`/dashboard/default/${layoutURL}`}>
+          <Link to={logoRedirect}>
             <Image
               attrImage={{
                 className: "img-fluid for-light",

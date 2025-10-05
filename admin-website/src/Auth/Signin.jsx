@@ -18,6 +18,7 @@ import OtherWay from "./OtherWay";
 import { ToastContainer, toast } from "react-toastify";
 import { loginAsync, clearError } from "../slices/authSlice";
 import Swal from "sweetalert2";
+import { getRoleId } from '../utils/role';
 
 const Signin = ({ selected }) => {
   const [email, setEmail] = useState("spiderman@avengers.com");
@@ -48,7 +49,10 @@ const Signin = ({ selected }) => {
     if (isAuthenticated) {
       toasterConfig("success", "Successfully logged in!..");
       localStorage.setItem("login", JSON.stringify(true));
-      history(`/dashboard`);
+      const roleid = getRoleId();
+      const allowedRoles = [1, 2, 3];
+      const redirectPath = allowedRoles.includes(roleid) ? '/dashboard' : '/appointments';
+      history(redirectPath);
     }
   }, [isAuthenticated, history]);
 
