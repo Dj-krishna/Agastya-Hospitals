@@ -8,7 +8,7 @@ import LayoutRoutes from "../Route/LayoutRoutes";
 import Signin from "../Auth/Signin";
 import PrivateRoute from "./PrivateRoute";
 import { classes } from "../Data/Layouts";
-import { getRoleId } from '../utils/role';
+import { getRoleId } from '../utils';
 
 // setup fake backend
 

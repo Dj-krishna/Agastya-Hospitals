@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import SvgIcon from "../../Components/Common/Component/SvgIcon";
 import CustomizerContext from "../../_helper/Customizer";
 import { MENUITEMS } from "./Menu";
-import { getRoleId } from '../../utils/role';
+import { getRoleId } from '../../utils';
 
 const SidebarMenuItems = ({
   setMainMenu,

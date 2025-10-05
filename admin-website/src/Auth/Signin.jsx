@@ -18,7 +18,7 @@ import OtherWay from "./OtherWay";
 import { ToastContainer, toast } from "react-toastify";
 import { loginAsync, clearError } from "../slices/authSlice";
 import Swal from "sweetalert2";
-import { getRoleId } from '../utils/role';
+import { getRoleId } from '../utils';
 
 const Signin = ({ selected }) => {
   const [email, setEmail] = useState("spiderman@avengers.com");

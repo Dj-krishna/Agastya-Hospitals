@@ -1,12 +1,30 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 import { PATIENTS_API } from "../api";
+import { getRoleId } from "../utils";
 
 export const fetchPatients = createAsyncThunk(
   "patients/fetchPatients",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(PATIENTS_API);
+      // Get user details and roleid
+      let userDetails = {};
+      try {
+        userDetails = JSON.parse(localStorage.getItem('userDetails')) || {};
+      } catch (e) {
+        userDetails = {};
+      }
+      const roleid = getRoleId();
+      const allowedRoles = [1, 2, 3];
+      let url = PATIENTS_API;
+      if (!allowedRoles.includes(roleid)) {
+        if (userDetails.email) {
+          url = `${PATIENTS_API}?email=${encodeURIComponent(userDetails.email)}`;
+        } else if (userDetails.mobile) {
+          url = `${PATIENTS_API}?mobile=${encodeURIComponent(userDetails.mobile)}`;
+        }
+      }
+      const response = await axios.get(url);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);

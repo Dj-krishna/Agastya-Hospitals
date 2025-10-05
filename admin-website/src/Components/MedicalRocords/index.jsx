@@ -11,6 +11,7 @@ import TableSkeleton from "../Common/Component/TableSkeleton";
 import PaginationComponent from "../Common/Component/PaginationComponent";
 import { FaPenAlt, FaPencilAlt } from "react-icons/fa";
 
+
 const ITEMS_PER_PAGE = 7;
 const MedicalRecords = () => {
   const [patients, setPatients] = useState([]);
@@ -32,7 +33,25 @@ const MedicalRecords = () => {
   const fetchPatients = async () => {
     try {
       setLoading(true);
-      const data = await fetchDataGet(PATIENTS_API);
+      // Get roleid, email, mobile from localStorage.userDetails
+      let userDetails = {};
+      try {
+        userDetails = JSON.parse(localStorage.getItem('userDetails')) || {};
+      } catch (e) {
+        userDetails = {};
+      }
+      const roleid = Number(userDetails.roleID);
+      const allowedRoles = [1, 2, 3];
+      let url = PATIENTS_API;
+      if (!allowedRoles.includes(roleid)) {
+        // For other roles, filter by email or mobile
+        if (userDetails.email) {
+          url = `${PATIENTS_API}?email=${encodeURIComponent(userDetails.email)}`;
+        } else if (userDetails.mobile) {
+          url = `${PATIENTS_API}?mobile=${encodeURIComponent(userDetails.mobile)}`;
+        }
+      }
+      const data = await fetchDataGet(url);
       if (data) {
         setPatients(data);
         setLoading(false);
