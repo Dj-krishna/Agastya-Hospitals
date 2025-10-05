@@ -45,7 +45,7 @@ function addMinutesToTime(timeStr, minutes) {
   return date.toISOString().substring(11, 16);
 }
 
-// ------------------ GET ------------------
+// ------------------ GET APPOINTMENTS ------------------
 exports.getAppointments = async (req, res) => {
   try {
     if (!req.query.status || req.query.status === "booked") {
@@ -54,6 +54,15 @@ exports.getAppointments = async (req, res) => {
 
     const filter = buildAppointmentFilter(req.query);
 
+    // Separate patientContact filters
+    const patientContactFilters = {};
+    Object.keys(req.query).forEach((key) => {
+      if (key.startsWith("patientContact.")) {
+        const subField = key.split(".")[1];
+        patientContactFilters[subField] = req.query[key];
+      }
+    });
+
     const pipeline = [
       { $match: filter },
       {
@@ -61,8 +70,8 @@ exports.getAppointments = async (req, res) => {
           from: "doctors",
           localField: "doctorID",
           foreignField: "doctorID",
-          as: "doctor"
-        }
+          as: "doctor",
+        },
       },
       { $unwind: { path: "$doctor", preserveNullAndEmptyArrays: true } },
       {
@@ -70,8 +79,8 @@ exports.getAppointments = async (req, res) => {
           from: "patients",
           localField: "patientID",
           foreignField: "patientID",
-          as: "patient"
-        }
+          as: "patient",
+        },
       },
       { $unwind: { path: "$patient", preserveNullAndEmptyArrays: true } },
       {
@@ -84,17 +93,42 @@ exports.getAppointments = async (req, res) => {
             countryCode: { $ifNull: ["$patient.countryCode", null] },
             fullMobile: {
               $cond: [
-                { $and: ["$patient.countryCode", "$patient.mobile"] },
+                {
+                  $and: [
+                    { $ifNull: ["$patient.countryCode", false] },
+                    { $ifNull: ["$patient.mobile", false] },
+                  ],
+                },
                 { $concat: ["$patient.countryCode", "$patient.mobile"] },
-                "$patient.mobile"
-              ]
-            }
-          }
-        }
+                "$patient.mobile",
+              ],
+            },
+          },
+        },
       },
-      { $project: { doctor: 0, patient: 0 } }
     ];
 
+    // Apply patientContact filters after patientContact fields are added
+    if (Object.keys(patientContactFilters).length > 0) {
+      const contactMatch = {};
+      for (const field in patientContactFilters) {
+        const value = patientContactFilters[field];
+        if (field === "fullMobile") {
+          contactMatch.$or = [
+            { "patientContact.fullMobile": value },
+            { "patientContact.mobile": value },
+          ];
+        } else {
+          contactMatch[`patientContact.${field}`] = value;
+        }
+      }
+      pipeline.push({ $match: contactMatch });
+    }
+
+    // Remove original patient and doctor fields
+    pipeline.push({ $project: { doctor: 0, patient: 0 } });
+
+    // Sorting
     if (req.query.sortBy) {
       const sortOrder = req.query.sortOrder === "desc" ? -1 : 1;
       pipeline.push({ $sort: { [req.query.sortBy]: sortOrder } });
@@ -112,14 +146,14 @@ exports.getAppointments = async (req, res) => {
 
     res.status(200).json({
       count: appointments.length,
-      appointments
+      appointments,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// ------------------ SPECIAL GET ------------------
+// ------------------ GET AVAILABLE SLOTS ------------------
 exports.getAvailableSlots = async (req, res) => {
   try {
     const doctorID = Number(req.query.doctorID);
@@ -133,12 +167,12 @@ exports.getAvailableSlots = async (req, res) => {
     if (!doctorSlots) return res.status(404).json({ message: "No slots found for doctor" });
 
     const scheduleRange = doctorSlots.schedule.find(
-      r => date >= normalizeDate(r.fromDate) && date <= normalizeDate(r.toDate, true)
+      (r) => date >= normalizeDate(r.fromDate) && date <= normalizeDate(r.toDate, true)
     );
     if (!scheduleRange) return res.status(404).json({ message: "No schedule for this date" });
 
     const daySchedule = scheduleRange.eachSchedule.find(
-      d => normalizeDate(d.date).getTime() === date.getTime()
+      (d) => normalizeDate(d.date).getTime() === date.getTime()
     );
     if (!daySchedule) return res.status(404).json({ message: "No slots for this day" });
 
@@ -147,12 +181,10 @@ exports.getAvailableSlots = async (req, res) => {
     const bookedAppointments = await Appointment.find({
       doctorID,
       date,
-      status: { $in: ["booked", "completed"] }
+      status: { $in: ["booked", "completed"] },
     });
 
-    const bookedSet = new Set(
-      bookedAppointments.map(a => `${a.startTime}-${a.endTime}`)
-    );
+    const bookedSet = new Set(bookedAppointments.map((a) => `${a.startTime}-${a.endTime}`));
 
     const availableSlots = [];
     for (let i = 0; i < allSlots.length - 1; i++) {
@@ -169,7 +201,7 @@ exports.getAvailableSlots = async (req, res) => {
   }
 };
 
-// ------------------ POST ------------------
+// ------------------ ADD APPOINTMENT ------------------
 exports.addAppointment = async (req, res) => {
   try {
     const {
@@ -186,7 +218,6 @@ exports.addAppointment = async (req, res) => {
     let patient = await Patient.findOne({ mobile });
 
     if (!patient) {
-      // Only create patient with the fields that exist in the form
       const patientID = await getNextSequence("patientID");
       patient = new Patient({
         patientID,
@@ -194,8 +225,8 @@ exports.addAppointment = async (req, res) => {
         mobile,
         email: email || null,
         countryCode: countryCode || null,
-        doctorID: doctorID,
-        packageIDs: Array.isArray(packageIDs) ? packageIDs : []
+        doctorID,
+        packageIDs: Array.isArray(packageIDs) ? packageIDs : [],
       });
       await patient.save();
     }
@@ -213,7 +244,7 @@ exports.addAppointment = async (req, res) => {
       date: normalizedDate,
       startTime,
       endTime: finalEndTime,
-      status: { $in: ["booked", "completed"] }
+      status: { $in: ["booked", "completed"] },
     });
     if (existing) return res.status(400).json({ error: "Slot already booked" });
 
@@ -231,7 +262,7 @@ exports.addAppointment = async (req, res) => {
       status: "booked",
       isWhatsAppNumber: !!isWhatsAppNumber,
       termsAccepted: !!termsAccepted,
-      marketingConsent: !!marketingConsent
+      marketingConsent: !!marketingConsent,
     });
     await appointment.save();
 
@@ -243,7 +274,7 @@ exports.addAppointment = async (req, res) => {
         patientID: patient.patientID,
         fullName: patient.fullName,
         mobile: patient.mobile,
-        email: patient.email
+        email: patient.email,
       },
       appointment: {
         appointmentID: appointment.appointmentID,
@@ -257,47 +288,37 @@ exports.addAppointment = async (req, res) => {
         status: appointment.status,
         isWhatsAppNumber: appointment.isWhatsAppNumber,
         termsAccepted: appointment.termsAccepted,
-        marketingConsent: appointment.marketingConsent
-      }
+        marketingConsent: appointment.marketingConsent,
+      },
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-
-// ------------------ PUT ------------------
+// ------------------ UPDATE APPOINTMENT ------------------
 exports.updateAppointment = async (req, res) => {
   try {
     const appointmentID = Number(req.params.id);
     if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
-    // Allow updating the three new fields along with existing ones
     const allowedUpdates = {
       ...req.body,
       isWhatsAppNumber: req.body.isWhatsAppNumber ?? undefined,
       termsAccepted: req.body.termsAccepted ?? undefined,
-      marketingConsent: req.body.marketingConsent ?? undefined
+      marketingConsent: req.body.marketingConsent ?? undefined,
     };
 
-    const updated = await Appointment.findOneAndUpdate(
-      { appointmentID },
-      allowedUpdates,
-      { new: true }
-    );
-
+    const updated = await Appointment.findOneAndUpdate({ appointmentID }, allowedUpdates, { new: true });
     if (!updated) return res.status(404).json({ message: "Appointment not found" });
 
-    res.json({
-      message: "Appointment updated successfully",
-      appointment: updated
-    });
+    res.json({ message: "Appointment updated successfully", appointment: updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// ------------------ DELETE ------------------
+// ------------------ DELETE APPOINTMENT(S) ------------------
 exports.deleteAppointments = async (req, res) => {
   try {
     let filter = {};
@@ -322,13 +343,10 @@ exports.deleteAppointments = async (req, res) => {
     if (!toDelete.length) return res.status(404).json({ message: "No appointments found matching criteria" });
 
     const result = await Appointment.deleteMany(filter);
-
-    if (result.deletedCount === 0) return res.status(404).json({ message: "No appointments were deleted" });
-
     res.json({
       message: toDelete.length === 1 ? "Appointment deleted" : "Appointments deleted",
       deletedCount: result.deletedCount,
-      deletedAppointments: toDelete
+      deletedAppointments: toDelete,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -341,12 +359,7 @@ exports.cancelAppointment = async (req, res) => {
     const appointmentID = Number(req.params.id);
     if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
-    const cancelled = await Appointment.findOneAndUpdate(
-      { appointmentID },
-      { status: "cancelled" },
-      { new: true }
-    );
-
+    const cancelled = await Appointment.findOneAndUpdate({ appointmentID }, { status: "cancelled" }, { new: true });
     if (!cancelled) return res.status(404).json({ message: "Appointment not found" });
 
     res.json({ message: "Appointment cancelled", appointment: cancelled });
@@ -360,12 +373,7 @@ exports.completeAppointment = async (req, res) => {
     const appointmentID = Number(req.params.id);
     if (isNaN(appointmentID)) return res.status(400).json({ error: "Invalid appointmentID" });
 
-    const completed = await Appointment.findOneAndUpdate(
-      { appointmentID },
-      { status: "completed" },
-      { new: true }
-    );
-
+    const completed = await Appointment.findOneAndUpdate({ appointmentID }, { status: "completed" }, { new: true });
     if (!completed) return res.status(404).json({ message: "Appointment not found" });
 
     res.json({ message: "Appointment marked completed", appointment: completed });
@@ -377,10 +385,7 @@ exports.completeAppointment = async (req, res) => {
 exports.updateExpiredAppointments = async (req, res) => {
   try {
     const result = await manualUpdateExpiredAppointments();
-    res.json({
-      message: "Expired appointments updated successfully",
-      updatedCount: result.updated
-    });
+    res.json({ message: "Expired appointments updated successfully", updatedCount: result.updated });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

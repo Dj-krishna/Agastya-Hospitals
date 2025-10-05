@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const { updateExpiredAppointments } = require('./utils/appointmentStatusUpdater');
 
+// Existing route imports
 const authRoutes = require('./routes/authRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 const patientRoutes = require('./routes/patientRoutes');
@@ -24,52 +25,60 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const technologyRoutes = require('./routes/technologyRoutes');
 
-
 // Connect to MongoDB
 connectDB();
 
 const app = express();
 
-// Global security, CORS, logging middleware
+// ---------------- GLOBAL MIDDLEWARE ----------------
 app.use(cors());
 app.use(helmet());
 app.use(morgan('dev'));
 
-// Rate limiting middleware
+// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
 
-// ---------------- ROUTES ----------------
+// JSON body parser (bigger limit for base64 email attachments if needed)
+app.use(express.json({ limit: '10mb' }));
 
-// Routers handle their own file upload middleware internally
+// ---------------- ROUTES ----------------
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/specialities', specialityRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/technologies', technologyRoutes);
 
-// JSON-only routes
-app.use('/api/auth', express.json(), authRoutes);
-app.use('/api/health-packages', express.json(), healthPackageRoutes);
-app.use('/api/sub-specialities', express.json(), subSpecialityRoutes);
-app.use('/api/users', express.json(), userRoutes);
-app.use('/api/user-roles', express.json(), userRoleRoutes);
-app.use('/api/doctor-slots', express.json(), doctorSlotRoutes);
-app.use('/api/modules', express.json(), moduleRoutes);
-app.use('/api/departments', express.json(), departmentRoutes);
-app.use('/api/appointments', express.json(), appointmentRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/health-packages', healthPackageRoutes);
+app.use('/api/sub-specialities', subSpecialityRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/user-roles', userRoleRoutes);
+app.use('/api/doctor-slots', doctorSlotRoutes);
+app.use('/api/modules', moduleRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/appointments', appointmentRoutes);
+
 
 // ---------------- ERROR HANDLER ----------------
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
+
   if (err.name === 'MulterError') {
-    return res.status(400).json({ error: 'File upload error', details: err.message });
+    return res.status(400).json({
+      error: 'File upload error',
+      details: err.message
+    });
   }
-  res.status(500).json({ error: 'Internal server error', details: err.message });
+
+  res.status(500).json({
+    error: 'Internal server error',
+    details: err.message
+  });
 });
 
 // ---------------- SERVER ----------------
