@@ -442,6 +442,9 @@ const AppointmentsForm = ({ onClose, onAppointmentAdded }) => {
           appointmentData.address = formState.address;
           appointmentData.countryCode = formState.countryCode;
         }
+        else{
+          appointmentData.fullName = formState.fullName;
+        }
 
         const response = await axios.post(APPOINTMENTS_API, appointmentData);
 

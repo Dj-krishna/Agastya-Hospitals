@@ -20,9 +20,32 @@ const Appointments = () => {
 
   const fetchAppointments = async (date) => {
     setIsLoading(true);
-    const dateParam = date ? `?date=${date}` : "";
+    // Get userDetails and roleid from localStorage
+    let userDetails = {};
     try {
-      const response = await axios.get(APPOINTMENTS_API + dateParam);
+      userDetails = JSON.parse(localStorage.getItem('userDetails')) || {};
+    } catch (e) {
+      userDetails = {};
+    }
+    const roleid = Number(userDetails.roleID);
+    const allowedRoles = [1, 2, 3];
+    let url = APPOINTMENTS_API;
+    let params = [];
+    if (date) {
+      params.push(`date=${date}`);
+    }
+    if (!allowedRoles.includes(roleid)) {
+      if (userDetails.email) {
+        params.push(`patientContact.email=${encodeURIComponent(userDetails.email)}`);
+      } else if (userDetails.mobile) {
+        params.push(`patientContact.mobile=${encodeURIComponent(userDetails.mobile)}`);
+      }
+    }
+    if (params.length > 0) {
+      url += '?' + params.join('&');
+    }
+    try {
+      const response = await axios.get(url);
       if (response.data.appointments) {
         setAppointments(response.data.appointments);
         setIsLoading(false);
