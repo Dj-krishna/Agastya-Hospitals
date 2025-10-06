@@ -18,6 +18,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { fetchBlogs } from "../../slices/blogSlice";
 import { is } from "date-fns/locale";
+import HTMLTextEditor from "../Common/Component/HTMLTextEditor";
 
 const initialState = {
   blogID: "",
@@ -38,6 +39,7 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
   const [formState, setFormState] = useState(initialState);
   const [formErrors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -166,6 +168,7 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitted(true);
     const newErrors = {};
     Object.keys(formState).forEach((key) => {
       const err = validateField(key, formState[key]);
@@ -221,9 +224,28 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
         console.error("Error saving blog:", error);
       } finally {
         if (onClose) onClose();
+        setIsSubmitted(false);
         setIsLoading(false);
       }
     }
+  };
+
+  const validateQuillField = (fieldName, value) => {
+    const stripped = value.replace(/<[^>]+>/g, "").trim();
+    return stripped === "" ? "This field is required" : "";
+  };
+
+  const handleQuillChange = (field, value) => {
+    setFormState((prev) => ({ ...prev, [field]: value }));
+    if (isSubmitted) {
+      const errMsg = validateQuillField(field, value);
+      setErrors((prev) => ({ ...prev, [field]: errMsg }));
+    }
+  };
+
+  const handleQuillBlur = (field) => {
+    const errMsg = validateQuillField(field, formState[field]);
+    setErrors((prev) => ({ ...prev, [field]: errMsg }));
   };
 
   return (
@@ -316,7 +338,7 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
                       <Label className="form-label" for="blogContent">
                         Blog Content
                       </Label>
-                      <Input
+                      {/* <Input
                         type="textarea"
                         name="blogContent"
                         id="blogContent"
@@ -325,8 +347,24 @@ const AddBlog = ({ onClose, isEditMode, blogDataToEdit }) => {
                         onChange={handleChange}
                         placeholder="Enter blog content"
                         invalid={!!formErrors.blogContent}
+                      /> 
+                      <ValidationAlert error={formErrors.blogContent} />*/}
+                      <HTMLTextEditor
+                        name="blogContent"
+                        state={formState.blogContent}
+                        handleChange={(value) =>
+                          handleQuillChange("blogContent", value)
+                        }
+                        placeholder="Enter content"
+                        onBlur={() => handleQuillBlur("blogContent")}
+                        errors={
+                          formErrors.blogContent && (
+                            <div className="text-danger">
+                              {formErrors.blogContent}
+                            </div>
+                          )
+                        }
                       />
-                      <ValidationAlert error={formErrors.blogContent} />
                     </Col>
                   </Row>
                   <Row>
