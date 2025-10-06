@@ -13,7 +13,7 @@ import { setBreadcrumb } from "../../slices/breadcrumbSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { FaChevronDown } from "react-icons/fa";
 
-const SideMenu = ({ navItems, aboutDropdown, pathname }) => {
+const SideMenu = ({ navItems, dropdownItems, pathname }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
   const dispatch = useDispatch();
@@ -67,10 +67,12 @@ const SideMenu = ({ navItems, aboutDropdown, pathname }) => {
                 <li
                   key={path}
                   className={`border-0 shadow-sm py-2 px-3 mb-2 nav-item position-relative ${
-                    label === "About Us" ? "dropdown" : ""
+                    label === "About Us" || label === "Specialties"
+                      ? "dropdown"
+                      : ""
                   } ${pathname === path ? "side_menu_item_active" : ""}`}
                 >
-                  {label === "About Us" ? (
+                  {label === "About Us" || label === "Specialties" ? (
                     <>
                       <button
                         className="w-100 d-flex justify-content-between align-items-center bg-transparent border-0 p-0"
@@ -99,14 +101,18 @@ const SideMenu = ({ navItems, aboutDropdown, pathname }) => {
                       </button>
                       {openAccordion === label && (
                         <ul className="dropdown-menu shadow bg-white show position-static mt-2 w-100">
-                          {aboutDropdown.map((item) => (
+                          {dropdownItems[label].map((item) => (
                             <li key={item.path}>
                               <Link
-                                to={item.path}
+                                to={
+                                  label === "Specialties"
+                                    ? `/${item.id}`
+                                    : item.path
+                                }
                                 className="dropdown-item"
                                 onClick={() => {
                                   dispatch(
-                                    setBreadcrumb(["Home", label, item.label])
+                                    setBreadcrumb(["Home", item.label])
                                   );
                                   setIsOpen(false);
                                 }}
