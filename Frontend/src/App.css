@@ -2404,6 +2404,7 @@ footer {
   /*margin-top: 0.2rem;  slight spacing */
 
   background: transparent;
+  background-color: #ffe7e8;
 }
 
 /* Optional: smooth dropdown effect */
@@ -2414,6 +2415,15 @@ footer {
   min-width: 200px;
 
   animation: fadeIn 0.2s ease-in-out;
+  background-color: #ffe7e8;
+}
+
+.nav-item.dropdown:hover .specialties-list {
+  display: inline-flex;
+  width: 35rem;
+  position: absolute;
+  top: 1.6rem;
+  left: 0;
 }
 
 @keyframes fadeIn {

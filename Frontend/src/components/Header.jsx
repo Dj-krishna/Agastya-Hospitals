@@ -22,6 +22,7 @@ const Header = () => {
         return {
           path: item.specialityName.toLowerCase().replace(" ", "-"),
           label: item.specialityName,
+          id: item.specialityID,
         };
       })
     : [];
@@ -65,6 +66,12 @@ const Header = () => {
     { path: "/awards-recognition", label: "Awards & Recognition" },
     { path: "/gallery", label: "Gallery" },
   ];
+
+  const specialtiesDropdown = sortedData.length > 0 ? sortedData : [];
+  const dropdownItems = {
+    "About Us": aboutDropdown,
+    Specialties: specialtiesDropdown,
+  };
 
   const allNavItems = [
     ...navItems,
@@ -171,7 +178,7 @@ const Header = () => {
           </div>
           <SideMenu
             navItems={navItems}
-            aboutDropdown={aboutDropdown}
+            dropdownItems={dropdownItems}
             pathname={pathname}
           />
 
@@ -182,7 +189,9 @@ const Header = () => {
                 <li
                   key={path}
                   className={`nav-item position-relative ${
-                    label === "About Us" ? "dropdown" : ""
+                    label === "About Us" || label === "Specialties"
+                      ? "dropdown"
+                      : ""
                   }`}
                 >
                   <Link
@@ -195,7 +204,7 @@ const Header = () => {
                     }}
                   >
                     <span>{label}</span>
-                    {label === "About Us" && (
+                    {(label === "About Us" || label === "Specialties") && (
                       <>
                         &nbsp;&nbsp;
                         <span>
@@ -206,7 +215,7 @@ const Header = () => {
                   </Link>
                   {label === "About Us" && (
                     <ul className="dropdown-menu shadow">
-                      {aboutDropdown.map((item) => (
+                      {dropdownItems[label].map((item) => (
                         <li key={item.path}>
                           <Link
                             to={item.path}
@@ -222,6 +231,33 @@ const Header = () => {
                         </li>
                       ))}
                     </ul>
+                  )}
+                  {label === "Specialties" && (
+                    <div className="row m-0 specialties-list dropdown-menu shadow">
+                      {dropdownItems[label].map((item) => (
+                        <div
+                          className="col-lg-4 col-md-4 col-sm-6 col-xs-12"
+                          key={item.path}
+                        >
+                          <Link
+                            to={`/${item.id}`}
+                            state={{ specialityID: item.id }}
+                            className="dropdown-item"
+                            onClick={() => {
+                              // navigate(`/${item.id}`),
+                              //   {
+                              //     state: {
+                              //       specialityID: item.id,
+                              //     },
+                              //   };
+                              dispatch(setBreadcrumb(["Home", item.label]));
+                            }}
+                          >
+                            {item.label}
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </li>
               ))}

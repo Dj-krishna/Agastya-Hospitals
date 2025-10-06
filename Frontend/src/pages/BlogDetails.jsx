@@ -45,7 +45,7 @@ const BlogDetails = () => {
             by Admin | {format(new Date(blogData.dateOfPost), "MMM dd, yyyy")}
           </p>
           <div className="mt-3">
-            <p className="f-14">{blogData.blogContent}</p>
+            <p className="f-14" dangerouslySetInnerHTML={{__html: blogData.blogContent}} />
           </div>
         </div>
         <div className="col-lg-4 col-md-4 col-sm-4 col-xs-12">

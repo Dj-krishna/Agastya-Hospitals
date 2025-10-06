@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 // import { fetchSpecialties } from "../slices/specialtySlice";
 import { useEffect } from "react";
@@ -16,7 +16,7 @@ const SpecialtyDetails = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const specialityID = location.state?.specialityID;
+  const { id: specialityID } = useParams();
 
   const fetchSpecialties = async () => {
     try {
@@ -39,8 +39,8 @@ const SpecialtyDetails = () => {
   };
   useEffect(() => {
     fetchSpecialties();
-  }, []);
-  console.log("DOCTORS:: ", doctorData);
+  }, [specialityID]);
+
   const gotoProfile = (doctorID) => {
     dispatch(setBreadcrumb(["Home", "Doctor Profile"]));
     navigate("/doctor/profile", { state: { doctorID } });
