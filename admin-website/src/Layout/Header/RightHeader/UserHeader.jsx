@@ -26,7 +26,12 @@ const UserHeader = () => {
   // Get authentication state from Redux
   const { isAuthenticated, userDetails } = useSelector((state) => state.auth);
   const authenticated = JSON.parse(localStorage.getItem("authenticated"));
-  const auth0_profile = JSON.parse(localStorage.getItem("auth0_profile"));
+  let auth0_profile = null;
+  try {
+    auth0_profile = JSON.parse(localStorage.getItem("auth0_profile"));
+  } catch (e) {
+    auth0_profile = null;
+  }
 
   useEffect(() => {
     setProfile(localStorage.getItem("profileURL") || man);
@@ -72,7 +77,7 @@ const UserHeader = () => {
         <Image
           attrImage={{
             className: "b-r-10 m-0",
-            src: `${authenticated ? auth0_profile.picture : profile}`,
+            src: authenticated && auth0_profile && auth0_profile.picture ? auth0_profile.picture : profile,
             alt: "",
           }}
         />
