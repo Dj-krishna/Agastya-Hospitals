@@ -511,9 +511,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.medicalRegNumber}
                         onChange={handleChange}
                         placeholder="Enter medical reg. number"
-                        invalid={!!formErrors.medicalRegNumber}
+                        // invalid={!!formErrors.medicalRegNumber}
                       />
-                      <ValidationAlert error={formErrors.medicalRegNumber} />
+                      {/* <ValidationAlert error={formErrors.medicalRegNumber} /> */}
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="department">
@@ -553,9 +553,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.designation}
                         onChange={handleChange}
                         placeholder="Enter designation"
-                        invalid={!!formErrors.designation}
+                        // invalid={!!formErrors.designation}
                       />
-                      <ValidationAlert error={formErrors.designation} />
+                      {/* <ValidationAlert error={formErrors.designation} /> */}
                     </Col>
                     <Col md="4" className="mb-3">
                       <Label>About Doctor</Label>
@@ -565,9 +565,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.about}
                         onChange={handleChange}
                         placeholder="Enter about doctor"
-                        invalid={!!formErrors.about}
+                        // invalid={!!formErrors.about}
                       />
-                      <ValidationAlert error={formErrors.about} />
+                      {/* <ValidationAlert error={formErrors.about} /> */}
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="speciality">
@@ -580,7 +580,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.speciality}
                         onChange={handleChange}
                         className="form-control digits"
-                        invalid={!!formErrors.speciality}
+                        // invalid={!!formErrors.speciality}
                         disabled={isLoadingData}
                       >
                         <option value="">
@@ -597,7 +597,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                           </option>
                         ))}
                       </Input>
-                      <ValidationAlert error={formErrors.speciality} />
+                      {/* <ValidationAlert error={formErrors.speciality} /> */}
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="yearsOfExperience">
@@ -609,9 +609,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.yearsOfExperience}
                         onChange={handleChange}
                         placeholder="Enter years of experience"
-                        invalid={!!formErrors.yearsOfExperience}
+                        // invalid={!!formErrors.yearsOfExperience}
                       />
-                      <ValidationAlert error={formErrors.yearsOfExperience} />
+                      {/* <ValidationAlert error={formErrors.yearsOfExperience} /> */}
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="gender">
@@ -622,14 +622,14 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         name="gender"
                         value={formState.gender}
                         onChange={handleChange}
-                        invalid={!!formErrors.gender}
+                        // invalid={!!formErrors.gender}
                       >
                         <option value="">Select Gender</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                         <option value="Other">Other</option>
                       </Input>
-                      <ValidationAlert error={formErrors.gender} />
+                      {/* <ValidationAlert error={formErrors.gender} /> */}
                     </Col>
                     <Col md="4 mb-3">
                       <Label className="form-label" for="languagesKnown">
@@ -639,11 +639,12 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         <Fragment key={index}>
                           <div className="d-flex align-items-center mb-2">
                             <Input
-                              className={`form-control${
-                                formErrors.languagesKnown[index]
-                                  ? " is-invalid"
-                                  : ""
-                              }`}
+                              // className={`form-control${
+                              //   formErrors.languagesKnown[index]
+                              //     ? " is-invalid"
+                              //     : ""
+                              // }`}
+                              className="form-control"
                               type="text"
                               placeholder={
                                 "Enter Language " + Number(index + 1)
@@ -657,7 +658,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   e.target.value
                                 )
                               }
-                              invalid={!!formErrors.languagesKnown[index]}
+                              // invalid={!!formErrors.languagesKnown[index]}
                             />
                             &nbsp;&nbsp;
                             <span
@@ -691,9 +692,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               {index === 0 ? <PlusSquare /> : <MinusSquare />}
                             </span>
                           </div>
-                          <ValidationAlert
+                          {/* <ValidationAlert
                             error={formErrors.languagesKnown[index]}
-                          />
+                          /> */}
                         </Fragment>
                       ))}
                     </Col>
@@ -709,13 +710,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         }
                         placeholder="Enter areas of expertise"
                         onBlur={() => handleQuillBlur("expertise")}
-                        errors={
-                          formErrors.expertise && (
-                            <div className="text-danger">
-                              {formErrors.expertise}
-                            </div>
-                          )
-                        }
+                        // errors={
+                        //   formErrors.expertise && (
+                        //     <div className="text-danger">
+                        //       {formErrors.expertise}
+                        //     </div>
+                        //   )
+                        // }
                       />
                     </Col>
                     <Col md="6 mb-3">
@@ -726,11 +727,12 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         <Fragment key={index}>
                           <div className="d-flex align-items-center mb-2">
                             <Input
-                              className={`form-control${
-                                formErrors.servicesOffered[index]
-                                  ? " is-invalid"
-                                  : ""
-                              }`}
+                              // className={`form-control${
+                              //   formErrors.servicesOffered[index]
+                              //     ? " is-invalid"
+                              //     : ""
+                              // }`}
+                              className="form-control"
                               type="text"
                               placeholder={"Enter Service " + Number(index + 1)}
                               name={`servicesOffered${index}`}
@@ -779,9 +781,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               {index === 0 ? <PlusSquare /> : <MinusSquare />}
                             </span>
                           </div>
-                          <ValidationAlert
+                          {/* <ValidationAlert
                             error={formErrors.servicesOffered[index]}
-                          />
+                          /> */}
                         </Fragment>
                       ))}
                     </Col>
@@ -795,9 +797,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         value={formState.consultingLocation}
                         onChange={handleChange}
                         placeholder="Enter location"
-                        invalid={!!formErrors.consultingLocation}
+                        // invalid={!!formErrors.consultingLocation}
                       />
-                      <ValidationAlert error={formErrors.consultingLocation} />
+                      {/* <ValidationAlert error={formErrors.consultingLocation} /> */}
                     </Col>
                   </Row>
                   <Row>
@@ -807,11 +809,12 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         <Fragment key={index}>
                           <div className="d-flex align-items-center mb-2">
                             <Input
-                              className={`form-control${
-                                formErrors.educationQualification[index]
-                                  ? " is-invalid"
-                                  : ""
-                              }`}
+                              // className={`form-control${
+                              //   formErrors.educationQualification[index]
+                              //     ? " is-invalid"
+                              //     : ""
+                              // }`}
+                                                            className="form-control"
                               type="text"
                               placeholder={
                                 "Enter Education Qualification " +
@@ -866,9 +869,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               {index === 0 ? <PlusSquare /> : <MinusSquare />}
                             </span>
                           </div>
-                          <ValidationAlert
+                          {/* <ValidationAlert
                             error={formErrors.educationQualification[index]}
-                          />
+                          /> */}
                         </Fragment>
                       ))}
                     </Col>
@@ -886,13 +889,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         }
                         placeholder="Enter experience description"
                         onBlur={() => handleQuillBlur("experienceDescription")}
-                        errors={
-                          formErrors.experienceDescription && (
-                            <div className="text-danger">
-                              {formErrors.experienceDescription}
-                            </div>
-                          )
-                        }
+                        // errors={
+                        //   formErrors.experienceDescription && (
+                        //     <div className="text-danger">
+                        //       {formErrors.experienceDescription}
+                        //     </div>
+                        //   )
+                        // }
                       />
                     </Col>
                     <Col md="12 mb-3">
@@ -907,13 +910,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         }
                         placeholder="Enter awards and achievements"
                         onBlur={() => handleQuillBlur("awardsAndAchievements")}
-                        errors={
-                          formErrors.awardsAndAchievements && (
-                            <div className="text-danger">
-                              {formErrors.awardsAndAchievements}
-                            </div>
-                          )
-                        }
+                        // errors={
+                        //   formErrors.awardsAndAchievements && (
+                        //     <div className="text-danger">
+                        //       {formErrors.awardsAndAchievements}
+                        //     </div>
+                        //   )
+                        // }
                       />
                     </Col>
                     <Col md="12 mb-3">
@@ -933,13 +936,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         onBlur={() =>
                           handleQuillBlur("researchAndPublications")
                         }
-                        errors={
-                          formErrors.researchAndPublications && (
-                            <div className="text-danger">
-                              {formErrors.researchAndPublications}
-                            </div>
-                          )
-                        }
+                        // errors={
+                        //   formErrors.researchAndPublications && (
+                        //     <div className="text-danger">
+                        //       {formErrors.researchAndPublications}
+                        //     </div>
+                        //   )
+                        // }
                       />
                     </Col>
                     <Col md="8 mb-3">
@@ -950,9 +953,10 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         <Fragment key={index}>
                           <div className="d-flex align-items-center mb-2">
                             <Input
-                              className={`form-control${
-                                formErrors.opTimings[index] ? " is-invalid" : ""
-                              }`}
+                              // className={`form-control${
+                              //   formErrors.opTimings[index] ? " is-invalid" : ""
+                              // }`}
+                              className="form-control"
                               type="text"
                               placeholder={
                                 "Enter OP Timing " +
@@ -1002,9 +1006,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               {index === 0 ? <PlusSquare /> : <MinusSquare />}
                             </span>
                           </div>
-                          <ValidationAlert
+                          {/* <ValidationAlert
                             error={formErrors.opTimings[index]}
-                          />
+                          /> */}
                         </Fragment>
                       ))}
                     </Col>
@@ -1018,9 +1022,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                         id="profilePicture"
                         onChange={handleChange}
                         placeholder="Enter profile photo"
-                        invalid={!!formErrors.profilePicture}
+                        // invalid={!!formErrors.profilePicture}
                       />
-                      <ValidationAlert error={formErrors.profilePicture} />
+                      {/* <ValidationAlert error={formErrors.profilePicture} /> */}
                     </Col>
                     {formState.profilePicture && (
                       <Col md="4 mb-3">
