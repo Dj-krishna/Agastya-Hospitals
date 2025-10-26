@@ -25,7 +25,7 @@ const initialFormData = {
   email: "",
   mobile: "",
   address: "",
-  dob: new Date(),
+  dob: null,
   bloodGroup: "",
   altPhoneNumber: "",
   uhid: "",
@@ -61,7 +61,7 @@ const PatientForm = ({ onClose, formType, patientData }) => {
         ...formData,
         ...patientData,
         uhid: patientData?.UHID || "",
-        dob: patientData?.dob ? new Date(patientData.dob) : new Date(),
+  dob: patientData?.dob ? new Date(patientData.dob) : null,
       });
     } else {
       setFormData(initialFormData);
@@ -287,9 +287,11 @@ const PatientForm = ({ onClose, formType, patientData }) => {
                       <InputGroup>
                         <DatePicker
                           className="form-control datetimepicker-input digits"
-                          selected={new Date(formData.dob)}
+                          selected={formData.dob ? new Date(formData.dob) : null}
                           onChange={(date) => handleDateChange("dob", date)}
                           dateFormat="dd/MM/yyyy"
+                          isClearable={true}
+                          placeholderText="Select date of birth"
                         />
                         <div
                           className="input-group-text"
