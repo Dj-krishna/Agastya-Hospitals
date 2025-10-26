@@ -48,6 +48,7 @@ function ManageSlots(params) {
   const [alertMessage, setAlertMessage] = useState({ show: false, type: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [slotIdForDoctor, setSlotIdForDoctor] = useState(null);
+  const [noSlotsMessage, setNoSlotsMessage] = useState("");
   const dispatch = useDispatch();
   const { data: doctors } = useSelector((state) => {
     return state.doctors;
@@ -130,12 +131,20 @@ function ManageSlots(params) {
       );
       let candidate = null;
       if (Array.isArray(data)) {
+        // If API returns an empty array, show message to user
+        if (data.length === 0) {
+          setNoSlotsMessage("No slots added for the doctor on this day, please add slots.");
+        } else {
+          setNoSlotsMessage("");
+        }
         candidate = data.find((item) => Array.isArray(item.schedule));
       } else if (data && Array.isArray(data.schedule)) {
+        setNoSlotsMessage("");
         candidate = data;
       }
 
       if (candidate) {
+        setNoSlotsMessage("");
         setSlotIdForDoctor(candidate.slotID || candidate._id || null);
         const { morning, evening } = extractSlotsForDate(candidate.schedule, date);
         setFormData((prev) => ({
@@ -228,6 +237,11 @@ function ManageSlots(params) {
                 {alertMessage.show && (
                   <Alert color={alertMessage.type} className="mb-3">
                     {alertMessage.message}
+                  </Alert>
+                )}
+                {noSlotsMessage && (
+                  <Alert color="info" className="mb-3">
+                    {noSlotsMessage}
                   </Alert>
                 )}
                 <Form onSubmit={handleSubmit}>
