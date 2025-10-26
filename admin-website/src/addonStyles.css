@@ -1,0 +1,13 @@
+/* Doctors component */
+li.text-muted > span.text-dark.text-clamped-one > p {
+  font-size: 12px;
+}
+.text-clamped-all {
+  display: "inline-block";
+  max-width: "95%";
+  white-space: "nowrap";
+  overflow: "hidden";
+  text-overflow: "ellipsis";
+  vertical-align: "bottom";
+  font-size: 12px !important;
+}

@@ -114,12 +114,40 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                     <h5 className="card-title fw-bold mb-1">
                       {doctor.fullName}
                     </h5>
-                    <p className="mb-1 text-muted small">
+                    <p
+                      className="mb-1 text-muted small"
+                      style={{
+                        display: "inline-block",
+                        maxWidth: "100%",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        verticalAlign: "bottom",
+                        fontSize: "12px !important",
+                      }}
+                      title={
+                        doctor.educationQualification[1]
+                          ? doctor.educationQualification[1]
+                          : "NA"
+                      }
+                    >
                       {doctor.educationQualification[1]
                         ? doctor.educationQualification[1]
                         : "NA"}
                     </p>
-                    <p className="text-primary fw-semibold mb-2">
+                    <p
+                      className="text-primary fw-semibold mb-2"
+                      style={{
+                        display: "inline-block",
+                        maxWidth: "100%",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        verticalAlign: "bottom",
+                        fontSize: "12px !important",
+                      }}
+                      title={doctor.designation}
+                    >
                       {doctor.designation}
                     </p>
                     <ul className="mb-3 small" style={{ listStyle: "inside" }}>
@@ -182,13 +210,10 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                             verticalAlign: "bottom",
                             fontSize: "12px !important",
                           }}
-                        >
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: doctor.expertise,
-                            }}
-                          />
-                        </span>
+                          dangerouslySetInnerHTML={{
+                            __html: doctor.expertise,
+                          }}
+                        />
                       </li>
                     </ul>
                   </div>
