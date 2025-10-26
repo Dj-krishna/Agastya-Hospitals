@@ -16,6 +16,14 @@ export const fetchDoctors = createAsyncThunk(
   }
 );
 
+export const deleteDoctor = createAsyncThunk(
+  "doctors/deleteDoctor",
+  async (id) => {
+    const response = await axios.delete(`${DOCTORS_API}?doctorID=${id}`);
+    return response.message;
+  }
+);
+
 const doctorSlice = createSlice({
   name: "doctors",
   initialState: {
@@ -35,6 +43,18 @@ const doctorSlice = createSlice({
         state.data = action.payload;
       })
       .addCase(fetchDoctors.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteDoctor.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteDoctor.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data = state.data.filter((dep) => dep.id !== action.payload);
+      })
+      .addCase(deleteDoctor.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

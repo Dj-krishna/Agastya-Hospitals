@@ -152,8 +152,6 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
     }
   }, [initialData, isEditMode, specialities]);
 
-  console.log("formState", formState);
-
   const validateField = (name, value) => {
     switch (name) {
       case "fullName":
@@ -164,27 +162,28 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
           : "Valid Mobile Number is required";
       case "email":
         return /\S+@\S+\.\S+/.test(value) ? "" : "Valid Email is required";
-      case "medicalRegNumber":
-        return value === "" ? "Medical Reg. Number is required" : "";
       case "departmentID":
         return value === "" ? "Department is required" : "";
-      case "speciality":
-        return value === "" ? "Speciality is required" : "";
-      case "designation":
-        return value === "" ? "Designation is required" : "";
-      case "about":
-        return value === "" ? "About doctor is required" : "";
-      case "educationQualification":
-      case "opTimings":
-      case "languagesKnown":
-      case "servicesOffered":
-        return value === "" ? "This field is required" : "";
-      case "yearsOfExperience":
-        return value === "" ? "Years of Experience is required" : "";
-      case "gender":
-        return value === "" ? "Gender is required" : "";
-      case "consultingLocation":
-        return value === "" ? "Location is required" : "";
+
+      // case "medicalRegNumber":
+      //   return value === "" ? "Medical Reg. Number is required" : "";
+      // case "speciality":
+      //   return value === "" ? "Speciality is required" : "";
+      // case "designation":
+      //   return value === "" ? "Designation is required" : "";
+      // case "about":
+      //   return value === "" ? "About doctor is required" : "";
+      // case "educationQualification":
+      // case "opTimings":
+      // case "languagesKnown":
+      // case "servicesOffered":
+      //   return value === "" ? "This field is required" : "";
+      // case "yearsOfExperience":
+      //   return value === "" ? "Years of Experience is required" : "";
+      // case "gender":
+      //   return value === "" ? "Gender is required" : "";
+      // case "consultingLocation":
+      //   return value === "" ? "Location is required" : "";
       default:
         return "";
     }
@@ -262,24 +261,28 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
     const newformErrors = {};
     Object.keys(formState).forEach((key) => {
-      if (key === "educationQualification" || key === "opTimings" || key === "languagesKnown" || key === "servicesOffered") {
-        newformErrors[key] = formState[key].map((val, _i) =>
-          validateField(key, val)
-        );
-      } else if (
-        key === "expertise" ||
-        key === "awardsAndAchievements" ||
-        key === "researchAndPublications" ||
-        key === "experienceDescription"
-      ) {
-        newformErrors[key] = validateQuillField(key, formState[key]);
-      } else {
-        newformErrors[key] = validateField(key, formState[key]);
-      }
+      // if (
+      //   key === "educationQualification" ||
+      //   key === "opTimings" ||
+      //   key === "languagesKnown" ||
+      //   key === "servicesOffered"
+      // ) {
+      //   newformErrors[key] = formState[key].map((val, _i) =>
+      //     validateField(key, val)
+      //   );
+      // } else if (
+      //   key === "expertise" ||
+      //   key === "awardsAndAchievements" ||
+      //   key === "researchAndPublications" ||
+      //   key === "experienceDescription"
+      // ) {
+      //   newformErrors[key] = validateQuillField(key, formState[key]);
+      // } else {
+      newformErrors[key] = validateField(key, formState[key]);
+      // }
     });
 
     setFormErrors(newformErrors);
-    console.log("Form Errors:", newformErrors);
 
     const isValid = Object.values(newformErrors)
       .flat()
@@ -321,16 +324,25 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
 
         // Filter out empty array items
         if (submitData.languagesKnown) {
-          submitData.languagesKnown = submitData.languagesKnown.filter(lang => lang.trim() !== "");
+          submitData.languagesKnown = submitData.languagesKnown.filter(
+            (lang) => lang.trim() !== ""
+          );
         }
         if (submitData.servicesOffered) {
-          submitData.servicesOffered = submitData.servicesOffered.filter(service => service.trim() !== "");
+          submitData.servicesOffered = submitData.servicesOffered.filter(
+            (service) => service.trim() !== ""
+          );
         }
         if (submitData.educationQualification) {
-          submitData.educationQualification = submitData.educationQualification.filter(edu => edu.trim() !== "");
+          submitData.educationQualification =
+            submitData.educationQualification.filter(
+              (edu) => edu.trim() !== ""
+            );
         }
         if (submitData.opTimings) {
-          submitData.opTimings = submitData.opTimings.filter(timing => timing.trim() !== "");
+          submitData.opTimings = submitData.opTimings.filter(
+            (timing) => timing.trim() !== ""
+          );
         }
 
         if (isEditMode && initialData?.doctorID) {
@@ -449,7 +461,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                           value={formState.countryCode}
                           onChange={handleChange}
                           style={{ maxWidth: "100px" }}
-                          invalid={!!formErrors.countryCode}
+                          // invalid={!!formErrors.countryCode}
                         >
                           <option value="">Code</option>
                           {countryCodes.map((code) => (
@@ -634,8 +646,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               }`}
                               type="text"
                               placeholder={
-                                "Enter Language " +
-                                Number(index + 1)
+                                "Enter Language " + Number(index + 1)
                               }
                               name={`languagesKnown${index}`}
                               value={field}
@@ -646,9 +657,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   e.target.value
                                 )
                               }
-                              invalid={
-                                !!formErrors.languagesKnown[index]
-                              }
+                              invalid={!!formErrors.languagesKnown[index]}
                             />
                             &nbsp;&nbsp;
                             <span
@@ -663,17 +672,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         languagesKnown: [
-                                          ...(prev.languagesKnown ||
-                                            []),
+                                          ...(prev.languagesKnown || []),
                                           "",
                                         ],
                                       }));
                                     }
                                   : () => {
-                                      removeArrayField(
-                                        "languagesKnown",
-                                        index
-                                      );
+                                      removeArrayField("languagesKnown", index);
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         languagesKnown: (
@@ -727,10 +732,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   : ""
                               }`}
                               type="text"
-                              placeholder={
-                                "Enter Service " +
-                                Number(index + 1)
-                              }
+                              placeholder={"Enter Service " + Number(index + 1)}
                               name={`servicesOffered${index}`}
                               value={field}
                               onChange={(e) =>
@@ -740,9 +742,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   e.target.value
                                 )
                               }
-                              invalid={
-                                !!formErrors.servicesOffered[index]
-                              }
+                              invalid={!!formErrors.servicesOffered[index]}
                             />
                             &nbsp;&nbsp;
                             <span
@@ -757,8 +757,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         servicesOffered: [
-                                          ...(prev.servicesOffered ||
-                                            []),
+                                          ...(prev.servicesOffered || []),
                                           "",
                                         ],
                                       }));
@@ -1034,7 +1033,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               <img
                                 src={
                                   formState.profilePicture instanceof File
-                                    ? URL.createObjectURL(formState.profilePicture)
+                                    ? URL.createObjectURL(
+                                        formState.profilePicture
+                                      )
                                     : formState.profilePicture // already a URL string
                                 }
                                 alt="Profile Preview"

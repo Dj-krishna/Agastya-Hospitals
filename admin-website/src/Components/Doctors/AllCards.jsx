@@ -1,15 +1,21 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { Card, CardBody, Col } from "reactstrap";
-import { H5, Image } from "../../AbstractElements";
+import { Button, Card, CardBody, Col } from "reactstrap";
 import { DOCTORS_API } from "../../api";
 import { fetchDataGet } from "../../api/Services";
 import CardSkeleton from "../Common/Component/CardSkeleton";
+import { deleteDoctor, fetchDoctors } from "../../slices/doctorsSlice";
+import { toasterConfig } from "../../utils";
+import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
+import { FaTrashAlt } from "react-icons/fa";
 
 const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDoctors = async () => {
+  const dispatch = useDispatch();
+
+  const fetchDoctorsData = async () => {
     try {
       setLoading(true);
       const data = await fetchDataGet(DOCTORS_API);
@@ -22,15 +28,42 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
   };
 
   useEffect(() => {
-    fetchDoctors();
+    fetchDoctorsData();
   }, [refreshTrigger]);
-
-  console.log("DOCTOR CARDS ", doctors);
 
   const handleCardClick = (doctor) => {
     if (onEditDoctor) {
       onEditDoctor(doctor);
     }
+  };
+
+  const handleDeleteDoctor = async (id) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this doctor?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#fc4438",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await dispatch(deleteDoctor(id)); //await deleteSpeciality(id);
+          if (response) {
+            toasterConfig(
+              "success",
+              response.data?.message || "Deleted successfully"
+            );
+            dispatch(fetchDoctorsData()); // fetchSpecialities(); // Refresh the list
+          } else {
+            toasterConfig("error", "Something went wrong");
+          }
+        } catch (error) {
+          toasterConfig("error", "Something went wrong");
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -48,68 +81,11 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
             xxl="4"
             className="col-ed-6 box-col-6"
           >
-            {/* <Card
-              className="social-profile"
+            <div
+              className="card border-1 shadow-xs rounded-4 mb-4 p-2"
+              onClick={() => handleCardClick(doctor)}
               style={{ cursor: "pointer" }}
-              onClick={() => handleCardClick(item)}
             >
-              <CardBody>
-                <div className="social-img-wrap">
-                  <div className="social-img">
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 60,
-                        height: 60,
-                        borderRadius: "50%",
-                        background: "#e0e0e0",
-                        fontWeight: "bold",
-                        fontSize: 22,
-                        color: "#333",
-                        margin: "0 auto",
-                      }}
-                    >
-                      {(
-                        item.fullName.split(" ")[1]?.split("")[0] +
-                        item.fullName.split(" ")[2]?.split("")[0]
-                      ).toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-                <div className="social-details">
-                  <H5 attrH5={{ className: "mb-3" }}>{item.fullName}</H5>
-                  <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite f-12">Designation:</span>
-                    <span className="font-lite f-12">{item.designation}</span>
-                  </div>
-                  <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite f-12">Years of Experience:</span>
-                    <span className="font-lite f-12">
-                      {item.yearsOfExperience || "-"} Years
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite f-12">Gender:</span>
-                    <span className="font-lite f-12">{item.gender}</span>
-                  </div>
-                  <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite f-12">Contact Number:</span>
-                    <span className="font-lite f-12">
-                      {item?.countryCode}
-                      {item?.countryCode && " - "}
-                      {item.mobile}
-                    </span>
-                  </div>
-                  <div className="d-flex justify-content-between my-2">
-                    <span className="font-lite f-12">Email Address:</span>
-                    <span className="font-lite f-12">{item.email}</span>
-                  </div>
-                </div>
-              </CardBody>
-            </Card> */}
-            <div className="card border-1 shadow-xs rounded-4 mb-4 p-2" onClick={() => handleCardClick(doctor)} style={{ cursor: "pointer" }} >
               <div className="row g-0">
                 <div className="col-lg-4 col-md-4 col-sm-12 col-xs-12 text-center p-2">
                   <img
@@ -117,6 +93,21 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                     className="img-fluid rounded-3"
                     alt="Doctor"
                   />
+                  <div>
+                    <FaTrashAlt
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteDoctor(doctor.doctorID);
+                      }}
+                      className="text-danger cursor-pointer"
+                      title="Delete Doctor"
+                      style={{
+                        position: "absolute",
+                        left: "10px",
+                        bottom: "10px",
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="col-lg-8 col-md-8 col-sm-12 col-xs-12 pr-0 pt-2">
                   <div className="card-body pl-1 p-0">
@@ -124,14 +115,17 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                       {doctor.fullName}
                     </h5>
                     <p className="mb-1 text-muted small">
-                      {doctor.educationQualification[1] ? doctor.educationQualification[1] : "NA"}
+                      {doctor.educationQualification[1]
+                        ? doctor.educationQualification[1]
+                        : "NA"}
                     </p>
                     <p className="text-primary fw-semibold mb-2">
                       {doctor.designation}
                     </p>
                     <ul className="mb-3 small" style={{ listStyle: "inside" }}>
                       <li className="text-muted mb-1">
-                        <strong>Gender:</strong> <span className="text-dark">{doctor.gender}</span>
+                        <strong>Gender:</strong>{" "}
+                        <span className="text-dark">{doctor.gender}</span>
                       </li>
                       <li className="text-muted mb-1">
                         <strong>Contact:</strong>{" "}
@@ -154,7 +148,7 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                       <li className="text-muted mb-1">
                         <strong>Speaks:</strong>{" "}
                         <span className="text-dark">
-                          Telugu, English, Hindi
+                          {doctor.languagesKnown.join(", ")}
                         </span>
                       </li>
                       <li className="text-muted mb-1">
@@ -186,26 +180,17 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             verticalAlign: "bottom",
+                            fontSize: "12px !important",
                           }}
                         >
-                          Liver Intensive Care, Acute Liver Failure…
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: doctor.expertise,
+                            }}
+                          />
                         </span>
                       </li>
                     </ul>
-                    {/* <div className="d-flex flex-wrap gap-2">
-                            <button
-                              href="#"
-                              className="btn btn-light rounded-pill f-12 f-w-700"
-                            >
-                              View Profile
-                            </button>
-                            <button
-                              className="btn btn-primary rounded-pill px-3 book-btn f-12"
-                              //onClick={() => navigate("/book-appointment")}
-                            >
-                              Book Appointment
-                            </button>
-                          </div> */}
                   </div>
                 </div>
               </div>
