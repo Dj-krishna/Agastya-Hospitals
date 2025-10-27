@@ -178,10 +178,21 @@ const Specialities = () => {
                               </td>
                               <td>{item.specialityName || "N/A"}</td>
                               <td>
-                                {item.doctorName ||
-                                  item.doctor ||
-                                  item.doctorID ||
-                                  "N/A"}
+                                {(() => {
+                                  // Prefer doctorNames array from API and filter out null/empty entries
+                                  if (Array.isArray(item.doctorNames)) {
+                                    const names = item.doctorNames
+                                      .filter((n) => n && String(n).trim() !== "")
+                                      .join(", ");
+                                    if (names) return names;
+                                  }
+
+                                  // Fallbacks: doctor (array of IDs) or single doctor/doctorID
+                                  if (Array.isArray(item.doctor) && item.doctor.length > 0) {
+                                    return item.doctor.join(", ");
+                                  }
+                                  return item.doctor  || "N/A";
+                                })()}
                               </td>
                               <td
                                 style={{

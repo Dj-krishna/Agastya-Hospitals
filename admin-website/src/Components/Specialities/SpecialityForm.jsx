@@ -24,7 +24,7 @@ const initialFormState = {
   specialityName: "",
   icon: "",
   displayOrder: "",
-  doctor: "",
+  doctor: [],
   shortDescription: "",
   pageDescription: "",
   banner: "",
@@ -79,7 +79,16 @@ const SpecialityForm = ({
           ? initialData.icon[0] || ""
           : initialData.icon || "",
         displayOrder: initialData.displayOrder || "",
-        doctor: initialData.doctor || initialData.doctorID || "",
+        // normalize doctor to array of IDs
+        doctor: Array.isArray(initialData.doctor)
+          ? initialData.doctor.map((d) => parseInt(d))
+          : initialData.doctor
+          ? [parseInt(initialData.doctor)]
+          : initialData.doctorID
+          ? Array.isArray(initialData.doctorID)
+            ? initialData.doctorID.map((d) => parseInt(d))
+            : [parseInt(initialData.doctorID)]
+          : [],
         shortDescription: initialData.shortDescription || "",
         pageDescription: initialData.pageDescription || "",
         banner: Array.isArray(initialData.banner)
@@ -101,21 +110,16 @@ const SpecialityForm = ({
 
   const validateAllFields = (name, value) => {
     const isEmpty = (val) => {
-      if (val instanceof File) {
-        return false; // File is not empty
-      }
+      if (val instanceof File) return false;
+      if (Array.isArray(val)) return val.length === 0;
       return typeof val === "string" ? val.trim() === "" : !val;
     };
 
     const requiredFields = {
       specialityName: "Speciality name is required",
-      // icon: "Icon is required", // Made optional for now
-      // displayOrder: "Display Order is required", // Made optional
       doctor: "Assign Doctor is required",
       shortDescription: "Short description is required",
       pageDescription: "Page description is required",
-      // banner: "Page banner is required", // Made optional for now
-      // seoMetaData: "SEO metadata is required", // Made optional
       urlSlug: "URL slug is required",
       isNavigationDisplay: "Navigation display setting is required",
       isActive: "Active status is required",
@@ -201,7 +205,11 @@ const SpecialityForm = ({
           pageDescription: formState.pageDescription,
           isActive: formState.isActive,
           isNavigationDisplay: formState.isNavigationDisplay,
-          doctor: parseInt(formState.doctor),
+          doctor: Array.isArray(formState.doctor)
+            ? formState.doctor.map((d) => parseInt(d))
+            : formState.doctor
+            ? [parseInt(formState.doctor)]
+            : [],
           // Handle file fields - keep File objects for FormData
           icon:
             formState.icon instanceof File
@@ -349,22 +357,29 @@ const SpecialityForm = ({
                       <Label className="form-label" for="doctor">
                         Assign Doctor
                       </Label>
-                      <Input
-                        type="select"
-                        name="doctor"
-                        id="doctor"
-                        className="form-control digits"
-                        value={formState.doctor}
-                        onChange={handleChange}
-                        invalid={!!formErrors.doctor}
-                      >
-                        <option value="">Select doctor</option>
+                      <div>
                         {doctors.map((doctor, index) => (
-                          <option key={index} value={doctor.doctorID}>
+                          <Label className="d-block" for={`doctorCheck${index}`} key={index}>
+                            <Input
+                              className="checkbox_animated"
+                              id={`doctorCheck${index}`}
+                              type="checkbox"
+                              checked={Array.isArray(formState.doctor) && formState.doctor.includes(parseInt(doctor.doctorID))}
+                              onChange={() => {
+                                const id = parseInt(doctor.doctorID);
+                                setFormState((prev) => {
+                                  const arr = Array.isArray(prev.doctor) ? prev.doctor.slice() : [];
+                                  const idx = arr.indexOf(id);
+                                  if (idx === -1) arr.push(id);
+                                  else arr.splice(idx, 1);
+                                  return { ...prev, doctor: arr };
+                                });
+                              }}
+                            />
                             {doctor.fullName}
-                          </option>
+                          </Label>
                         ))}
-                      </Input>
+                      </div>
                       <ValidationAlert error={formErrors.doctor} />
                     </Col>
                     <Col md="12 mb-3">
