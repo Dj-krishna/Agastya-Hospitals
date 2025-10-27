@@ -18,25 +18,60 @@ const SpecialtyDetails = () => {
   const navigate = useNavigate();
   const { id: specialityID } = useParams();
 
+  // const fetchSpecialties = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const response = await axios.get(
+  //       `${SPECIALITIES_API}?specialityID=${specialityID}`
+  //     );
+  //     if (response.data.doctor.length > 0) {
+  //       let doctorsList = response.data.doctor?.map((doc) => {
+  //         const docResponse = axios.get(`${DOCTORS_API}?doctorID=${doc}`);
+  //         return docResponse.then((res) => res.data);
+  //       });
+  //       const allDoctors = await Promise.all(doctorsList);
+  //       const doctorDataList = allDoctors.map((doc) => doc.data);
+  //       setDoctorData(doctorDataList.length > 0 ? doctorDataList : []);
+  //       setLoading(false);
+  //     }
+  //     setSpecialties(response.data);
+  //   } catch (error) {}
+  // };
+
   const fetchSpecialties = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${SPECIALITIES_API}?specialityID=${specialityID}`
+  try {
+    setLoading(true);
+    const response = await axios.get(
+      `${SPECIALITIES_API}?specialityID=${specialityID}`
+    );
+    if (response.data.doctor.length > 0) {
+      // Fetch all doctor data in parallel
+      const doctorsList = await Promise.all(
+        response.data.doctor.map(async (doc) => {
+          try {
+            const docResponse = await axios.get(`${DOCTORS_API}?doctorID=${doc}`);
+            // Only return doctor data if available
+            return docResponse.data?.data || null;
+          } catch {
+            // If doctor not found or error, return null
+            return null;
+          }
+        })
       );
-      if (response.data.doctor.length > 0) {
-        let doctorsList = [22, 1, 2, 3, 4]?.map((doc) => {
-          const docResponse = axios.get(`${DOCTORS_API}?doctorID=${doc}`);
-          return docResponse.then((res) => res.data);
-        });
-        const allDoctors = await Promise.all(doctorsList);
-        const doctorDataList = allDoctors.map((doc) => doc.data);
-        setDoctorData(doctorDataList);
-        setLoading(false);
-      }
-      setSpecialties(response.data);
-    } catch (error) {}
-  };
+      // Filter out null values (doctors not found)
+      const doctorDataList = doctorsList.filter(Boolean);
+      setDoctorData(doctorDataList);
+    } else {
+      setDoctorData([]);
+    }
+    setSpecialties(response.data);
+    setLoading(false);
+  } catch (error) {
+    setDoctorData([]);
+    setSpecialties(null);
+    setLoading(false);
+  }
+};
   useEffect(() => {
     fetchSpecialties();
   }, [specialityID]);
@@ -78,8 +113,8 @@ const SpecialtyDetails = () => {
               <h2 className="f-30 f-w-700 mb-3">Our Specialist Doctors</h2>
             </div>
             <div className="row">
-              {doctorData.length != 0 ? (
-                doctorData.map((doctor) => (
+              {doctorData?.length != 0 ? (
+                doctorData?.map((doctor) => (
                   <div
                     key={doctor.doctorID}
                     className="col-lg-12 col-md-12 col-sm-12 col-xs-12"
@@ -98,9 +133,7 @@ const SpecialtyDetails = () => {
                           <div className="doctor-info">
                             <h5 className="name">{doctor.fullName}</h5>
                             <p className="qualification">
-                              {doctor.educationQualification[1]
-                                ? doctor.educationQualification[1]
-                                : "NA"}
+                              {doctor.qualification.join(", ")}
                             </p>
                             <p className="designation">{doctor.designation}</p>
                             <ul

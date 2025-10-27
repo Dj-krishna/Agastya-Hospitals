@@ -236,7 +236,7 @@ const Header = () => {
                     <div className="row m-0 specialties-list dropdown-menu shadow">
                       {dropdownItems[label].map((item) => (
                         <div
-                          className="col-lg-4 col-md-4 col-sm-6 col-xs-12"
+                          className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
                           key={item.path}
                         >
                           <Link

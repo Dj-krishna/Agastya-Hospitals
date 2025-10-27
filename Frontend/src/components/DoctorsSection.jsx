@@ -32,8 +32,8 @@ const DoctorsSection = () => {
   });
 
   useEffect(() => {
-      setActiveIndex(specialtiesData[0]?.specialityID);
-      fetchDoctorsBySpecialty(specialtiesData[0]?.specialityID);
+    setActiveIndex(specialtiesData[0]?.specialityID);
+    fetchDoctorsBySpecialty(specialtiesData[0]?.specialityID);
   }, []);
 
   const fetchDoctorsBySpecialty = async (specialityID) => {
@@ -85,19 +85,23 @@ const DoctorsSection = () => {
 
         {/* Specialty Filters */}
         <div className="flex flex-wrap justify-center gap-4 mb-12 ">
-          {specialtiesData?.map((specialty, index) => (
-            <button
-              key={specialty.specialityID}
-              className={`specialty-tabpill py-2 px-3 ${
-                specialty.specialityID === activeIndex
-                  ? "active"
-                  : "specialty-tabpill"
-              }`}
-              onClick={() => fetchDoctorsBySpecialty(specialty.specialityID)}
-            >
-              {specialty.specialityName}
-            </button>
-          ))}
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            specialtiesData.slice(0, 6)?.map((specialty, index) => (
+              <button
+                key={specialty.specialityID}
+                className={`specialty-tabpill py-2 px-3 ${
+                  specialty.specialityID === activeIndex
+                    ? "active"
+                    : "specialty-tabpill"
+                }`}
+                onClick={() => fetchDoctorsBySpecialty(specialty.specialityID)}
+              >
+                {specialty.specialityName}
+              </button>
+            ))
+          )}
         </div>
 
         {/* Doctors Carousel */}
@@ -135,7 +139,7 @@ const DoctorsSection = () => {
                     <div className="mb-4">
                       <img className="rounded-5" src={doctor.profilePicture} />
                       <button
-                        className="shadow-sm border-1 rounded-5 d-flex align-items-center mt-3 ctabtn bookappointment"
+                        className="shadow-sm border-1 rounded-5 d-flex align-items-center mt-3 ctabtn bookappointment home-appointment_btn"
                         onClick={() => {
                           dispatch(setBreadcrumb(["Home", "Book Appointment"]));
                           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -155,9 +159,7 @@ const DoctorsSection = () => {
                       {doctor.designation}
                     </p>
                     <p className="text-center mb-2 text-muted f-16">
-                      {doctor.educationQualification[1]
-                        ? doctor.educationQualification[1]
-                        : "NA"}
+                      {doctor.qualification.join(", ")}
                     </p>
                   </div>
                 </div>

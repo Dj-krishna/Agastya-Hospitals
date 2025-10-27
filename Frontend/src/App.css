@@ -2464,3 +2464,11 @@ footer {
   background-color: #ffe7e8 !important;
   color: #ef7178 !important;
 }
+
+.home-appointment_btn {
+  position: absolute;
+  bottom: 20%;
+  transform: translate(50px, -50px);
+  background: linear-gradient(-14deg, black, transparent);
+  color: #fff;
+}
