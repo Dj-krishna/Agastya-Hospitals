@@ -46,7 +46,8 @@ const validateAndNormalizeDoctor = async (doc, isUpdate = false) => {
   // Normalize array fields
   normalizedDoc.languagesKnown = normalizeArray(doc.languagesKnown);
   normalizedDoc.servicesOffered = normalizeArray(doc.servicesOffered);
-  normalizedDoc.educationQualification = normalizeArray(doc.educationQualification);
+  normalizedDoc.education = normalizeArray(doc.education);
+  normalizedDoc.qualification = normalizeArray(doc.qualification);
   normalizedDoc.opTimings = normalizeArray(doc.opTimings);
   normalizedDoc.speciality = normalizeArray(doc.speciality);
 
