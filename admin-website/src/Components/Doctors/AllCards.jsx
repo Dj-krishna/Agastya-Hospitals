@@ -125,15 +125,9 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                         verticalAlign: "bottom",
                         fontSize: "12px !important",
                       }}
-                      title={
-                        doctor.education[1]
-                          ? doctor.education[1]
-                          : "NA"
-                      }
+                      title={doctor.qualification.join(", ")}
                     >
-                      {doctor.education[1]
-                        ? doctor.education[1]
-                        : "NA"}
+                      {doctor.qualification.join(", ")}
                     </p>
                     <p
                       className="text-primary fw-semibold mb-2"
