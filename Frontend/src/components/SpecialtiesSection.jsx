@@ -102,10 +102,9 @@ const SpecialtiesSection = () => {
                       dispatch(
                         setBreadcrumb(["Home", specialty.specialityName])
                       );
-                      navigate(
-                        `/${specialty.specialityID}`,
-                        { state: { specialityID: specialty.specialityID } }
-                      );
+                      navigate(`/${specialty.specialityID}`, {
+                        state: { specialityID: specialty.specialityID },
+                      });
                       window.scrollTo({ top: 0, behavior: "smooth" }); // scroll smoothly to top
                     }}
                   >

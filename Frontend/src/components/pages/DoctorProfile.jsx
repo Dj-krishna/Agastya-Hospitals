@@ -57,8 +57,8 @@ const DoctorProfile = () => {
               <div className="mt-3 border-bottom pb-3">
                 <h4 className="f-24 f-w-700">{doctorProfile.fullName}</h4>
                 <ul className="mt-2">
-                  {doctorProfile.educationQualification
-                    ? doctorProfile.educationQualification?.map((edu) => (
+                  {doctorProfile.qualification
+                    ? doctorProfile.qualification?.map((edu) => (
                         <li className="f-12 text-muted mb-n1">{edu}</li>
                       ))
                     : "N/A"}

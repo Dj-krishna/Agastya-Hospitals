@@ -159,9 +159,7 @@ const FindDoctor = () => {
                         <div className="doctor-info">
                           <h5 className="name">{doctor.fullName}</h5>
                           <p className="qualification">
-                            {doctor.educationQualification[1]
-                              ? doctor.educationQualification[1]
-                              : "NA"}
+                            {doctor.qualification.join(", ")}
                           </p>
                           <p className="designation">{doctor.designation}</p>
                           <ul

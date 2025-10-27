@@ -23,6 +23,7 @@ const Header = () => {
           path: item.specialityName.toLowerCase().replace(" ", "-"),
           label: item.specialityName,
           id: item.specialityID,
+          isNavigationDisplay: item.isNavigationDisplay,
         };
       })
     : [];
@@ -234,29 +235,37 @@ const Header = () => {
                   )}
                   {label === "Specialties" && (
                     <div className="row m-0 specialties-list dropdown-menu shadow">
-                      {dropdownItems[label].map((item) => (
-                        <div
-                          className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
-                          key={item.path}
-                        >
-                          <Link
-                            to={`/${item.id}`}
-                            state={{ specialityID: item.id }}
-                            className="dropdown-item"
-                            onClick={() => {
-                              // navigate(`/${item.id}`),
-                              //   {
-                              //     state: {
-                              //       specialityID: item.id,
-                              //     },
-                              //   };
-                              dispatch(setBreadcrumb(["Home", item.label]));
-                            }}
-                          >
-                            {item.label}
-                          </Link>
-                        </div>
-                      ))}
+                      {dropdownItems[label].map((item) => {
+                        return (
+                          <>
+                            {item.isNavigationDisplay && (
+                              <div
+                                className="col-lg-6 col-md-6 col-sm-6 col-xs-12"
+                                key={item.path}
+                              >
+                                <Link
+                                  to={`/${item.id}`}
+                                  state={{ specialityID: item.id }}
+                                  className="dropdown-item"
+                                  onClick={() => {
+                                    // navigate(`/${item.id}`),
+                                    //   {
+                                    //     state: {
+                                    //       specialityID: item.id,
+                                    //     },
+                                    //   };
+                                    dispatch(
+                                      setBreadcrumb(["Home", item.label])
+                                    );
+                                  }}
+                                >
+                                  {item.label}
+                                </Link>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })}
                     </div>
                   )}
                 </li>
