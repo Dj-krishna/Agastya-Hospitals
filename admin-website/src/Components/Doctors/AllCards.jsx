@@ -126,13 +126,13 @@ const AllCards = ({ onEditDoctor, refreshTrigger = 0 }) => {
                         fontSize: "12px !important",
                       }}
                       title={
-                        doctor.educationQualification[1]
-                          ? doctor.educationQualification[1]
+                        doctor.education[1]
+                          ? doctor.education[1]
                           : "NA"
                       }
                     >
-                      {doctor.educationQualification[1]
-                        ? doctor.educationQualification[1]
+                      {doctor.education[1]
+                        ? doctor.education[1]
                         : "NA"}
                     </p>
                     <p

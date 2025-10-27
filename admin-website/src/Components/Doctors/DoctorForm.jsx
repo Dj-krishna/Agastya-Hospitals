@@ -39,7 +39,8 @@ const initialFormState = {
   expertise: "",
   servicesOffered: [""],
   consultingLocation: "",
-  educationQualification: [""],
+  education: [""],
+  qualification: [""],
   experienceDescription: "",
   awardsAndAchievements: "",
   researchAndPublications: "",
@@ -63,7 +64,8 @@ const initialFormErrors = {
   expertise: "",
   servicesOffered: [""],
   consultingLocation: "",
-  educationQualification: [""],
+  education: [""],
+  qualification: [""],
   experienceDescription: "",
   awardsAndAchievements: "",
   researchAndPublications: "",
@@ -141,7 +143,8 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
         ...initialData,
         speciality: mappedSpeciality,
         // Handle array fields properly
-        educationQualification: initialData.educationQualification || [""],
+        education: initialData.education || [""],
+        qualification: initialData.qualification || [""],
         opTimings: initialData.opTimings || [""],
         languagesKnown: initialData.languagesKnown || [""],
         servicesOffered: initialData.servicesOffered || [""],
@@ -333,9 +336,15 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
             (service) => service.trim() !== ""
           );
         }
-        if (submitData.educationQualification) {
-          submitData.educationQualification =
-            submitData.educationQualification.filter(
+        if (submitData.education) {
+          submitData.education =
+            submitData.education.filter(
+              (edu) => edu.trim() !== ""
+            );
+        }
+        if (submitData.qualification) {
+          submitData.qualification =
+            submitData.qualification.filter(
               (edu) => edu.trim() !== ""
             );
         }
@@ -804,13 +813,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                   </Row>
                   <Row>
                     <Col md="8 mb-3">
-                      <Label>Education Qualification</Label>
-                      {formState.educationQualification.map((field, index) => (
+                      <Label>Education</Label>
+                      {formState.education.map((field, index) => (
                         <Fragment key={index}>
                           <div className="d-flex align-items-center mb-2">
                             <Input
                               // className={`form-control${
-                              //   formErrors.educationQualification[index]
+                              //   formErrors.education[index]
                               //     ? " is-invalid"
                               //     : ""
                               // }`}
@@ -820,17 +829,17 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                 "Enter Education Qualification " +
                                 Number(index + 1)
                               }
-                              name={`educationQualification${index}`}
+                              name={`education${index}`}
                               value={field}
                               onChange={(e) =>
                                 handleArrayChange(
-                                  "educationQualification",
+                                  "education",
                                   index,
                                   e.target.value
                                 )
                               }
                               invalid={
-                                !!formErrors.educationQualification[index]
+                                !!formErrors.education[index]
                               }
                             />
                             &nbsp;&nbsp;
@@ -842,11 +851,11 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               onClick={
                                 index === 0
                                   ? () => {
-                                      addArrayField("educationQualification");
+                                      addArrayField("education");
                                       setFormErrors((prev) => ({
                                         ...prev,
-                                        educationQualification: [
-                                          ...(prev.educationQualification ||
+                                        education: [
+                                          ...(prev.education ||
                                             []),
                                           "",
                                         ],
@@ -854,13 +863,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                     }
                                   : () => {
                                       removeArrayField(
-                                        "educationQualification",
+                                        "education",
                                         index
                                       );
                                       setFormErrors((prev) => ({
                                         ...prev,
-                                        educationQualification: (
-                                          prev.educationQualification || []
+                                        education: (
+                                          prev.education || []
                                         ).filter((_, i) => i !== index),
                                       }));
                                     }
@@ -870,7 +879,81 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                             </span>
                           </div>
                           {/* <ValidationAlert
-                            error={formErrors.educationQualification[index]}
+                            error={formErrors.education[index]}
+                          /> */}
+                        </Fragment>
+                      ))}
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col md="8 mb-3">
+                      <Label>Qualification</Label>
+                      {formState.qualification.map((field, index) => (
+                        <Fragment key={index}>
+                          <div className="d-flex align-items-center mb-2">
+                            <Input
+                              // className={`form-control${
+                              //   formErrors.educationQualification[index]
+                              //     ? " is-invalid"
+                              //     : ""
+                              // }`}
+                                                            className="form-control"
+                              type="text"
+                              placeholder={
+                                "Enter Qualification " +
+                                Number(index + 1)
+                              }
+                              name={`qualification${index}`}
+                              value={field}
+                              onChange={(e) =>
+                                handleArrayChange(
+                                  "qualification",
+                                  index,
+                                  e.target.value
+                                )
+                              }
+                              invalid={
+                                !!formErrors.qualification[index]
+                              }
+                            />
+                            &nbsp;&nbsp;
+                            <span
+                              style={{
+                                cursor: "pointer",
+                                color: index === 0 ? "green" : "red",
+                              }}
+                              onClick={
+                                index === 0
+                                  ? () => {
+                                      addArrayField("qualification");
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        qualification: [
+                                          ...(prev.qualification ||
+                                            []),
+                                          "",
+                                        ],
+                                      }));
+                                    }
+                                  : () => {
+                                      removeArrayField(
+                                        "qualification",
+                                        index
+                                      );
+                                      setFormErrors((prev) => ({
+                                        ...prev,
+                                        qualification: (
+                                          prev.qualification || []
+                                        ).filter((_, i) => i !== index),
+                                      }));
+                                    }
+                              }
+                            >
+                              {index === 0 ? <PlusSquare /> : <MinusSquare />}
+                            </span>
+                          </div>
+                          {/* <ValidationAlert
+                            error={formErrors.qualification[index]}
                           /> */}
                         </Fragment>
                       ))}
