@@ -44,8 +44,8 @@ export const routes = [
   { path: "/leadership-team", component: Leadership },
   { path: "/achievements", component: Achievements },
   { path: "/awards-recognition", component: AwardsAndRecongnition },
-  { path: "/gallery", component: Gallery },
   { path: "/international-patient", component: InternationalPatient },
   { path: "/blog-details", component: BlogDetails },
   { path: "/:id", component: SpecialtyDetails },
+  { path: "/gallery", component: Gallery },
 ];

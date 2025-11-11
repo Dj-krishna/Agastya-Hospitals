@@ -19,7 +19,7 @@ import "lightgallery/css/lg-thumbnail.css";
 import lgThumbnail from "lightgallery/plugins/thumbnail";
 import lgZoom from "lightgallery/plugins/zoom";
 
-const TabGallery = () => {
+const Gallery = () => {
   // Tabs and their image sets
   const tabs = {
      Infrastructure: [
@@ -146,4 +146,4 @@ const TabGallery = () => {
   );
 };
 
-export default TabGallery;
+export default Gallery;
