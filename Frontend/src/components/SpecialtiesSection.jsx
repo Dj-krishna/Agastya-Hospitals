@@ -33,6 +33,12 @@ const SpecialtiesSection = () => {
 
   const totalDots = Math.ceil(specialties.data?.length / 4);
 
+  const sortedData = Array.isArray(specialties?.data)
+    ? [...specialties?.data].sort((a, b) =>
+        a.specialityName.localeCompare(b.specialityName)
+      )
+    : [];
+
   return (
     <section className="container specialties-bg mx-auto">
       <div className="container mx-auto px-4">
@@ -60,7 +66,7 @@ const SpecialtiesSection = () => {
           {isLoading ? (
             <div className="text-center">Loading...</div>
           ) : (
-            specialties.data?.map((specialty) => (
+            sortedData?.map((specialty) => (
               <div
                 key={specialty.specialtyID}
                 className={`specialty-card-home col-md-4 ${
@@ -102,9 +108,14 @@ const SpecialtiesSection = () => {
                       dispatch(
                         setBreadcrumb(["Home", specialty.specialityName])
                       );
-                      navigate(`/${specialty.specialityID}`, {
-                        state: { specialityID: specialty.specialityID },
-                      });
+                      navigate(
+                        `/${specialty.specialityName
+                          .toLowerCase()
+                          .replace(/\s+/g, "-")}`,
+                        {
+                          //state: { specialityID: specialty.specialityID },
+                        }
+                      );
                       window.scrollTo({ top: 0, behavior: "smooth" }); // scroll smoothly to top
                     }}
                   >

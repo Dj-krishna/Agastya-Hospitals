@@ -86,6 +86,12 @@ export const MENUITEMS = [
         type: "link",
       },
       {
+        path: `/testimonials`,
+        icon: "home",
+        title: "Testimonials",
+        type: "link",
+      },
+      {
         path: `/roles-permissions`,
         icon: "project",
         title: "Roles & Permissions",

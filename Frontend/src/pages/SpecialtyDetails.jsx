@@ -16,7 +16,18 @@ const SpecialtyDetails = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { id: specialityID } = useParams();
+  const { id: specialityName } = useParams();
+
+  const formatSpecialtyTitle = (name) => {
+    return name
+      .replace(/-/g, " ")
+      .toLowerCase()
+      .split(" ")
+      .map((word) =>
+        word === "and" ? "and" : word.charAt(0).toUpperCase() + word.slice(1)
+      )
+      .join(" ");
+  };
 
   // const fetchSpecialties = async () => {
   //   try {
@@ -39,42 +50,46 @@ const SpecialtyDetails = () => {
   // };
 
   const fetchSpecialties = async () => {
-  try {
-    setLoading(true);
-    const response = await axios.get(
-      `${SPECIALITIES_API}?specialityID=${specialityID}`
-    );
-    if (response.data.doctor.length > 0) {
-      // Fetch all doctor data in parallel
-      const doctorsList = await Promise.all(
-        response.data.doctor.map(async (doc) => {
-          try {
-            const docResponse = await axios.get(`${DOCTORS_API}?doctorID=${doc}`);
-            // Only return doctor data if available
-            return docResponse.data?.data || null;
-          } catch {
-            // If doctor not found or error, return null
-            return null;
-          }
-        })
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${SPECIALITIES_API}?specialityName=${formatSpecialtyTitle(
+          specialityName
+        )}`
       );
-      // Filter out null values (doctors not found)
-      const doctorDataList = doctorsList.filter(Boolean);
-      setDoctorData(doctorDataList);
-    } else {
+      if (response.data[0].doctor.length > 0) {
+        // Fetch all doctor data in parallel
+        const doctorsList = await Promise.all(
+          response.data[0].doctor.map(async (doc) => {
+            try {
+              const docResponse = await axios.get(
+                `${DOCTORS_API}?doctorID=${doc}`
+              );
+              // Only return doctor data if available
+              return docResponse.data?.data || null;
+            } catch {
+              // If doctor not found or error, return null
+              return null;
+            }
+          })
+        );
+        // Filter out null values (doctors not found)
+        const doctorDataList = doctorsList.filter(Boolean);
+        setDoctorData(doctorDataList);
+      } else {
+        setDoctorData([]);
+      }
+      setSpecialties(response.data[0]);
+      setLoading(false);
+    } catch (error) {
       setDoctorData([]);
+      setSpecialties(null);
+      setLoading(false);
     }
-    setSpecialties(response.data);
-    setLoading(false);
-  } catch (error) {
-    setDoctorData([]);
-    setSpecialties(null);
-    setLoading(false);
-  }
-};
+  };
   useEffect(() => {
     fetchSpecialties();
-  }, [specialityID]);
+  }, [specialityName]);
 
   const gotoProfile = (doctorID) => {
     dispatch(setBreadcrumb(["Home", "Doctor Profile"]));

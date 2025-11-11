@@ -16,3 +16,4 @@ export const APPOINTMENTS_API = `${baseUrl}/${api}/appointments`;
 export const UPDATE_APPOINTMENT_API = `${baseUrl}/${api}/appointments`;
 export const BLOGS_API = `${baseUrl}/${api}/blogs`;
 export const HEALTH_PACKAGES_API = `${baseUrl}/${api}/health-packages`;
+export const TESTIMONIALS_API = `${baseUrl}/${api}/testimonials`;

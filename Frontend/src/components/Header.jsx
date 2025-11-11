@@ -20,7 +20,7 @@ const Header = () => {
   const sortedData = Array.isArray(specialties?.data)
     ? [...specialties?.data].map((item) => {
         return {
-          path: item.specialityName.toLowerCase().replace(" ", "-"),
+          path: item.specialityName.toLowerCase().replace(/\s+/g, "-"),
           label: item.specialityName,
           id: item.specialityID,
           isNavigationDisplay: item.isNavigationDisplay,
@@ -244,8 +244,8 @@ const Header = () => {
                                 key={item.path}
                               >
                                 <Link
-                                  to={`/${item.id}`}
-                                  state={{ specialityID: item.id }}
+                                  to={`/${item.path}`}
+                                  //state={{ specialityID: item.id }}
                                   className="dropdown-item"
                                   onClick={() => {
                                     // navigate(`/${item.id}`),

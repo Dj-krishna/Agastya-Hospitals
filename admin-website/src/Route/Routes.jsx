@@ -13,6 +13,7 @@ import Specialities from "../Components/Specialities";
 import Patients from "../Components/Patients";
 import MedicalRecords from "../Components/MedicalRocords";
 import UserProfileCard from "../Components/UserProfile";
+import Testimonials from "../Components/Testimonials";
 
 export const routes = [
   { path: `/dashboard`, Component: <Default /> },
@@ -27,6 +28,7 @@ export const routes = [
   { path: `/technologies`, Component: <Technologies /> },
   { path: `/health-packages`, Component: <HealthPackages /> },
   { path: `/blog`, Component: <Blog /> },
+  { path: `/testimonials`, Component: <Testimonials /> },
   { path: `/roles-permissions`, Component: <RolesPermissions /> },
   { path: `/settings`, Component: <Settings /> },
   { path: `/my-profile`, Component: <UserProfileCard /> },
