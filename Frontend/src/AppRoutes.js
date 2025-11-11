@@ -40,7 +40,7 @@ export const routes = [
   { path: "/terms-and-conditions", component: TermsAndConditions },
   { path: "/free-second-opinion", component: FreeSecondOpinionForm },
   { path: "/medical-reports", component: MedicalReports },
-  { path: "/doctor/profile", component: DoctorProfile },
+  { path: "/:id", component: DoctorProfile },
   { path: "/leadership-team", component: Leadership },
   { path: "/achievements", component: Achievements },
   { path: "/awards-recognition", component: AwardsAndRecongnition },

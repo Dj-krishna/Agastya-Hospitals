@@ -61,8 +61,9 @@ const FindDoctor = () => {
     return matchesSpecialty && matchesName;
   });
 
-  const gotoProfile = (doctorID) => {
-    navigate("/doctor/profile", { state: { doctorID } });
+  const gotoProfile = (fullName) => {
+    const formattedName = fullName.toLowerCase().replace(/[.\s]+/g, "-");
+    navigate(`/${formattedName}`);
   };
 
   return (
@@ -204,7 +205,7 @@ const FindDoctor = () => {
                       <button
                         href="#"
                         className="ctabtn viewprofile"
-                        onClick={() => gotoProfile(doctor.doctorID)}
+                        onClick={() => gotoProfile(doctor.fullName)}
                       >
                         View Profile
                       </button>

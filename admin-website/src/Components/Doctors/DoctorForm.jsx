@@ -158,7 +158,14 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
   const validateField = (name, value) => {
     switch (name) {
       case "fullName":
-        return value.trim() === "" ? "Full Name is required" : "";
+      case "fullName":
+        if (value.trim() === "") {
+          return "Full Name is required";
+        }
+        if (/[^a-zA-Z\s]/.test(value)) {
+          return "No special characters are allowed";
+        }
+        return "";
       case "mobile":
         return /^[0-9]\d{9}$/.test(value)
           ? ""
@@ -207,6 +214,8 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
       const errorMsg = validateField(name, value);
       setFormErrors((prev) => ({ ...prev, [name]: errorMsg }));
     }
+
+    setFormErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
   };
 
   const handleQuillChange = (field, value) => {
@@ -337,16 +346,14 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
           );
         }
         if (submitData.education) {
-          submitData.education =
-            submitData.education.filter(
-              (edu) => edu.trim() !== ""
-            );
+          submitData.education = submitData.education.filter(
+            (edu) => edu.trim() !== ""
+          );
         }
         if (submitData.qualification) {
-          submitData.qualification =
-            submitData.qualification.filter(
-              (edu) => edu.trim() !== ""
-            );
+          submitData.qualification = submitData.qualification.filter(
+            (edu) => edu.trim() !== ""
+          );
         }
         if (submitData.opTimings) {
           submitData.opTimings = submitData.opTimings.filter(
@@ -449,7 +456,9 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                           type="text"
                           name="fullName"
                           id="fullName"
-                          value={formState.fullName.replace(/^(Dr\.)\s*/, "")}
+                          value={formState.fullName
+                            .replace(/^(Dr\.)\s*/, "")
+                            .replace(/[^a-zA-Z\s]/g, "")}
                           onChange={handleChange}
                           placeholder="Enter full name"
                           invalid={!!formErrors.fullName}
@@ -823,7 +832,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               //     ? " is-invalid"
                               //     : ""
                               // }`}
-                                                            className="form-control"
+                              className="form-control"
                               type="text"
                               placeholder={
                                 "Enter Education Qualification " +
@@ -838,9 +847,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   e.target.value
                                 )
                               }
-                              invalid={
-                                !!formErrors.education[index]
-                              }
+                              invalid={!!formErrors.education[index]}
                             />
                             &nbsp;&nbsp;
                             <span
@@ -855,17 +862,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         education: [
-                                          ...(prev.education ||
-                                            []),
+                                          ...(prev.education || []),
                                           "",
                                         ],
                                       }));
                                     }
                                   : () => {
-                                      removeArrayField(
-                                        "education",
-                                        index
-                                      );
+                                      removeArrayField("education", index);
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         education: (
@@ -897,11 +900,10 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                               //     ? " is-invalid"
                               //     : ""
                               // }`}
-                                                            className="form-control"
+                              className="form-control"
                               type="text"
                               placeholder={
-                                "Enter Qualification " +
-                                Number(index + 1)
+                                "Enter Qualification " + Number(index + 1)
                               }
                               name={`qualification${index}`}
                               value={field}
@@ -912,9 +914,7 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                   e.target.value
                                 )
                               }
-                              invalid={
-                                !!formErrors.qualification[index]
-                              }
+                              invalid={!!formErrors.qualification[index]}
                             />
                             &nbsp;&nbsp;
                             <span
@@ -929,17 +929,13 @@ const DoctorForm = ({ onClose, initialData = null, isEditMode = false }) => {
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         qualification: [
-                                          ...(prev.qualification ||
-                                            []),
+                                          ...(prev.qualification || []),
                                           "",
                                         ],
                                       }));
                                     }
                                   : () => {
-                                      removeArrayField(
-                                        "qualification",
-                                        index
-                                      );
+                                      removeArrayField("qualification", index);
                                       setFormErrors((prev) => ({
                                         ...prev,
                                         qualification: (

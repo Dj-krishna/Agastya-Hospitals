@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import { DOCTORS_API } from "../../api/services";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setBreadcrumb } from "../../slices/breadcrumbSlice";
@@ -13,14 +13,21 @@ const DoctorProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const doctorID = location.state?.doctorID;
+  const { id: fullName } = useParams();
+  // const doctorID = location.state?.doctorID;
+  const formattedName = fullName
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .replace(/^Dr\b/, "Dr.");
 
   const fetchDoctorById = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${DOCTORS_API}/?doctorID=${doctorID}`);
+      const response = await axios.get(
+        `${DOCTORS_API}?fullName=${formattedName}`
+      );
       if (response.data) {
-        setDoctorProfile(response.data.data);
+        setDoctorProfile(response.data.data[0]);
         setLoading(false);
       }
     } catch (error) {
@@ -30,7 +37,9 @@ const DoctorProfile = () => {
 
   useEffect(() => {
     fetchDoctorById();
+    dispatch(setBreadcrumb(["Home", formattedName]));
   }, []);
+
   return (
     <div className="container p-5">
       {loading ? (
