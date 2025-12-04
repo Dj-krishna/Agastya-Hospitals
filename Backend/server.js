@@ -27,6 +27,7 @@ const blogRoutes = require('./routes/blogRoutes');
 const technologyRoutes = require('./routes/technologyRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const testimonialRoutes = require('./routes/testimonialRoutes');
+const smsRoutes = require('./routes/smsRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -51,6 +52,17 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 
 // ---------------- ROUTES ----------------
+// ---------------- OTP / SMS SPECIFIC PROTECTION ----------------
+// Apply a stricter limiter for OTP sending to avoid abuse & SMS cost
+const otpLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour window
+  max: 5, // limit each IP to 5 OTP requests per windowMs
+  message: 'Too many OTP requests from this IP. Please try again later.'
+});
+// Mount the otp limiter on the specific endpoint path BEFORE mounting smsRoutes.
+// This ensures the limiter runs for requests to /api/sms/send-otp.
+app.use('/api/sms/send-otp', otpLimiter);
+
 app.use('/api/doctors', doctorRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/specialities', specialityRoutes);
@@ -68,6 +80,8 @@ app.use('/api/departments', departmentRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/api/testimonials', testimonialRoutes);
+
+app.use('/api/sms', smsRoutes);
 
 
 // ---------------- ERROR HANDLER ----------------
